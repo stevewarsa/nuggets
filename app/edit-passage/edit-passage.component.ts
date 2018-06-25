@@ -149,8 +149,10 @@ export class EditPassageComponent implements OnInit {
       if (result === "success") {
         if (updatePassageParam.newText) {
           // this means we updated an override, so need to reload our override list
+          console.log('Updating memory passage text overrides...');
           this.memoryService.getMemoryPassageTextOverrides(updatePassageParam.user).subscribe((overrides: Passage[]) => {
             this.memoryService.setMemoryPassageTextOverrides(overrides);
+            console.log('Memory passage text overrides have been updated.');
             this.location.back();
           });
         } else {

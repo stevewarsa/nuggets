@@ -311,6 +311,17 @@ export class SearchComponent implements OnInit {
       this.processing = false;
       this.processingMessage = null;
       if (result === "success") {
+        if (updatePassageParam.newText) {
+          // this means we updated an override, so need to reload our override list
+          console.log('Updating memory passage text overrides...');
+          this.memoryService.getMemoryPassageTextOverrides(updatePassageParam.user).subscribe((overrides: Passage[]) => {
+            this.memoryService.setMemoryPassageTextOverrides(overrides);
+            console.log('Memory passage text overrides have been updated.');
+            this.route.navigate(['practiceSetup']);
+          });
+        } else {
+          this.route.navigate(['practiceSetup']);
+        }
         this.route.navigate(['practiceSetup']);
       } else {
         console.log("Problem updating passage with override text: " + result);
