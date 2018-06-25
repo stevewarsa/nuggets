@@ -1,0 +1,39 @@
+<div class="container">
+  <p>{{bookName}} {{chapter}}</p>
+  <form>
+    <div class="form-group">
+      <label for="translation">Translation</label> &nbsp;
+      <input 
+        (focus)="$event.target.select()" 
+        [ngbTypeahead]="searchTranslations" 
+        [value]="translation" 
+        (selectItem)="changeTranslation($event)" 
+        type="text" 
+        style="color: black">
+    </div>
+    <div class="form-group">
+      <label for="startVerse">Start Verse</label>
+      <input type="number" [value]="startVerse" (change)="changeStartVerse($event)" (focus)="$event.target.select()" class="form-control" id="startVerse" name="startVerse" placeholder="Start Verse">
+    </div>
+    <div class="form-group">
+      <label for="endVerse">End Verse</label>
+      <input type="number" [value]="endVerse" (change)="changeEndVerse($event)" (focus)="$event.target.select()" class="form-control" id="endVerse" name="endVerse" placeholder="End Verse">
+    </div>
+    <div class="form-group">
+      <label for="append">Append Letter</label>
+      <input type="text" [(ngModel)]="append" (focus)="$event.target.select()" class="form-control" id="append" name="append" placeholder="Append Letter">
+    </div>
+    <div class="form-group">
+      <label for="passageText">Passage Text</label>
+      <textarea name="currPassageText" [cols]="colsInTextArea" [rows]="rowsInTextArea" [value]="currPassageText" (change)="changePassageText($event)" class="form-control" id="passageText"></textarea>
+    </div>
+    <div class="form-group">
+      <label for="frequency">Frequency</label>
+      <select class="form-control" id="frequency" name="frequency" [(ngModel)]="frequency">
+        <option value="">-Select One-</option>
+        <option *ngFor="let freq of frequencies" value="{{freq.freqValue}}">{{freq.freqLabel}}</option>
+      </select>							
+    </div>
+    <button [disabled]="!originalChanged && originalTranslation === translation && frequency === originalFrequency && append === originalAppend" (click)="submitChanges()" type="submit" class="btn btn-primary">Submit</button>
+  </form>
+</div>

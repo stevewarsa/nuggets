@@ -1,0 +1,25 @@
+<div class="container" *ngIf="loading">
+  <div class="row">
+    <div class="col-md col-sm">
+      <p style="text-align: center;">Retrieving memory verses for practice session for {{currentUser}}. Please wait a moment...</p>
+    </div>
+  </div>
+</div>
+<div class="container" *ngIf="!loading">
+  <mem-view-bible-passage 
+    [currentIndex]="currentIndex" 
+    [passagesLength]="passages.length" 
+    [selectedTranslation]="selectedTranslation"
+    [showVerseNumbers]="showVerseNumbers" 
+    [shortBook]="false" 
+    [showProgressInLine]="false" 
+    [passage]="currentPassage" 
+    [searching]="searching" 
+    [searchingMessage]="searchingMessage" 
+    [allowSwipe]="true" 
+    [showPsgText]="!showPsgRefFirst" 
+    (nextEvent)="next()" 
+    (prevEvent)="prev()" 
+    (answerEvent)="showAnswer()">
+  </mem-view-bible-passage>
+</div>

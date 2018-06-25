@@ -1,0 +1,46 @@
+/* You can add global styles to this file, and also import other style files */
+html, body {
+	margin: 0;
+	padding: 0;
+	height: 100%;
+    padding-bottom: 10px !important;
+    color: #ffffff !important;
+    background: #000000 !important;
+    overflow-y: auto !important;
+    font-family: Clan,'Helvetica Neue',Helvetica,Arial,sans-serif !important;
+    font-size: 14px;
+    font-style: normal !important;
+}
+a {
+    color: #ffffff !important;
+    font-size: 20px !important;
+    cursor: pointer;
+}
+.nugget-view {
+	font-weight: bold;
+	line-height: 1.25em;
+	font-size: 1.9em;
+	height: 100%;
+}
+.psg-nav, i {
+    font-size: 54px !important;
+}
+
+.wordsOfChrist {
+	color: #FF0000;
+}
+
+.verse_num {
+	font-weight: normal;
+	font-size: 0.75em;
+}
+
+.bible_version {
+	color: #00FFFF;
+}
+
+@media only screen and (max-width: 600px) {
+    .psg-nav, i {
+        /* font-size: 56px !important; */
+    }
+}

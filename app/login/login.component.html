@@ -1,0 +1,65 @@
+<div class="container" *ngIf="showInitializing" style="padding: 10px !important;">
+	<div class="row">
+		<div class="col-md col-sm">
+			<p class="lead">Initializing Memory Verses...</p>
+		</div>
+	</div>
+</div>
+<div class="container" *ngIf="showLoggingIn" style="padding: 10px !important;">
+	<div class="row">
+		<div class="col-md col-sm">
+			<p class="lead">Logging in...</p>
+			<img src="assets/ajax-loader.gif"/>
+		</div>
+	</div>
+</div>
+<div class="container" *ngIf="!showInitializing && !showLoggingIn" style="padding: 10px !important;">
+	<div class="row">
+		<div class="col-md col-sm" style="margin: 5px;">
+			<img alt="God's Word is like Nuggets of Gold" class="brand-image" src="assets/goldnuggeticon.png">
+			<span class="float-right" style="font-size: 24px; font-weight: bold; color: khaki;">Nuggets Login</span>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-md col-sm">
+			<p>If you don't have a login, just type in a user name and you will be logged in.</p>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-md col-sm">
+			<form class="form-horizontal login-form" role="form">
+				<div class="form-group">
+					<label for="user.name" class="col-md col-sm control-label">User Name:</label>
+					<div class="col-md col-sm">
+						<input type="text" maxlength="20" class="form-control" [(ngModel)]="user.name" id="user.name" name="user.name" placeholder="Enter User Name" autofocus>
+					</div>
+				</div>
+				<div class="form-group">
+					<label for="user.nameSelected" class="col-md col-sm control-label"><u>Or</u> Select Name:</label>
+					<div class="col-md col-sm">
+						<select class="form-control" id="user.nameSelected" name="user.nameSelected" [(ngModel)]="user.nameSelected">
+              <option value="">-Select One-</option>
+              <option *ngFor="let user of users" value="{{user.userName}}">{{user.userName}}</option>
+						</select>							
+					</div>
+				</div>
+				<div class="form-group">
+					<div class="col-md col-sm col-md-offset-2 col-sm-offset-2">
+						<button type="button" class="btn btn-primary btn-block" (click)="login()">Login</button>
+					</div>
+				</div>
+				<div class="form-group">
+					<div class="col-md col-sm col-md-offset-2 col-sm-offset-2">
+						<label class="checkbox-inline"> 
+							<input type="checkbox" name="remember_me" [(ngModel)]="user.rememberMe"/>
+							Remember Me
+						</label>
+					</div>
+				</div>
+			</form>
+		</div>
+	</div>
+	<div class="row" *ngIf="errorMessage !== null" style="padding: 10px !important;">
+	  <font color="red"><b>{{errorMessage}}</b></font>
+	</div>
+</div>

@@ -1,0 +1,73 @@
+<div class="container">
+	<div class="row justify-content-center">
+		<div class="col-md col-sm">
+			<h1 style="text-align: center;">Practice Setup</h1>
+		</div>
+	</div>
+	<div class="row justify-content-center">
+		<form class="form-horizontal justify-content-center" role="form" style="font-size: large;">
+			<div class="form-group">
+				<div class="row">
+					<div class="col-md col-sm">
+						<label for="practiceMode" class="control-label">Practice Mode:</label>
+					</div>																
+				</div>
+				<div class="row">
+					<div class="col-md col-sm col-md-offset-1 col-sm-offset-1">				
+						<label class="radio-inline"> 
+							<input type="radio" name="practice_mode" value="by_ref" [(ngModel)]="practiceSettings.practiceMode"/>
+							By Reference
+						</label>
+					</div>
+				</div> 
+				<div class="row">
+					<div class="col-md col-sm col-md-offset-1 col-sm-offset-1">				
+						<label class="radio-inline"> 
+							<input type="radio" name="practice_mode" value="by_psgtxt" [(ngModel)]="practiceSettings.practiceMode"/>
+							By Passage Text
+						</label>
+					</div>
+				</div>
+			</div>
+			<div class="form-group"> 
+				<div class="row">
+					<div class="col-md col-sm">
+						<label for="passageDisplayOrder" class="control-label">Passage Display Order:</label>
+					</div>																
+				</div>
+				<div class="row">
+					<div class="col-md col-sm col-md-offset-1 col-sm-offset-1">				
+						<label class="radio-inline"> 
+							<input type="radio" name="psg_display_order" value="by_freq" [(ngModel)]="practiceSettings.displayOrder"/>
+							By Frequency
+						</label>
+					</div>
+				</div> 
+				<div class="row">
+					<div class="col-md col-sm col-md-offset-1 col-sm-offset-1">				
+						<label class="radio-inline"> 
+							<input type="radio" name="psg_display_order" value="rand" [(ngModel)]="practiceSettings.displayOrder"/>
+							Random
+						</label>
+					</div>
+				</div> 
+				<div class="row">
+					<div class="col-md col-sm col-md-offset-1 col-sm-offset-1">				
+						<label class="radio-inline"> 
+							<input type="radio" name="psg_display_order" value="by_last_practiced_time" [(ngModel)]="practiceSettings.displayOrder"/>
+							By Last Practiced Date/Time
+						</label>
+					</div>
+				</div> 
+			</div>
+			<hr/>
+			<div class="form-group">
+				<div class="row">
+					<div class="btn-group">
+						<a role="button" [routerLink]="['/practice', practiceSettings.practiceMode, practiceSettings.displayOrder, -1]" class="btn btn-link no-padding-top-bottom" title="Start Practice"><i class="fa fa-play" style="margin-right: 5px; font-size: 32px !important;"></i> <span class="helv-white">Start</span></a>
+					</div>
+				</div> 
+			</div>
+		</form>
+	</div>
+</div>

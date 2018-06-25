@@ -1,0 +1,95 @@
+<div class="container">
+  <h4 *ngIf="!processing">Add passages to your memory list</h4>
+  <hr *ngIf="!processing"/>
+  <div *ngIf="processing" class="row">
+    <div style="text-align: center;">
+      <p class="lead">{{processingMessage}}</p><img src="assets/ajax-loader.gif" />
+    </div>
+  </div>
+  <div *ngIf="!processing" class="row">
+    <div class="col-md-6 form-inline">
+      <input 
+        name="bibleBook" 
+        (focus)="$event.target.select()" 
+        type="text" 
+        size="9" 
+        width="9" 
+        placeholder="Enter Bible book" 
+        ngxTypeahead 
+        [value]="bibleBook" 
+        [ngbTypeahead]="search" 
+        (selectItem)="handleBibleBookSelected($event)">
+      &nbsp;Transl: &nbsp;
+      <input 
+        (focus)="$event.target.select()" 
+        [ngbTypeahead]="searchTranslations" 
+        [value]="translation" 
+        (selectItem)="changeTranslation($event)" 
+        size="2" 
+        width="2" 
+        type="text" 
+        style="color: black">
+        &nbsp;
+      <button (click)="showChapterSelection()" *ngIf="startVerse && startVerse > 0 && endVerse && endVerse > 0 && !editing && passageHtml" type="button" class="btn btn-primary">Chap</button>
+      &nbsp;
+      <button (click)="showVerseSelection()" *ngIf="startVerse && startVerse > 0 && endVerse && endVerse > 0 && !editing && passageHtml" type="button" class="btn btn-primary">Vrs</button>
+    </div>
+  </div>
+  <div class="row" *ngIf="!processing && chapterRows && chapterRows.length > 0 && toggleChapterSelection">
+    <table class="table table-bordered" style="margin: 5px;">
+      <tbody>
+          <tr>
+              <th colspan="3" style="text-align: center;">Chapter</th>
+          </tr>
+          <tr class="d-flex" *ngFor="let chapterRow of chapterRows">
+          <td 
+            align="center" 
+            class="col-sm-4" 
+            *ngFor="let chapter of chapterRow" 
+            style="font-size: 1.5em" 
+            (click)="selectChapter(chapter)">
+            {{chapter}}
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <div *ngIf="!processing && chapter && chapter > 0 && (!startVerse || !endVerse || toggleVerseSelection)" class="row">
+    <table class="table table-bordered" style="margin: 5px;">
+      <tbody>
+        <tr>
+          <th colspan="3" style="text-align: center;">Chapter: {{chapter}}</th>
+        </tr>
+        <tr>
+          <th colspan="3" style="text-align: center;">Verses <span *ngIf="verseSelectionMode === 'start' || verseSelectionMode === 'end'" [ngStyle]="{ 'color': verseSelectionMode === 'start' ? 'green' : 'red' }">(select {{verseSelectionMode}})</span></th>
+        </tr>
+        <tr class="d-flex" *ngFor="let verseRow of verseRows">
+          <td 
+            align="center" 
+            class="col-sm-4" 
+            *ngFor="let verse of verseRow" 
+            [ngStyle]="{ 'color': verseFontColor[verse] ? verseFontColor[verse] : 'white', 'font-weight': verseFontColor[verse] ? 'bold' : 'normal', 'font-size': verseFontColor[verse] ? '1.6em' : '1.5em' }" 
+            (click)="selectVerse(verse)">
+            {{verse}}
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="row" *ngIf="!processing && startVerse && startVerse > 0 && endVerse && endVerse > 0">
+    <div style="text-align: center; padding: 10px;" class="col-sm">
+        <button (click)="editPassage()" *ngIf="startVerse && startVerse > 0 && endVerse && endVerse > 0 && !editing && passageHtml" type="button" class="btn btn-primary"><i style="font-size: 18px !important;" class="fa fa-edit"></i></button>
+        <button (click)="updatePassage()" *ngIf="startVerse && startVerse > 0 && endVerse && endVerse > 0 && editing && passageHtml" type="button" class="btn btn-primary"><i style="font-size: 18px !important;" class="fa fa-check-square-o"></i></button>
+        &nbsp;&nbsp;
+        <button (click)="addPassage()" *ngIf="startVerse && startVerse > 0 && endVerse && endVerse > 0 && !editing && passageHtml" type="button" class="btn btn-primary"><i style="font-size: 18px !important;" class="fa fa-plus"></i></button>
+        <button disabled (click)="addPassage()" *ngIf="startVerse && startVerse > 0 && endVerse && endVerse > 0 && editing && passageHtml" type="button" class="btn btn-primary"><i style="font-size: 18px !important;" class="fa fa-plus"></i></button>
+        &nbsp;&nbsp;
+        <span *ngIf="showAppend">Append:</span> <input *ngIf="showAppend" (focus)="$event.target.select()" [(ngModel)]="append" size="1" width="1" type="text" style="color: black">
+    </div>
+    <hr/>
+    <div *ngIf="!editing" [innerHTML]="passageHtml" style="padding: 10px;"></div>
+    <div class="col-sm" *ngIf="editing" style="padding: 10px;">
+      <textarea [cols]="colsInTextArea" [rows]="rowsInTextArea" [(ngModel)]="currPassageText"></textarea>
+    </div>
+  </div>
+</div>

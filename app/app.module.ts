@@ -1,0 +1,63 @@
+import { BrowserModule, HAMMER_GESTURE_CONFIG, HammerGestureConfig } from '@angular/platform-browser';
+import { NgModule } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
+
+import { AppRoutingModule } from './app-routing.module';
+import { AppComponent } from './app.component';
+import { TopNavComponent } from './top-nav/top-nav.component';
+import { ViewBiblePassageComponent } from './view-bible-passage/view-bible-passage.component';
+import { LoginComponent } from './login/login.component';
+import { MyVerseListComponent } from './my-verse-list/my-verse-list.component';
+import { PassageNavigationComponent } from './passage-navigation/passage-navigation.component';
+import { PracticeComponent } from './practice/practice.component';
+import { PracticeSetupComponent } from './practice-setup/practice-setup.component';
+import { SearchComponent } from './search/search.component';
+import { ToastrModule } from 'ngx-toastr';
+import { ClipboardModule } from 'ngx-clipboard';
+import { CommonModule } from '@angular/common';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { HttpModule } from '@angular/http';
+import { EditPassageComponent } from './edit-passage/edit-passage.component';
+export class MyHammerConfig extends HammerGestureConfig {
+  overrides = <any>{
+    'pinch': { enable: false },
+    'rotate': { enable: false }
+  }
+}
+
+@NgModule({
+  declarations: [
+    AppComponent,
+    TopNavComponent,
+    ViewBiblePassageComponent,
+    LoginComponent,
+    MyVerseListComponent,
+    PassageNavigationComponent,
+    PracticeComponent,
+    PracticeSetupComponent,
+    SearchComponent,
+    EditPassageComponent
+  ],
+  imports: [
+    BrowserModule,
+    CommonModule,
+    BrowserAnimationsModule, // required animations module (for toaster)
+    ToastrModule.forRoot({
+      timeOut: 1000
+    }),
+    ClipboardModule,
+    NgbModule.forRoot(),
+    FormsModule,
+    HttpModule,
+    AppRoutingModule
+  ],
+  providers: [
+    {
+      provide: HAMMER_GESTURE_CONFIG,
+      useClass: MyHammerConfig
+    }
+  ],
+  bootstrap: [AppComponent]
+})
+export class AppModule { }

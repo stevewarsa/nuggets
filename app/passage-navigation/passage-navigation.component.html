@@ -1,0 +1,25 @@
+<div class="row">
+  <div class="col-md col-lg col-sm" style="text-align: center;">
+    <p class="psg-nav">
+      <a class="nextprev" (click)="showAnswer()">
+        <i class="fa fa-{{questionIcon}}" [ngStyle]="{ 'color': iconFontColor }"></i>
+      </a>&nbsp;
+      <a class="nextprev" (click)="prev()">
+        <i class="fa fa-arrow-left" style="color: lightgreen;"></i>
+      </a>&nbsp;
+      <a class="nextprev" (click)="next()">
+        <i class="fa fa-arrow-right" style="color: lightgreen;"></i>
+      </a>&nbsp;
+      <a class="nextprev" (click)="stopPracticeSession()">
+        <i class="fa fa-window-close" style="color: red;"></i>
+      </a>
+    </p>
+  </div>
+</div>
+<div class="row">
+  <div class="col-md col-lg col-sm" style="text-align: center;">
+    <strong>{{progressString}}</strong> &nbsp;<span style="color: magenta">[Frequency: <em>{{_frequencyString}}</em>]</span><br/>
+    Last Practiced: <span style="color: orange">{{lastPracticedDateString}}</span>
+    <hr/>
+  </div>
+</div>

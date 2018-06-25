@@ -1,0 +1,18 @@
+<div class="container">
+  <div class="row">
+    <div class="col-md col-sm" style="margin: 5px; padding: 5px;">
+      Filter:
+      <input type="text" maxlength="50" size="20" (keyup)="filterItems($event)" style="color: black">
+      &nbsp;{{filteredPassageRefs.length}} passages
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md col-sm">
+      <ul class="list-group">
+        <li class="list-group-item">
+          <a *ngFor="let passageRef of filteredPassageRefs" (click)="goToPassage(passageRef)" class="list-group-item" title="Go to {{passageRef}} in the memory list"style="background: black">{{passageRef}}</a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</div>

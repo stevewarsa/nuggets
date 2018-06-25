@@ -1,0 +1,28 @@
+<nav class="navbar navbar-expand-md navbar-dark">
+    <!-- <a *ngIf="mobile" class="navbar-brand" href="#">Memory Verses</a> -->
+    <img *ngIf="mobile" style="max-height: 40px;" alt="God's Word is like Nuggets of Gold" class="navbar-brand brand-image" src="assets/goldnuggeticon.png">
+    <button class="navbar-toggler" (click)="toggleExpanded()" [attr.aria-expanded]="!isCollapsed" type="button" aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+  <div class="navbar-collapse collapse justify-content-center" id="collapsingNavbar" [ngbCollapse]="isCollapsed">
+    <ul class="navbar-nav mx-auto">
+      <li class="nav-item active">
+        <a class="nav-link" (click)="toggleExpanded()" [routerLink]="['practiceSetup']">Practice Setup
+          <span class="sr-only">Home</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" (click)="toggleExpanded()" [routerLink]="['myverselist']">My Passage List</a>
+      </li>
+      <li class="nav-item">
+          <a class="nav-link" (click)="toggleExpanded()" [routerLink]="['search']">Search/Add</a>
+      </li>
+      <li *ngIf="currentPassage" class="nav-item">
+        <a class="nav-link" (click)="toggleExpanded()" [routerLink]="['edit']">Edit Passage</a>
+      </li>
+      <li *ngIf="currentPassage" class="nav-item">
+        <a id="cbCopy" class="nav-link" (click)="toggleExpanded()" ngxClipboard [cbContent]="passageTextForClipboard" (cbOnSuccess)="clipboardCopyComplete()">Copy</a>
+      </li>
+    </ul>
+  </div>
+</nav>
