@@ -1,20 +1,28 @@
 <div class="row">
   <div class="col-md col-lg col-sm" style="text-align: center;">
     <p class="psg-nav">
-      <a class="nextprev" (click)="showAnswer()">
+      <a (click)="showAnswer()">
         <i class="fa fa-{{questionIcon}}" [ngStyle]="{ 'color': iconFontColor }"></i>
       </a>&nbsp;
-      <a class="nextprev" (click)="prev()">
+      <a (click)="prev()">
         <i class="fa fa-arrow-left" style="color: lightgreen;"></i>
       </a>&nbsp;
-      <a class="nextprev" (click)="next()">
+      <a (click)="next()">
         <i class="fa fa-arrow-right" style="color: lightgreen;"></i>
       </a>&nbsp;
-      <a class="nextprev" (click)="stopPracticeSession()">
+      <a (click)="stopPracticeSession()">
         <i class="fa fa-window-close" style="color: red;"></i>
+      </a>&nbsp;
+      <a (click)="toggleAdditionalOptions()" class="dropdown-toggle" aria-haspopup="true" aria-expanded="false">
+        <i class="fa fa-ellipsis-h" style="color: white;"></i>
       </a>
     </p>
-  </div>
+    <div class="dropdown-menu dropdown-menu-right" [ngbCollapse]="isCollapsed">
+      <a style="color: black !important;" class="dropdown-item" [routerLink]="['/edit']"><i class="fa fa-edit"></i> Edit</a>
+      <a style="color: black !important;" class="dropdown-item" [routerLink]="['/search']"><i class="fa fa-search"></i> Search</a>
+      <a style="color: black !important;" class="dropdown-item" [routerLink]="['/practiceSetup']"><i class="fa fa-play"></i> Practice Restart</a>
+    </div>
+</div>
 </div>
 <div class="row">
   <div class="col-md col-lg col-sm" style="text-align: center;">

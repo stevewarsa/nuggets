@@ -41,12 +41,17 @@ export class PassageNavigationComponent implements OnInit {
     }
   }
   questionIcon: string = null;
+  isCollapsed: boolean = true;
 
   constructor() { }
 
   ngOnInit() {
     this.questionIcon = this._showPassageTextFirst ? "question-circle" : "lightbulb-o";
     this.iconFontColor = this.questionIcon === "question-circle" ? "lightskyblue" : "yellow";
+  }
+
+  toggleAdditionalOptions() {
+    this.isCollapsed = !this.isCollapsed;
   }
 
   next() {

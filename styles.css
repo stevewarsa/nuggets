@@ -23,7 +23,7 @@ a {
 	height: 100%;
 }
 .psg-nav, i {
-    font-size: 54px !important;
+    font-size: 44px !important;
 }
 
 .wordsOfChrist {
@@ -37,10 +37,4 @@ a {
 
 .bible_version {
 	color: #00FFFF;
-}
-
-@media only screen and (max-width: 600px) {
-    .psg-nav, i {
-        /* font-size: 56px !important; */
-    }
 }
