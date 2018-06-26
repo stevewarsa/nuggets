@@ -20,6 +20,9 @@
       <li *ngIf="currentPassage" class="nav-item">
         <a class="nav-link" (click)="toggleExpanded()" [routerLink]="['edit']">Edit Passage</a>
       </li>
+      <li class="nav-item">
+        <a class="nav-link" (click)="toggleExpanded()" [routerLink]="['bibleSearch']">Bible Search</a>
+      </li>
       <li *ngIf="currentPassage" class="nav-item">
         <a id="cbCopy" class="nav-link" (click)="toggleExpanded()" ngxClipboard [cbContent]="passageTextForClipboard" (cbOnSuccess)="clipboardCopyComplete()">Copy</a>
       </li>

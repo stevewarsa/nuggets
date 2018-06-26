@@ -1,0 +1,83 @@
+<div class="container">
+  <div class="row justify-content-center">
+    <div class="col-md col-sm">
+      <h2 style="text-align: center;padding-top: 15px;">Bible Search</h2>
+    </div>
+    <hr style="background: white; width: 90%;" />
+  </div>
+  <div class="row justify-content-center">
+    <form class="form-horizontal justify-content-center" role="form" style="font-size: large; width: 90%;">
+      <div class="form-group">
+        <div class="row">
+          <div class="col-md col-sm">
+            <label for="practiceMode" class="control-label">Testament:</label>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md col-sm">
+            <label class="radio-inline" style="margin: 5px;">
+              <input type="radio" name="testament" value="new" [(ngModel)]="testament" /> New
+            </label>
+            <label class="radio-inline" style="margin: 5px;">
+              <input type="radio" name="testament" value="old" [(ngModel)]="testament" /> Old
+            </label>
+            <label class="radio-inline" style="margin: 5px;">
+              <input type="radio" name="testament" value="both" [(ngModel)]="testament" /> Both
+            </label>
+          </div>
+        </div>
+      </div>
+      <hr style="background: white; width: 100%;" />
+      <div class="form-group">
+        <div class="col-md col-sm">
+          <div class="row">
+            <button style="margin-right: 10px;" (click)="toggleBookOptions()" type="button" class="btn btn-primary dropdown-toggle" [attr.aria-haspopup]="isBooklistCollapsed" [attr.aria-expanded]="!isBooklistCollapsed">Search Books</button>
+            <div class="dropdown-menu" [ngbCollapse]="isBooklistCollapsed">
+              <a *ngFor="let bibleBook of bibleBooks" (click)="selectBook(bibleBook)" style="color: black !important;" class="dropdown-item">{{bibleBook}}</a>
+            </div>
+            <label>{{book}}</label>
+          </div>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="col-md col-sm">
+          <div class="row">
+            <button style="margin-right: 10px;" (click)="selectChapters()" type="button" class="btn btn-primary">Search Chapters</button>
+            <label>All</label>
+          </div>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="col-md col-sm">
+          <div class="row">
+            <button style="margin-right: 10px;" (click)="toggleTranslationOptions()" type="button" class="btn btn-primary dropdown-toggle" [attr.aria-haspopup]="isTranslCollapsed" [attr.aria-expanded]="!isTranslCollapsed">Search Translation</button>
+            <div class="dropdown-menu" [ngbCollapse]="isTranslCollapsed">
+              <a *ngFor="let translationOption of translationOptions" (click)="selectTranslation(translationOption)" style="color: black !important;" class="dropdown-item">{{translationOption}}</a>
+            </div>
+            <label>{{translation}}</label>
+          </div>
+        </div>
+      </div>
+      <hr style="background: white; width: 100%;" />
+      <div class="form-group">
+        <div class="row">
+          <div class="col-md col-sm">
+            <label for="searchPhrase">Search Phrase</label>
+            <input type="text" class="form-control" id="searchPhrase" placeholder="Enter phrase to search for (wildcards allowed)">
+          </div>
+        </div>
+      </div>
+      <hr style="background: white; width: 100%;" />
+      <div class="form-group">
+        <div class="row">
+          <div class="btn-group">
+            <a role="button" (click)="doSearch()" class="btn btn-link no-padding-top-bottom" title="Start Search">
+              <i class="fa fa-search" style="margin-right: 5px; font-size: 32px !important;"></i>
+              <span class="helv-white">Search</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>

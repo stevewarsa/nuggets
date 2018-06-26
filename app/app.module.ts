@@ -19,6 +19,7 @@ import { CommonModule } from '@angular/common';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpModule } from '@angular/http';
 import { EditPassageComponent } from './edit-passage/edit-passage.component';
+import { BibleSearchComponent } from './bible-search/bible-search.component';
 export class MyHammerConfig extends HammerGestureConfig {
   overrides = <any>{
     'pinch': { enable: false },
@@ -37,7 +38,8 @@ export class MyHammerConfig extends HammerGestureConfig {
     PracticeComponent,
     PracticeSetupComponent,
     SearchComponent,
-    EditPassageComponent
+    EditPassageComponent,
+    BibleSearchComponent
   ],
   imports: [
     BrowserModule,
