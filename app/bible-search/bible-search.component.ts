@@ -44,4 +44,6 @@ export class BibleSearchComponent implements OnInit {
     this.isBooklistCollapsed = true;
     return false;
   }
+
+  selectChapters() {}
 }
