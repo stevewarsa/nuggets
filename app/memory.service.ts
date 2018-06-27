@@ -101,6 +101,11 @@ export class MemoryService {
     return this.httpService.get(this._url + 'demote_all_verses_by_1.php?user=' + this.currentUser + '&passage_id=' + notIncludingPassageId).pipe(map(res => res.json()));
   }
 
+  public searchBible(searchParam: any): Observable<Passage[]> {
+    console.log('MemoryService.searchBible - calling ' + this._url + 'bible_search.php');
+    return this.httpService.post(this._url + 'bible_search.php', searchParam).pipe(map(res => res.json()));
+  }
+
   public setCurrentPassage(passage: Passage, currentUser: string) {
     this.currentPassage = passage;
     this.currentUser = currentUser;

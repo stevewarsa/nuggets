@@ -5,7 +5,7 @@
     </div>
     <hr style="background: white; width: 90%;" />
   </div>
-  <div class="row justify-content-center">
+  <div class="row justify-content-center" *ngIf="!searching && (searchResults === null || searchResults.length === 0)">
     <form class="form-horizontal justify-content-center" role="form" style="font-size: large; width: 90%;">
       <div class="form-group">
         <div class="row">
@@ -43,7 +43,7 @@
         <div class="col-md col-sm">
           <div class="row">
             <button style="margin-right: 10px;" (click)="selectChapters()" type="button" class="btn btn-primary">Search Chapters</button>
-            <label>All</label>
+            <label>{{chapter}}</label>
           </div>
         </div>
       </div>
@@ -63,7 +63,7 @@
         <div class="row">
           <div class="col-md col-sm">
             <label for="searchPhrase">Search Phrase</label>
-            <input type="text" class="form-control" id="searchPhrase" placeholder="Enter phrase to search for (wildcards allowed)">
+            <input type="text" [(ngModel)]="searchPhrase" class="form-control" id="searchPhrase" name="searchPhrase" placeholder="Enter phrase to search for (wildcards allowed)">
           </div>
         </div>
       </div>
@@ -79,5 +79,29 @@
         </div>
       </div>
     </form>
+  </div>
+  <div class="row justify-content-center" *ngIf="searching">
+    <div class="col-md col-sm">
+      <div style="text-align: center;">
+        <p class="lead">{{searchingMessage}}</p><img src="assets/ajax-loader.gif" />
+      </div>
+    </div>
+  </div>
+  <div class="row justify-content-center" *ngIf="!searching && searchResults && searchResults.length > 0">
+    <div class="col-md col-sm">
+      <h4>{{searchResults.length}} found containing '{{searchPhrase}}' <a style="color: blueviolet !important; font-size: 12px !important;" (click)="searchResults = null">Search Again</a></h4>
+      <table class="table table-bordered" style="margin: 5px;">
+        <tbody>
+            <tr>
+              <th>Passage Ref</th>
+              <th>Passage Text</th>
+            </tr>
+            <tr *ngFor="let passage of searchResults">
+              <td>{{getPassageRef(passage)}}</td>
+              <td [innerHTML]="getPassageText(passage)"></td>
+            </tr>
+        </tbody>
+      </table>
+      </div>
   </div>
 </div>
