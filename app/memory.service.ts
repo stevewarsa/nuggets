@@ -102,6 +102,7 @@ export class MemoryService {
   }
 
   public searchBible(searchParam: any): Observable<Passage[]> {
+    searchParam.user = this.currentUser;
     console.log('MemoryService.searchBible - calling ' + this._url + 'bible_search.php');
     return this.httpService.post(this._url + 'bible_search.php', searchParam).pipe(map(res => res.json()));
   }

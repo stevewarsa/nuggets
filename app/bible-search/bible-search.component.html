@@ -39,14 +39,14 @@
           </div>
         </div>
       </div>
-      <div class="form-group">
+      <!-- <div class="form-group">
         <div class="col-md col-sm">
           <div class="row">
             <button style="margin-right: 10px;" (click)="selectChapters()" type="button" class="btn btn-primary">Search Chapters</button>
             <label>{{chapter}}</label>
           </div>
         </div>
-      </div>
+      </div> -->
       <div class="form-group">
         <div class="col-md col-sm">
           <div class="row">
@@ -63,7 +63,7 @@
         <div class="row">
           <div class="col-md col-sm">
             <label for="searchPhrase">Search Phrase</label>
-            <input type="text" [(ngModel)]="searchPhrase" class="form-control" id="searchPhrase" name="searchPhrase" placeholder="Enter phrase to search for (wildcards allowed)">
+            <input type="text" [(ngModel)]="searchPhrase" class="form-control" id="searchPhrase" name="searchPhrase" (focus)="$event.target.select()" placeholder="Enter phrase to search for (wildcards allowed)">
           </div>
         </div>
       </div>
@@ -89,7 +89,7 @@
   </div>
   <div class="row justify-content-center" *ngIf="!searching && searchResults && searchResults.length > 0">
     <div class="col-md col-sm">
-      <h4>{{searchResults.length}} found containing '{{searchPhrase}}' <a style="color: blueviolet !important; font-size: 12px !important;" (click)="searchResults = null">Search Again</a></h4>
+      <h4>Found {{searchResults.length}} '{{searchPhrase}}' <a style="color: blueviolet !important; font-size: 12px !important;" (click)="searchResults = null">Search Again</a></h4>
       <table class="table table-bordered" style="margin: 5px;">
         <tbody>
             <tr>
@@ -97,11 +97,12 @@
               <th>Passage Text</th>
             </tr>
             <tr *ngFor="let passage of searchResults">
-              <td>{{getPassageRef(passage)}}</td>
+              <td><a (click)="goToPassage(passage)" style="font-size: 14px !important; text-decoration: underline; color: #00FFFF !important;">{{getPassageRef(passage)}}</a></td>
               <td [innerHTML]="getPassageText(passage)"></td>
             </tr>
         </tbody>
       </table>
-      </div>
+      <h4 *ngIf="searchResults.length > 10">Found {{searchResults.length}} '{{searchPhrase}}' <a style="color: blueviolet !important; font-size: 12px !important;" (click)="searchResults = null">Search Again</a></h4>
+    </div>
   </div>
 </div>

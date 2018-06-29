@@ -3,6 +3,7 @@ import { Constants } from 'src/app/constants';
 import { MemoryService } from 'src/app/memory.service';
 import { Passage } from 'src/app/passage';
 import { PassageUtils } from 'src/app/passage-utils';
+import { Router } from '@angular/router';
 
 @Component({
   templateUrl: './bible-search.component.html'
@@ -21,10 +22,27 @@ export class BibleSearchComponent implements OnInit {
   isBooklistCollapsed: boolean = true;
   translationOptions: string[] = ['niv', 'nas', 'nkj', 'esv', 'kjv', 'csb', 'nlt', 'bbe', 'asv'];
   bibleBooks: string[] = [];
-  constructor(private memoryService: MemoryService) { }
+  constructor(private route: Router, private memoryService: MemoryService) { }
 
   ngOnInit() {
-    this.bibleBooks = Object.keys(Constants.bookAbbrev);
+    let currUser = this.memoryService.getCurrentUser();
+    if (!currUser) {
+      // user not logged in, so re-route to login
+      this.route.navigate(['']);
+      return;
+    }
+    this.bibleBooks.push('All');
+    this.bibleBooks = this.bibleBooks.concat(Object.keys(Constants.bookAbbrev));
+    this.memoryService.getPreferences().subscribe(prefs => {
+      if (prefs && prefs.length > 0) {
+        for (let pref of prefs) {
+          if (pref.key === "preferred_translation" && pref.value && pref.value.length > 0) {
+            this.translation = pref.value;
+            break;
+          }
+        }
+      }
+    });
   }
 
   doSearch() {
@@ -43,7 +61,7 @@ export class BibleSearchComponent implements OnInit {
     this.searchingMessage = "Searching for '" + this.searchPhrase + "'...";
     this.searchResults = [];
     this.memoryService.searchBible(param).subscribe((passages: Passage[]) => {
-      console.log(passages);
+      //console.log(passages);
       this.searchResults = passages;
       this.searching = false;
       this.searchingMessage = null;
@@ -64,6 +82,11 @@ export class BibleSearchComponent implements OnInit {
 
   toggleBookOptions() {
     this.isBooklistCollapsed = !this.isBooklistCollapsed;
+  }
+
+  goToPassage(passage: Passage) {
+    console.log('Navigating to: ');
+    console.log(passage);
   }
 
   selectTranslation(translation: string): boolean {
