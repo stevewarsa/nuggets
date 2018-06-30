@@ -4,7 +4,7 @@ import { MemoryService } from 'src/app/memory.service';
 import { Passage } from 'src/app/passage';
 import { PassageUtils } from 'src/app/passage-utils';
 import { Router } from '@angular/router';
-import { NgbModal, ModalDismissReasons, NgbActiveModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
+import { NgbModal, ModalDismissReasons, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 
 @Component({
   templateUrl: './bible-search.component.html'
