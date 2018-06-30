@@ -42,3 +42,8 @@ a {
 .search_result {
 	color: #00FF00;
 }
+
+.modal-content {
+	background: #000000 !important;
+	border: 1px solid white !important;
+}

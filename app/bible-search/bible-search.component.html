@@ -97,7 +97,7 @@
               <th>Passage Text</th>
             </tr>
             <tr *ngFor="let passage of searchResults">
-              <td><a (click)="goToPassage(passage)" style="font-size: 14px !important; text-decoration: underline; color: #00FFFF !important;">{{getPassageRef(passage)}}</a></td>
+              <td><a (click)="open(content, passage)" style="font-size: 14px !important; text-decoration: underline; color: #00FFFF !important;">{{getPassageRef(passage)}}</a></td>
               <td [innerHTML]="getPassageText(passage)"></td>
             </tr>
         </tbody>
@@ -105,4 +105,21 @@
       <h4 *ngIf="searchResults.length > 10">Found {{searchResults.length}} '{{searchPhrase}}' <a style="color: blueviolet !important; font-size: 12px !important;" (click)="searchResults = null">Search Again</a></h4>
     </div>
   </div>
+  <ng-template #content let-d="dismiss">
+    <div class="modal-header">
+      <h4 class="modal-title">Select Action</h4>
+      <button type="button" class="close" aria-label="Close" (click)="d('Cross click')">
+        <span aria-hidden="true">&times;</span>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="container">
+        <ul class="list-group">
+          <li class="list-group-item bg-dark text-white" (click)="goToPassage()">View Chapter</li>
+          <li class="list-group-item bg-dark text-white">View Surrounding Verses</li>
+          <li class="list-group-item bg-dark text-white">Copy to Clipboard</li>
+        </ul>
+      </div>
+    </div>
+  </ng-template>
 </div>

@@ -4,6 +4,7 @@ import { MemoryService } from 'src/app/memory.service';
 import { Passage } from 'src/app/passage';
 import { PassageUtils } from 'src/app/passage-utils';
 import { Router } from '@angular/router';
+import { NgbModal, ModalDismissReasons, NgbActiveModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 
 @Component({
   templateUrl: './bible-search.component.html'
@@ -17,12 +18,18 @@ export class BibleSearchComponent implements OnInit {
   searchResults: Passage[] = [];
   searching: boolean = false;
   searchingMessage: string;
+  private selectedVerse: Passage;
+  private closeResult: string;
+  private openModal: NgbModalRef;
 
   isTranslCollapsed: boolean = true;
   isBooklistCollapsed: boolean = true;
   translationOptions: string[] = ['niv', 'nas', 'nkj', 'esv', 'kjv', 'csb', 'nlt', 'bbe', 'asv'];
   bibleBooks: string[] = [];
-  constructor(private route: Router, private memoryService: MemoryService) { }
+  constructor(
+    private route: Router, 
+    private memoryService: MemoryService, 
+    private modalService: NgbModal) { }
 
   ngOnInit() {
     let currUser = this.memoryService.getCurrentUser();
@@ -84,11 +91,37 @@ export class BibleSearchComponent implements OnInit {
     this.isBooklistCollapsed = !this.isBooklistCollapsed;
   }
 
-  goToPassage(passage: Passage) {
-    console.log('Navigating to: ');
-    console.log(passage);
+  passageAction(selectedVerse: Passage) {
+    this.selectedVerse = selectedVerse;
   }
 
+  goToPassage() {
+    console.log('Navigating to: ');
+    console.log(this.selectedVerse);
+    if (this.openModal) {
+      this.openModal.close();
+    }
+  }
+
+  open(content, selectedVerse: Passage) {
+    this.selectedVerse = selectedVerse;
+    this.openModal = this.modalService.open(content);
+    this.openModal.result.then((result) => {
+      this.closeResult = `Closed with: ${result}`;
+    }, (reason) => {
+      this.closeResult = `Dismissed ${this.getDismissReason(reason)}`;
+    });
+  }
+
+  private getDismissReason(reason: any): string {
+    if (reason === ModalDismissReasons.ESC) {
+      return 'by pressing ESC';
+    } else if (reason === ModalDismissReasons.BACKDROP_CLICK) {
+      return 'by clicking on a backdrop';
+    } else {
+      return  `with: ${reason}`;
+    }
+  }
   selectTranslation(translation: string): boolean {
     this.translation = translation;
     this.isTranslCollapsed = true;
