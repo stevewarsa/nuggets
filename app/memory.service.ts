@@ -5,6 +5,7 @@ import { Observable, Subject } from 'rxjs';
 import { Passage } from 'src/app/passage';
 import { MemUser } from 'src/app/mem-user';
 import { UpdatePassageParam } from 'src/app/update-passage-param';
+import { Constants } from 'src/app/constants';
 
 @Injectable({
   providedIn: 'root'
@@ -32,6 +33,24 @@ export class MemoryService {
   public getPassage(passage: Passage, user: string): Observable<Passage> {
     console.log('MemoryService.getPassageById - calling ' + this._url + 'get_passage_text.php?user=' + user + '&translation=' + passage.translationName + '&book=' + passage.bookName + '&chapter=' + passage.chapter + '&start=' + passage.startVerse + '&end=' + passage.endVerse)
     return this.httpService.get(this._url + 'get_passage_text.php?user=' + user + '&translation=' + passage.translationName + '&book=' + passage.bookName + '&chapter=' + passage.chapter + '&start=' + passage.startVerse + '&end=' + passage.endVerse).pipe(map(res => res.json()));
+  }
+
+  public getChapter(book: string, chapter: number, translation: string): Observable<Passage> {
+    let bookId: number = this.getBookId(book);
+    console.log('MemoryService.getChapter - calling ' + this._url + 'get_chapter.php?bookId=' + bookId + '&chapter=' + chapter + '&translation=' + translation);
+    return this.httpService.get(this._url + 'get_chapter.php?bookId=' + bookId + '&chapter=' + chapter + '&translation=' + translation).pipe(map(res => res.json()));
+  }
+
+  public getBookId(bookName: string): number {
+    let keys: string[] = Object.keys(Constants.booksByNum);
+    for (let key of keys) {
+      let keyNum: number = parseInt(key);
+      let foundBookName: string = Constants.booksByNum[key];
+      if (bookName === foundBookName) {
+        return keyNum;
+      }
+    }
+    return -1;
   }
 
   public getMemoryPassageTextOverrides(user: string): Observable<Passage[]> {

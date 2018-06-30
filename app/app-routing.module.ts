@@ -7,6 +7,7 @@ import { Routes, RouterModule } from '@angular/router';
 import { PracticeSetupComponent } from 'src/app/practice-setup/practice-setup.component';
 import { EditPassageComponent } from 'src/app/edit-passage/edit-passage.component';
 import { BibleSearchComponent } from 'src/app/bible-search/bible-search.component';
+import { ViewChapterComponent } from 'src/app/view-chapter/view-chapter.component';
 
 const routes: Routes = [
   {path: '', component: LoginComponent},
@@ -15,6 +16,7 @@ const routes: Routes = [
   {path: 'bibleSearch', component: BibleSearchComponent},
   {path: 'edit', component: EditPassageComponent},
   {path: 'myverselist', component: MyVerseListComponent},
+  {path: 'viewChapter/:book/:chapter/:translation', component: ViewChapterComponent},
   {path: 'practice/:mode/:order/:passageId', component: PracticeComponent}
 ];
 
