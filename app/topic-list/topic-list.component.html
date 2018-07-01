@@ -1,0 +1,18 @@
+<div class="container">
+  <div class="row">
+    <div class="col-md col-sm" style="margin: 5px; padding: 5px;">
+      Filter:
+      <input type="text" maxlength="50" size="20" (keyup)="filterItems($event)" style="color: black">
+      &nbsp;{{filteredTopics.length}} topics
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md col-sm">
+      <ul class="list-group">
+        <li class="list-group-item">
+          <a *ngFor="let filteredTopic of filteredTopics" (click)="browseTopic(filteredTopic)" class="list-group-item" title="Browse passages for topic '{{filteredTopic.name}}'" style="background: black">{{filteredTopic.name}}</a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</div>

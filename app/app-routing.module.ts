@@ -10,6 +10,8 @@ import { BibleSearchComponent } from 'src/app/bible-search/bible-search.componen
 import { ViewChapterComponent } from 'src/app/view-chapter/view-chapter.component';
 import { ChapterSelectionComponent } from 'src/app/chapter-selection/chapter-selection.component';
 import { MainMenuComponent } from 'src/app/main-menu/main-menu.component';
+import { TopicListComponent } from 'src/app/topic-list/topic-list.component';
+import { BrowseTopicComponent } from 'src/app/browse-topic/browse-topic.component';
 
 const routes: Routes = [
   {path: '', component: LoginComponent},
@@ -20,6 +22,8 @@ const routes: Routes = [
   {path: 'chapterSelection', component: ChapterSelectionComponent},
   {path: 'edit', component: EditPassageComponent},
   {path: 'myverselist', component: MyVerseListComponent},
+  {path: 'topiclist', component: TopicListComponent},
+  {path: 'browseTopic/:topicId', component: BrowseTopicComponent},
   {path: 'viewChapter/:book/:chapter/:translation', component: ViewChapterComponent},
   {path: 'practice/:mode/:order/:passageId', component: PracticeComponent}
 ];

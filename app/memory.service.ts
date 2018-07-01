@@ -89,6 +89,16 @@ export class MemoryService {
     return this.httpService.get(this._url + 'get_max_verse_by_book_chapter.php?translation=' + translation).pipe(map(res => res.json()));
   }
 
+  public getTopicList(): Observable<any[]> {
+    console.log('MemoryService.getTopicList - calling ' + this._url + 'get_tag_list.php')
+    return this.httpService.get(this._url + 'get_tag_list.php').pipe(map(res => res.json()));
+  }
+
+  public getPassagesForTopic(topicId: string): Observable<Passage[]> {
+    console.log('MemoryService.getPassagesForTopic - calling ' + this._url + 'get_tag_list.php?tagId=' + topicId)
+    return this.httpService.get(this._url + 'get_tag_list.php?tagId=' + topicId).pipe(map(res => res.json()));
+  }
+
   public updateLastViewed(userName: string, passageId: number, lastViewedNum: number, lastViewedString: string): Observable<string> {
     var encodedLastViewedString = encodeURIComponent(lastViewedString);
     console.log('MemoryService.updateLastViewed - calling ' + this._url + 'update_last_viewed.php?user=' + userName + '&passageId=' + passageId + '&lastViewedNum=' + lastViewedNum + '&lastViewedStr=' + encodedLastViewedString + '...')

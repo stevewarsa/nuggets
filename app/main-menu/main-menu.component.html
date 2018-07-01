@@ -22,5 +22,17 @@
         </ul>
       </ng-template>
     </ngb-panel>
+    <ngb-panel>
+      <ng-template ngbPanelTitle>
+        <span>Topics</span>
+      </ng-template>
+      <ng-template ngbPanelContent>
+        This section is used for browsing the Bible by Topic:
+        <ul class="list-group">
+          <li class="list-group-item text-white" style="background: black;"><a [routerLink]="['/topiclist']" class="btn btn-link no-padding-top-bottom" title="Browse Bible Passages By Topic">Browse By Topic</a></li>
+          <li class="list-group-item text-white" style="background: black;"><a [routerLink]="['/topiclist']" class="btn btn-link no-padding-top-bottom" title="Browse Bible Passages By Random Topic">Browse By Random Topic</a></li>
+        </ul>
+      </ng-template>
+    </ngb-panel>
   </ngb-accordion>
 </div>
