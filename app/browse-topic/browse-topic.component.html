@@ -8,6 +8,12 @@
 <div *ngIf="!searching" class="container" (swipeleft)="swipe($event.type)" (swiperight)="swipe($event.type)">
   <div class="row">
     <div class="col-md col-lg col-sm" style="text-align: center;">
+        <h4>Browsing passages for topic <span style="color: chartreuse;">{{topicName}}</span></h4>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md col-lg col-sm" style="text-align: center;">
+      <hr style="color: white !important; background: white;"/>
       <p class="psg-nav">
         <a (click)="prev()">
           <i class="fa fa-arrow-left" style="color: lightgreen;"></i>
@@ -20,7 +26,8 @@
   </div>
   <div class="row">
     <div class="col-md col-lg col-sm">
-      <div *ngIf="!searching" [@newPassage]="passageRef" (@newPassage.done)="logIt($event, 'passageRef')" class="nugget-view" [innerHTML]="passageRef" style="text-align: center;"></div>
+        <hr style="color: white !important; background: white;"/>
+        <div *ngIf="!searching" [@newPassage]="passageRef" (@newPassage.done)="logIt($event, 'passageRef')" class="nugget-view" [innerHTML]="passageRef" style="text-align: center;"></div>
     </div>
   </div>
   <div class="row">

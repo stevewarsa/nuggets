@@ -16,6 +16,7 @@ export class MemoryService {
   private _url:string = "http://ps11911.com/nuggets_mobile_app/";
   private cachedPassages: Passage[];
   private passageTextOverrides: Passage[] = null;
+  private topicList: any[] = [];
   currentPassageChangeEvent: Subject<Passage> = new Subject<Passage>();
 
   constructor(private httpService:Http) { }
@@ -94,7 +95,20 @@ export class MemoryService {
     return this.httpService.get(this._url + 'get_tag_list.php').pipe(map(res => res.json()));
   }
 
-  public getPassagesForTopic(topicId: string): Observable<Passage[]> {
+  public setTopicList(topicList: any[]) {
+    this.topicList = topicList;
+  }
+
+  public getTopicName(topicId: number): string {
+    for (let topic of this.topicList) {
+      if (topic.id === topicId) {
+        return topic.name;
+      }
+    }
+    return null;
+  }
+
+  public getPassagesForTopic(topicId: number): Observable<Passage[]> {
     console.log('MemoryService.getPassagesForTopic - calling ' + this._url + 'get_tag_list.php?tagId=' + topicId)
     return this.httpService.get(this._url + 'get_tag_list.php?tagId=' + topicId).pipe(map(res => res.json()));
   }

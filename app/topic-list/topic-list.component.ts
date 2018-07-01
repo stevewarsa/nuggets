@@ -20,6 +20,7 @@ export class TopicListComponent implements OnInit {
     this.memoryService.getTopicList().subscribe((topics: any[]) => {
       this.allTopics = topics;
       this.filteredTopics = topics;
+      this.memoryService.setTopicList(topics);
     });
   }
 
@@ -28,6 +29,6 @@ export class TopicListComponent implements OnInit {
   }
 
   browseTopic(topicToBrowse: any) {
-    this.route.navigate(['browseTopic', topicToBrowse.id]);
+    this.route.navigate(['browseTopic', topicToBrowse.id, 'rand']);
   }
 }

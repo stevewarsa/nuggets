@@ -23,7 +23,7 @@ const routes: Routes = [
   {path: 'edit', component: EditPassageComponent},
   {path: 'myverselist', component: MyVerseListComponent},
   {path: 'topiclist', component: TopicListComponent},
-  {path: 'browseTopic/:topicId', component: BrowseTopicComponent},
+  {path: 'browseTopic/:topicId/:order', component: BrowseTopicComponent},
   {path: 'viewChapter/:book/:chapter/:translation', component: ViewChapterComponent},
   {path: 'practice/:mode/:order/:passageId', component: PracticeComponent}
 ];

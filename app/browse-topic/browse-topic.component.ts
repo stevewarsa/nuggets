@@ -29,6 +29,7 @@ export class BrowseTopicComponent implements OnInit {
   SWIPE_ACTION = { LEFT: 'swipeleft', RIGHT: 'swiperight' };
   direction: string = null;
   currUser: string = null;
+  topicName: string = null;
 
   constructor(private memoryService: MemoryService, private activeRoute:ActivatedRoute, private route: Router) { }
 
@@ -39,10 +40,15 @@ export class BrowseTopicComponent implements OnInit {
       this.route.navigate(['']);
       return;
     }
-    let topicId: string = this.activeRoute.snapshot.params['topicId'];
+    let topicId: number = parseInt(this.activeRoute.snapshot.params['topicId']);
+    this.topicName = this.memoryService.getTopicName(topicId);
+    let topicOrder: string = this.activeRoute.snapshot.params['order'];
     this.searching = true;
     this.searchingMessage = 'Retrieving passages for topic ' + topicId + '...';
     this.memoryService.getPassagesForTopic(topicId).subscribe((passages: Passage[]) => {
+      if (topicOrder === 'rand') {
+        PassageUtils.shuffleArray(passages);
+      }
       this.passages = passages;
       this.memoryService.getPreferences().subscribe(prefs => {
         if (prefs && prefs.length > 0) {
@@ -104,7 +110,7 @@ export class BrowseTopicComponent implements OnInit {
       this.passage = returnedPassage;
       this.memoryService.setCurrentPassage(this.passage, this.currUser);
       this.formattedPassageText = PassageUtils.getFormattedPassageText(this.passage, true);
-      this.passageRef = PassageUtils.getPassageStringNoIndex(this.passage, this.translation, true);
+      this.passageRef = PassageUtils.getPassageString(this.passage, this.currentIndex, this.passages.length, this.translation, false, true);
       this.searching = false;
       this.searchingMessage = null;
   });
