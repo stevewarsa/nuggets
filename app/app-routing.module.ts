@@ -8,12 +8,14 @@ import { PracticeSetupComponent } from 'src/app/practice-setup/practice-setup.co
 import { EditPassageComponent } from 'src/app/edit-passage/edit-passage.component';
 import { BibleSearchComponent } from 'src/app/bible-search/bible-search.component';
 import { ViewChapterComponent } from 'src/app/view-chapter/view-chapter.component';
+import { ChapterSelectionComponent } from 'src/app/chapter-selection/chapter-selection.component';
 
 const routes: Routes = [
   {path: '', component: LoginComponent},
   {path: 'practiceSetup', component: PracticeSetupComponent},
   {path: 'search', component: SearchComponent},
   {path: 'bibleSearch', component: BibleSearchComponent},
+  {path: 'chapterSelection', component: ChapterSelectionComponent},
   {path: 'edit', component: EditPassageComponent},
   {path: 'myverselist', component: MyVerseListComponent},
   {path: 'viewChapter/:book/:chapter/:translation', component: ViewChapterComponent},

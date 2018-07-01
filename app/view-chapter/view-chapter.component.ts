@@ -38,7 +38,7 @@ export class ViewChapterComponent implements OnInit {
     this.translation = this.activeRoute.snapshot.params['translation'];
     this.memoryService.getMaxChaptersByBook().subscribe((response: any[]) => {
       this.maxChapterByBook = response;
-    })
+    });
     this.retrieveChapter();
   }
 

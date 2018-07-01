@@ -1,0 +1,58 @@
+<div class="container">
+  <div class="row justify-content-center">
+    <div class="col-md col-sm">
+      <h2 style="text-align: center;padding-top: 15px;">Select Chapter to View</h2>
+    </div>
+    <hr style="background: white; width: 90%;" />
+  </div>
+  <div class="row justify-content-center">
+    <form class="form-horizontal justify-content-center" role="form" style="font-size: large; width: 90%;">
+      <div class="form-group">
+        <div class="col-md col-sm">
+          <div class="row">
+            <button style="margin-right: 10px;" (click)="toggleBookOptions()" type="button" class="btn btn-primary dropdown-toggle" [attr.aria-haspopup]="isBooklistCollapsed" [attr.aria-expanded]="!isBooklistCollapsed">Book</button>
+            <div class="dropdown-menu" [ngbCollapse]="isBooklistCollapsed">
+              <a *ngFor="let bibleBook of bibleBooks" (click)="selectBook(bibleBook)" style="color: black !important;" class="dropdown-item">{{bibleBook}}</a>
+            </div>
+            <label>{{book}}</label>
+          </div>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="col-md col-sm">
+          <div class="row">
+            <button [disabled]="book === null" style="margin-right: 10px;" (click)="toggleChapterOptions()" type="button" class="btn btn-primary dropdown-toggle" [attr.aria-haspopup]="isChapterlistCollapsed" [attr.aria-expanded]="!isChapterlistCollapsed">Chapter</button>
+            <div class="dropdown-menu" [ngbCollapse]="isChapterlistCollapsed">
+              <a *ngFor="let bookChapter of bookChapters" (click)="selectChapter(bookChapter)" style="color: black !important;" class="dropdown-item">{{bookChapter}}</a>
+            </div>
+            <label>{{chapter}}</label>
+          </div>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="col-md col-sm">
+          <div class="row">
+            <button style="margin-right: 10px;" (click)="toggleTranslationOptions()" type="button" class="btn btn-primary dropdown-toggle" [attr.aria-haspopup]="isTranslCollapsed" [attr.aria-expanded]="!isTranslCollapsed">Translation</button>
+            <div class="dropdown-menu" [ngbCollapse]="isTranslCollapsed">
+              <a *ngFor="let translationOption of translationOptions" (click)="selectTranslation(translationOption)" style="color: black !important;" class="dropdown-item">{{translationOption}}</a>
+            </div>
+            <label>{{translation}}</label>
+          </div>
+        </div>
+      </div>
+      <hr style="background: white; width: 100%;" />
+      <div class="form-group">
+        <div class="col-md col-sm">
+          <div class="row">
+            <div class="btn-group">
+              <button [disabled]="book === null || chapter === null || translation === null" (click)="goToChapter()" class="btn btn-secondary">
+                <i class="fa fa-book" style="margin-right: 5px; font-size: 32px !important;"></i>
+                <span class="helv-white"> Read Selected Chapter</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
