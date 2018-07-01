@@ -1,4 +1,11 @@
-<div class="container" (swipeleft)="swipe($event.type)" (swiperight)="swipe($event.type)">
+<div *ngIf="searching" class="container">
+  <div class="row mt-5">
+    <div class="col-md col-lg col-sm" style="text-align: center;">
+      <h2>{{searchingMessage}}</h2><img src="assets/ajax-loader.gif" />
+    </div>
+  </div>
+</div>
+<div *ngIf="!searching" class="container" (swipeleft)="swipe($event.type)" (swiperight)="swipe($event.type)">
   <div class="row">
     <div class="col-md col-lg col-sm" style="text-align: center;">
       <p class="psg-nav">
@@ -13,16 +20,13 @@
   </div>
   <div class="row">
     <div class="col-md col-lg col-sm">
-      <div *ngIf="searching" style="text-align: center;">
-        <p class="lead">{{searchingMessage}}</p><img src="assets/ajax-loader.gif" />
-      </div>
       <div *ngIf="!searching" [@newPassage]="passageRef" (@newPassage.done)="logIt($event, 'passageRef')" class="nugget-view" [innerHTML]="passageRef" style="text-align: center;"></div>
     </div>
   </div>
   <div class="row">
     <div class="col-md col-lg col-sm">
       <hr style="color: white !important; background: white;"/>
-      <div *ngIf="!searching" [@newPassage]="formattedPassageText" (@newPassage.done)="logIt($event, 'passageText')" class="nugget-view" [innerHTML]="formattedPassageText" style="text-align: center;"></div>
+      <div [@newPassage]="formattedPassageText" (@newPassage.done)="logIt($event, 'passageText')" class="nugget-view" [innerHTML]="formattedPassageText" style="text-align: center;"></div>
     </div>
   </div>
 </div>

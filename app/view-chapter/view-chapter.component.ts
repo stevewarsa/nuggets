@@ -4,6 +4,7 @@ import { trigger, state, style, animate, transition } from '@angular/animations'
 import { MemoryService } from 'src/app/memory.service';
 import { ActivatedRoute } from '@angular/router';
 import { PassageUtils } from 'src/app/passage-utils';
+import { Constants } from 'src/app/constants';
 
 @Component({
   templateUrl: './view-chapter.component.html',
@@ -42,11 +43,15 @@ export class ViewChapterComponent implements OnInit {
   }
 
   private retrieveChapter() {
+    this.searching = true;
+    this.searchingMessage = 'Retrieving ' + this.book + ', chapter ' + this.chapter + '...';
     this.memoryService.getChapter(this.book, this.chapter, this.translation).subscribe((passage: Passage) => {
       console.log(passage);
       this.passage = passage;
       this.formattedPassageText = PassageUtils.getFormattedPassageText(this.passage, true);
       this.passageRef = PassageUtils.getPassageStringNoIndex(this.passage, this.translation, true);
+      this.searching = false;
+      this.searchingMessage = null;
     });
   }
 
@@ -66,12 +71,39 @@ export class ViewChapterComponent implements OnInit {
 
   next() {
     this.chapter += 1;
+    if (this.chapter > this.getMaxChapterForBook()) {
+      let bookId = this.memoryService.getBookId(this.book);
+      if (bookId === 66) {
+        this.book = Constants.booksByNum[1];
+      } else {
+        this.book = Constants.booksByNum[bookId + 1];
+      }
+      this.chapter = 1;
+    }
     this.retrieveChapter();
   }
 
   prev() {
     this.chapter -= 1;
+    if (this.chapter === 0) {
+      let bookId = this.memoryService.getBookId(this.book);
+      if (bookId === 1) {
+        this.book = Constants.booksByNum[66];
+      } else {
+        this.book = Constants.booksByNum[bookId - 1];
+      }
+      this.chapter = 1;
+    }
     this.retrieveChapter();
+  }
+
+  private getMaxChapterForBook(): number {
+    for (let maxChapterForBook of this.maxChapterByBook) {
+      if (this.book === maxChapterForBook.bookName) {
+        return maxChapterForBook.maxChapter;
+      }
+    }
+    return -1;
   }
 
   logIt(event: any, mode: string) {
