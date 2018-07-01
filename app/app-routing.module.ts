@@ -9,9 +9,11 @@ import { EditPassageComponent } from 'src/app/edit-passage/edit-passage.componen
 import { BibleSearchComponent } from 'src/app/bible-search/bible-search.component';
 import { ViewChapterComponent } from 'src/app/view-chapter/view-chapter.component';
 import { ChapterSelectionComponent } from 'src/app/chapter-selection/chapter-selection.component';
+import { MainMenuComponent } from 'src/app/main-menu/main-menu.component';
 
 const routes: Routes = [
   {path: '', component: LoginComponent},
+  {path: 'main', component: MainMenuComponent},
   {path: 'practiceSetup', component: PracticeSetupComponent},
   {path: 'search', component: SearchComponent},
   {path: 'bibleSearch', component: BibleSearchComponent},

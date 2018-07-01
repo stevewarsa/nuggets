@@ -1,0 +1,26 @@
+<div class="container mt-4">
+  <ngb-accordion #acc="ngbAccordion">
+    <ngb-panel title="Memorize">
+      <ng-template ngbPanelContent>
+        This section is used for various tasks related to Bible memorization:
+        <ul class="list-group">
+          <li class="list-group-item text-white" style="background: black;"><a [routerLink]="['/practiceSetup']" class="btn btn-link no-padding-top-bottom" title="Start Practice">Practice</a></li>
+          <li class="list-group-item text-white" style="background: black;"><a [routerLink]="['/search']" class="btn btn-link no-padding-top-bottom" title="Search / Add Verses to Your Memory Verse List">Search / Add</a></li>
+          <li class="list-group-item text-white" style="background: black;"><a [routerLink]="['/myverselist']" class="btn btn-link no-padding-top-bottom" title="View Your Memory Verse List">My Verses</a></li>
+        </ul>
+      </ng-template>
+    </ngb-panel>
+    <ngb-panel>
+      <ng-template ngbPanelTitle>
+        <span>Full Bible</span>
+      </ng-template>
+      <ng-template ngbPanelContent>
+        This section is used for searching and reading the whole Bible:
+        <ul class="list-group">
+          <li class="list-group-item text-white" style="background: black;"><a [routerLink]="['/bibleSearch']" class="btn btn-link no-padding-top-bottom" title="Search the Full Bible">Search Full Bible</a></li>
+          <li class="list-group-item text-white" style="background: black;"><a [routerLink]="['/chapterSelection']" class="btn btn-link no-padding-top-bottom" title="Read a Chapter from the Bible">Read a Chapter</a></li>
+        </ul>
+      </ng-template>
+    </ngb-panel>
+  </ngb-accordion>
+</div>

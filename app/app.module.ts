@@ -22,6 +22,7 @@ import { EditPassageComponent } from './edit-passage/edit-passage.component';
 import { BibleSearchComponent } from './bible-search/bible-search.component';
 import { ViewChapterComponent } from './view-chapter/view-chapter.component';
 import { ChapterSelectionComponent } from './chapter-selection/chapter-selection.component';
+import { MainMenuComponent } from './main-menu/main-menu.component';
 export class MyHammerConfig extends HammerGestureConfig {
   overrides = <any>{
     'pinch': { enable: false },
@@ -43,7 +44,8 @@ export class MyHammerConfig extends HammerGestureConfig {
     EditPassageComponent,
     BibleSearchComponent,
     ViewChapterComponent,
-    ChapterSelectionComponent
+    ChapterSelectionComponent,
+    MainMenuComponent
   ],
   imports: [
     BrowserModule,

@@ -33,7 +33,7 @@ export class LoginComponent implements OnInit {
       // load up the overrides so that the rest of the app can use them
       this.memoryService.getMemoryPassageTextOverrides(this.userName).subscribe((overrides: Passage[]) => {
         this.memoryService.setMemoryPassageTextOverrides(overrides);
-        this.route.navigate(['/practiceSetup']);
+        this.route.navigate(['/main']);
       });
     } else {
       this.memoryService.getAllUsers().subscribe((users: MemUser[]) => {
@@ -92,7 +92,7 @@ export class LoginComponent implements OnInit {
         // load up the overrides so that the rest of the app can use them
         this.memoryService.getMemoryPassageTextOverrides(newUserName).subscribe((overrides: Passage[]) => {
           this.memoryService.setMemoryPassageTextOverrides(overrides);
-          this.route.navigate(['/practiceSetup']);
+          this.route.navigate(['/main']);
         });
       } else {
         this.showLoggingIn = false;
