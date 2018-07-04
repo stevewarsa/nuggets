@@ -30,6 +30,8 @@ export class BrowseTopicComponent implements OnInit {
   direction: string = null;
   currUser: string = null;
   topicName: string = null;
+  isTranslCollapsed: boolean = true;
+  translationOptions: string[] = ['niv', 'nas', 'nkj', 'esv', 'kjv', 'csb', 'nlt', 'bbe', 'asv'];
 
   constructor(private memoryService: MemoryService, private activeRoute:ActivatedRoute, private route: Router) { }
 
@@ -99,6 +101,17 @@ export class BrowseTopicComponent implements OnInit {
     this.displayPassage();
   }
 
+  toggleTranslationOptions() {
+    this.isTranslCollapsed = !this.isTranslCollapsed;
+  }
+
+  selectTranslation(translation: string): boolean {
+    this.translation = translation;
+    this.isTranslCollapsed = true;
+    this.displayPassage();
+    return false;
+  }
+
   displayPassage() {
     let passageToGet = this.passages[this.currentIndex];
     passageToGet.translationId = this.translation;
@@ -108,9 +121,10 @@ export class BrowseTopicComponent implements OnInit {
     this.searchingMessage = 'Retrieving passage text...';
     this.memoryService.getPassage(passageToGet, this.currUser).subscribe((returnedPassage: Passage) => {
       this.passage = returnedPassage;
+      this.passage.bookName = passageToGet.bookName;
       this.memoryService.setCurrentPassage(this.passage, this.currUser);
       this.formattedPassageText = PassageUtils.getFormattedPassageText(this.passage, true);
-      this.passageRef = PassageUtils.getPassageString(this.passage, this.currentIndex, this.passages.length, this.translation, false, true);
+      this.passageRef = PassageUtils.getPassageStringNoLineBreak(this.passage, this.currentIndex, this.passages.length, this.translation, true, true);
       this.searching = false;
       this.searchingMessage = null;
   });

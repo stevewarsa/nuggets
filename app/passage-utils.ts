@@ -56,7 +56,11 @@ export class PassageUtils {
     }
     let verseLen: number = passage.verses.length;
     let verseText: string = "";
-    verseText += this.getPassageStringNoIndex(passage, null, true);
+    if (passage.passageRefAppendLetter && passage.passageRefAppendLetter.length > 0) {
+      verseText += this.getPassageStringNoIndex(passage, null, true, passage.passageRefAppendLetter);
+    } else {
+      verseText += this.getPassageStringNoIndex(passage, null, true);
+    }
     verseText += "\n\n";
     for (let i = 0; i < verseLen; i++) {
       let versePartLen: number = passage.verses[i].verseParts.length;
@@ -78,13 +82,18 @@ export class PassageUtils {
     return str.replace(regex, "<span class='search_result'>$&</span>");
   }
 
-  public static getPassageStringNoIndex(passage: Passage, transl: string, translShort: boolean) {
+  public static getPassageStringNoIndex(passage: Passage, transl: string, translShort: boolean, appendLetter?: string) {
     var verseNumbers = null;
     if (passage.startVerse === passage.endVerse) {
       verseNumbers = passage.startVerse;
     } else {
       verseNumbers = passage.startVerse + "-" + passage.endVerse;
     }
+
+    if (appendLetter) {
+      verseNumbers += appendLetter;
+    }
+
     let regularBook: string = null;
     if (passage.bookName) {
       regularBook = this.getRegularBook(passage.bookId);
@@ -100,6 +109,11 @@ export class PassageUtils {
     } else {
       return regularBook + " " + passage.chapter + ":" + verseNumbers;
     }
+  }
+
+  public static getPassageStringNoLineBreak(passage: Passage, currentIndex: number, passagesLen: number, transl: string, shortBook: boolean, showProgress: boolean, appendLetter?: string): string {
+    let psgString: string = this.getPassageString(passage, currentIndex, passagesLen, transl, shortBook, showProgress, appendLetter);
+    return psgString.replace("<br/>", " ");
   }
 
   public static getPassageString(passage: Passage, currentIndex: number, passagesLen: number, transl: string, shortBook: boolean, showProgress: boolean, appendLetter?: string): string {

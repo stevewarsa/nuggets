@@ -29,6 +29,8 @@ export class ViewChapterComponent implements OnInit {
   chapter: number = -1;
   translation: string = null;
   maxChapterByBook: any[];
+  isTranslCollapsed: boolean = true;
+  translationOptions: string[] = ['niv', 'nas', 'nkj', 'esv', 'kjv', 'csb', 'nlt', 'bbe', 'asv'];
 
   constructor(private memoryService: MemoryService, private activeRoute:ActivatedRoute) { }
 
@@ -95,6 +97,17 @@ export class ViewChapterComponent implements OnInit {
       this.chapter = 1;
     }
     this.retrieveChapter();
+  }
+
+  toggleTranslationOptions() {
+    this.isTranslCollapsed = !this.isTranslCollapsed;
+  }
+
+  selectTranslation(translation: string): boolean {
+    this.translation = translation;
+    this.isTranslCollapsed = true;
+    this.retrieveChapter();
+    return false;
   }
 
   private getMaxChapterForBook(): number {

@@ -8,14 +8,19 @@
 <div *ngIf="!searching" class="container" (swipeleft)="swipe($event.type)" (swiperight)="swipe($event.type)">
   <div class="row">
     <div class="col-md col-lg col-sm" style="text-align: center;">
-      <p class="psg-nav">
+      <div class="psg-nav">
         <a (click)="prev()">
           <i class="fa fa-arrow-left" style="color: lightgreen;"></i>
         </a>&nbsp;
         <a (click)="next()">
           <i class="fa fa-arrow-right" style="color: lightgreen;"></i>
-        </a>
-      </p>
+        </a>&nbsp;
+        <button style="margin-right: 10px;" (click)="toggleTranslationOptions()" type="button" class="btn btn-primary dropdown-toggle" [attr.aria-haspopup]="isTranslCollapsed" [attr.aria-expanded]="!isTranslCollapsed">Transl</button>
+        <div class="dropdown-menu dropdown-menu-right" [ngbCollapse]="isTranslCollapsed">
+          <a *ngFor="let translationOption of translationOptions" (click)="selectTranslation(translationOption)" style="color: black !important;" class="dropdown-item">{{translationOption}}</a>
+        </div>
+        <label>{{translation}}</label>
+      </div>
     </div>
   </div>
   <div class="row">

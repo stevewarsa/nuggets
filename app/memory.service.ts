@@ -157,6 +157,14 @@ export class MemoryService {
   }
 
   public getCurrentPassage(): Passage {
+    if (!this.currentPassage) {
+      return null;
+    }
+    let override:Passage = this.getMemoryPassageTextOverride(this.currentPassage.passageId);
+    if (override) {
+      this.currentPassage.passageRefAppendLetter = override.passageRefAppendLetter;
+      this.currentPassage.verses = override.verses;
+    }
     return this.currentPassage;
   }
 
