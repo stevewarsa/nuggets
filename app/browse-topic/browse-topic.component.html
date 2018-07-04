@@ -30,7 +30,7 @@
   </div>
   <div class="row">
     <div class="col-md col-lg col-sm">
-        <div *ngIf="!searching" [@newPassage]="passageRef" (@newPassage.done)="logIt($event, 'passageRef')" class="nugget-view" [innerHTML]="passageRef" style="text-align: center;"></div>
+      <div *ngIf="!searching" class="nugget-view" [innerHTML]="passageRef" style="text-align: center;"></div>
     </div>
   </div>
   <div class="row">

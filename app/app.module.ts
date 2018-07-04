@@ -25,6 +25,7 @@ import { ChapterSelectionComponent } from './chapter-selection/chapter-selection
 import { MainMenuComponent } from './main-menu/main-menu.component';
 import { TopicListComponent } from './topic-list/topic-list.component';
 import { BrowseTopicComponent } from './browse-topic/browse-topic.component';
+import { RandomTopicComponent } from './random-topic/random-topic.component';
 export class MyHammerConfig extends HammerGestureConfig {
   overrides = <any>{
     'pinch': { enable: false },
@@ -49,7 +50,8 @@ export class MyHammerConfig extends HammerGestureConfig {
     ChapterSelectionComponent,
     MainMenuComponent,
     TopicListComponent,
-    BrowseTopicComponent
+    BrowseTopicComponent,
+    RandomTopicComponent
   ],
   imports: [
     BrowserModule,

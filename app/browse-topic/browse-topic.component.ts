@@ -127,7 +127,7 @@ export class BrowseTopicComponent implements OnInit {
       this.passageRef = PassageUtils.getPassageStringNoLineBreak(this.passage, this.currentIndex, this.passages.length, this.translation, true, true);
       this.searching = false;
       this.searchingMessage = null;
-  });
+    });
   }
 
   logIt(event: any, mode: string) {

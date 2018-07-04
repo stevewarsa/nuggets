@@ -1,0 +1,31 @@
+<div *ngIf="searching" class="container">
+  <div class="row mt-5">
+    <div class="col-md col-lg col-sm" style="text-align: center;">
+      <h2>{{searchingMessage}}</h2><img src="assets/ajax-loader.gif" />
+    </div>
+  </div>
+</div>
+<div *ngIf="!searching" class="container" (swipeleft)="swipe($event.type)" (swiperight)="swipe($event.type)">
+  <div class="row">
+    <div class="col-md col-lg col-sm" style="text-align: center;">
+      <div class="psg-nav">
+        <a (click)="prev()">
+          <i class="fa fa-arrow-left" style="color: lightgreen;"></i>
+        </a>&nbsp;
+        <a (click)="next()">
+          <i class="fa fa-arrow-right" style="color: lightgreen;"></i>
+        </a>
+      </div>
+    </div>
+  </div>
+  <div class="row m-5">
+    <div class="col-md col-lg col-sm" style="text-align: center;">
+      <h3 style="font-weight: bold;" [@newTopic]="currentTopic?.name" (@newTopic.done)="logIt($event, 'topicName')">Topic: <span style="color: chartreuse;">'{{currentTopic?.name}}'</span></h3>
+    </div>
+  </div>
+  <div class="row m-5">
+    <div class="col-md col-lg col-sm" style="text-align: center;">
+      <button (click)="browseSelectedTopic()" type="button" class="btn btn-success" >Browse</button>
+    </div>
+  </div>
+</div>
