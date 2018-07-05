@@ -20,7 +20,8 @@
   </div>
   <div class="row m-5">
     <div class="col-md col-lg col-sm" style="text-align: center;">
-      <h3 style="font-weight: bold;" [@newTopic]="currentTopic?.name" (@newTopic.done)="logIt($event, 'topicName')">Topic: <span style="color: chartreuse;">'{{currentTopic?.name}}'</span></h3>
+      <h3 style="font-weight: bold;" [@newTopic]="currentTopic?.name" (@newTopic.done)="logIt($event, 'topicName')">Topic: </h3>
+      <span style="color: chartreuse; font-size: 36px; font-weight: bold;">'{{currentTopic?.name}}'</span>
     </div>
   </div>
   <div class="row m-5">

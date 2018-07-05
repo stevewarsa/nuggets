@@ -13,6 +13,7 @@ import { MainMenuComponent } from 'src/app/main-menu/main-menu.component';
 import { TopicListComponent } from 'src/app/topic-list/topic-list.component';
 import { BrowseTopicComponent } from 'src/app/browse-topic/browse-topic.component';
 import { RandomTopicComponent } from 'src/app/random-topic/random-topic.component';
+import { MemoryStatsComponent } from 'src/app/memory-stats/memory-stats.component';
 
 const routes: Routes = [
   {path: '', component: LoginComponent},
@@ -23,6 +24,7 @@ const routes: Routes = [
   {path: 'chapterSelection', component: ChapterSelectionComponent},
   {path: 'edit', component: EditPassageComponent},
   {path: 'myverselist', component: MyVerseListComponent},
+  {path: 'memorystats', component: MemoryStatsComponent},
   {path: 'topiclist', component: TopicListComponent},
   {path: 'randomtopic', component: RandomTopicComponent},
   {path: 'browseTopic/:topicId/:order', component: BrowseTopicComponent},

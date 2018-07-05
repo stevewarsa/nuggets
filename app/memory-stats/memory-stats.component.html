@@ -1,0 +1,39 @@
+<div class="container">
+	<div class="row">
+		<div class="col-md col-sm">
+			<p class="lead">Memory Verse Stats</p>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-md col-sm">
+			<p>Below is the list memory verse stats</p>
+			<img src="assets/ajax-loader.gif" *ngIf="initializing"/>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-md col-sm">
+			<table border="1" *ngIf="!initializing">
+				<tr>
+					<th>Stat</th>
+					<th>Value</th>
+				</tr>
+				<tr>
+					<td>Passage Count:</td>
+					<td>{{passageCount}}</td>
+				</tr>
+				<tr>
+					<td>Verse Count:</td>
+					<td>{{verseCount}}</td>
+				</tr>
+				<tr>
+					<td>Avg Verses/Passage:</td>
+					<td>{{avgVersesPerPassage | number:'1.0-2'}}</td>
+				</tr>
+				<tr *ngFor="let translationStat of countByTranslation">
+        			<td>Translation - {{translationStat.translation}}:</td>
+        			<td>{{translationStat.countOfPassages}} ({{translationStat.percent | percent: '1.2-2'}})</td>
+    		</tr>
+			</table>
+		</div>
+	</div>
+</div>
