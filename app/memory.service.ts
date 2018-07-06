@@ -32,8 +32,13 @@ export class MemoryService {
   }
 
   public getPassage(passage: Passage, user: string): Observable<Passage> {
-    console.log('MemoryService.getPassageById - calling ' + this._url + 'get_passage_text.php?user=' + user + '&translation=' + passage.translationName + '&book=' + passage.bookName + '&chapter=' + passage.chapter + '&start=' + passage.startVerse + '&end=' + passage.endVerse)
+    console.log('MemoryService.getPassage - calling ' + this._url + 'get_passage_text.php?user=' + user + '&translation=' + passage.translationName + '&book=' + passage.bookName + '&chapter=' + passage.chapter + '&start=' + passage.startVerse + '&end=' + passage.endVerse)
     return this.httpService.get(this._url + 'get_passage_text.php?user=' + user + '&translation=' + passage.translationName + '&book=' + passage.bookName + '&chapter=' + passage.chapter + '&start=' + passage.startVerse + '&end=' + passage.endVerse).pipe(map(res => res.json()));
+  }
+
+  public getPassageById(passageId: number, selectedTranslation: string): Observable<Passage> {
+    console.log('MemoryService.getPassageById - calling ' + this._url + 'get_nugget_by_id.php?nugget_id=' + passageId + '&translation=' + selectedTranslation);
+    return this.httpService.get(this._url + 'get_nugget_by_id.php?nugget_id=' + passageId + '&translation=' + selectedTranslation).pipe(map(res => res.json()));
   }
 
   public getChapter(book: string, chapter: number, translation: string): Observable<Passage> {
@@ -148,6 +153,11 @@ export class MemoryService {
     searchParam.user = this.currentUser;
     console.log('MemoryService.searchBible - calling ' + this._url + 'bible_search.php');
     return this.httpService.post(this._url + 'bible_search.php', searchParam).pipe(map(res => res.json()));
+  }
+
+  public getNuggetIdList(): Observable<any[]> {
+    console.log('MemoryService.getNuggetIdList - calling ' + this._url + 'get_nugget_id_list.php');
+    return this.httpService.get(this._url + 'get_nugget_id_list.php').pipe(map(res => res.json()));
   }
 
   public setCurrentPassage(passage: Passage, currentUser: string) {

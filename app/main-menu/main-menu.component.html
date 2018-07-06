@@ -1,5 +1,13 @@
 <div class="container mt-4">
   <ngb-accordion #acc="ngbAccordion">
+    <ngb-panel title="Nuggets">
+      <ng-template ngbPanelContent>
+        Nuggets are passages from the Bible consisting of 1 or more verses and up to a whole chapter.  These are passages you can just randomly browse if you're looking to get a quick bit of Bible reading in and don't know where to start.
+        <ul class="list-group">
+          <li class="list-group-item text-white" style="background: black;"><a [routerLink]="['/browsenuggets']" class="btn btn-link no-padding-top-bottom" title="Browse Nuggets">Browse</a></li>
+        </ul>
+      </ng-template>
+    </ngb-panel>
     <ngb-panel title="Memorize">
       <ng-template ngbPanelContent>
         This section is used for various tasks related to Bible memorization:

@@ -3,7 +3,24 @@ import { Constants } from "src/app/constants";
 
 export class PassageUtils {
 
-  static getBookId(bookKey: string): number {
+  public static getNextIndex(currentIndex: number, numberOfPassages: number, next: boolean): number {
+    let newIndex: number = -1;
+    if (next) {
+      if (currentIndex === (numberOfPassages - 1)) {
+        newIndex = 0;
+      } else {
+        newIndex = currentIndex + 1;
+      }
+    } else {
+      if (currentIndex === 0) {
+        newIndex = numberOfPassages - 1;
+      } else {
+        newIndex = currentIndex - 1;
+      }
+    }
+    return newIndex;
+  }
+  public static getBookId(bookKey: string): number {
     let keys: any[] = Object.keys(Constants.booksByNum);
     for (let key of keys) {
       let book: string = Constants.booksByNum[key];

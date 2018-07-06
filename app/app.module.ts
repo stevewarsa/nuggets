@@ -27,6 +27,8 @@ import { TopicListComponent } from './topic-list/topic-list.component';
 import { BrowseTopicComponent } from './browse-topic/browse-topic.component';
 import { RandomTopicComponent } from './random-topic/random-topic.component';
 import { MemoryStatsComponent } from './memory-stats/memory-stats.component';
+import { BrowseNuggetsComponent } from './browse-nuggets/browse-nuggets.component';
+import { BrowsePassageComponent } from './browse-passage/browse-passage.component';
 export class MyHammerConfig extends HammerGestureConfig {
   overrides = <any>{
     'pinch': { enable: false },
@@ -53,7 +55,9 @@ export class MyHammerConfig extends HammerGestureConfig {
     TopicListComponent,
     BrowseTopicComponent,
     RandomTopicComponent,
-    MemoryStatsComponent
+    MemoryStatsComponent,
+    BrowseNuggetsComponent,
+    BrowsePassageComponent
   ],
   imports: [
     BrowserModule,

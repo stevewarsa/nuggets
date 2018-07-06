@@ -14,6 +14,7 @@ import { TopicListComponent } from 'src/app/topic-list/topic-list.component';
 import { BrowseTopicComponent } from 'src/app/browse-topic/browse-topic.component';
 import { RandomTopicComponent } from 'src/app/random-topic/random-topic.component';
 import { MemoryStatsComponent } from 'src/app/memory-stats/memory-stats.component';
+import { BrowseNuggetsComponent } from 'src/app/browse-nuggets/browse-nuggets.component';
 
 const routes: Routes = [
   {path: '', component: LoginComponent},
@@ -27,6 +28,7 @@ const routes: Routes = [
   {path: 'memorystats', component: MemoryStatsComponent},
   {path: 'topiclist', component: TopicListComponent},
   {path: 'randomtopic', component: RandomTopicComponent},
+  {path: 'browsenuggets', component: BrowseNuggetsComponent},
   {path: 'browseTopic/:topicId/:order', component: BrowseTopicComponent},
   {path: 'viewChapter/:book/:chapter/:translation', component: ViewChapterComponent},
   {path: 'practice/:mode/:order/:passageId', component: PracticeComponent}
