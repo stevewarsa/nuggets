@@ -11,7 +11,7 @@ import { NgbModal, ModalDismissReasons, NgbModalRef } from '@ng-bootstrap/ng-boo
 })
 export class BibleSearchComponent implements OnInit {
   testament: string = 'both';
-  translation: string = 'niv';
+  translation: string = null;
   book: string = 'All';
   searchPhrase: string;
   chapter: string = 'All';
@@ -41,14 +41,7 @@ export class BibleSearchComponent implements OnInit {
     this.bibleBooks.push('All');
     this.bibleBooks = this.bibleBooks.concat(Object.keys(Constants.bookAbbrev));
     this.memoryService.getPreferences().subscribe(prefs => {
-      if (prefs && prefs.length > 0) {
-        for (let pref of prefs) {
-          if (pref.key === "preferred_translation" && pref.value && pref.value.length > 0) {
-            this.translation = pref.value;
-            break;
-          }
-        }
-      }
+      this.translation = PassageUtils.getPreferredTranslationFromPrefs(prefs, 'niv');
     });
   }
 
@@ -68,7 +61,6 @@ export class BibleSearchComponent implements OnInit {
     this.searchingMessage = "Searching for '" + this.searchPhrase + "'...";
     this.searchResults = [];
     this.memoryService.searchBible(param).subscribe((passages: Passage[]) => {
-      //console.log(passages);
       this.searchResults = passages;
       this.searching = false;
       this.searchingMessage = null;

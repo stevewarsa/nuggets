@@ -14,7 +14,7 @@ export class BrowseNuggetsComponent implements OnInit {
   currentIndex: number = 0;
   currentPassage: Passage = null;
   currUser: string = null;
-  selectedTranslation: string = 'niv';
+  selectedTranslation: string = null;
   constructor(private route: Router, private memoryService: MemoryService) { }
 
   ngOnInit() {
@@ -30,14 +30,7 @@ export class BrowseNuggetsComponent implements OnInit {
       PassageUtils.shuffleArray(nuggetIds);
       this.passageIds = nuggetIds;
       this.memoryService.getPreferences().subscribe(prefs => {
-        if (prefs && prefs.length > 0) {
-          for (let pref of prefs) {
-            if (pref.key === "preferred_translation" && pref.value && pref.value.length > 0) {
-              this.selectedTranslation = pref.value;
-              break;
-            }
-          }
-        }
+        this.selectedTranslation = PassageUtils.getPreferredTranslationFromPrefs(prefs, 'niv');
         this.currentIndex = 0;
         this.retrievePassage();
         this.searching = false;

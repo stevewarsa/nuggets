@@ -59,20 +59,12 @@ export class RandomTopicComponent implements OnInit {
   }
 
   next() {
-    if (this.currentIndex === (this.allTopics.length - 1)) {
-      this.currentIndex = 0;
-    } else {
-      this.currentIndex += 1;
-    }
+    this.currentIndex = PassageUtils.getNextIndex(this.currentIndex, this.allTopics.length, true);
     this.displayTopic();
   }
 
   prev() {
-    if (this.currentIndex === 0) {
-      this.currentIndex = this.allTopics.length - 1;
-    } else {
-      this.currentIndex -= 1;
-    }
+    this.currentIndex = PassageUtils.getNextIndex(this.currentIndex, this.allTopics.length, false);
     this.displayTopic();
   }
 

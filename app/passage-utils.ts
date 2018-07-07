@@ -3,6 +3,17 @@ import { Constants } from "src/app/constants";
 
 export class PassageUtils {
 
+  public static getPreferredTranslationFromPrefs(prefs: any[], defaultTranslation: string): string {
+    if (prefs && prefs.length > 0) {
+      for (let pref of prefs) {
+        if (pref.key === "preferred_translation" && pref.value && pref.value.length > 0) {
+          return pref.value;
+        }
+      }
+    }
+    return defaultTranslation;
+  }
+
   public static getNextIndex(currentIndex: number, numberOfPassages: number, next: boolean): number {
     let newIndex: number = -1;
     if (next) {
@@ -20,6 +31,7 @@ export class PassageUtils {
     }
     return newIndex;
   }
+
   public static getBookId(bookKey: string): number {
     let keys: any[] = Object.keys(Constants.booksByNum);
     for (let key of keys) {
@@ -30,6 +42,7 @@ export class PassageUtils {
     }
     return -1;
   }
+
   public static getUnformattedPassageTextNoVerseNumbers(passage: Passage): string {
     let verseLen = passage.verses.length;
     let verseText = "";

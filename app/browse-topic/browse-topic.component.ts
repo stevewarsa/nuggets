@@ -3,19 +3,10 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { MemoryService } from 'src/app/memory.service';
 import { Passage } from 'src/app/passage';
 import { PassageUtils } from 'src/app/passage-utils';
-import { trigger, state, style, animate, transition } from '@angular/animations';
 import { Constants } from 'src/app/constants';
 
 @Component({
-  templateUrl: './browse-topic.component.html',
-  animations: [
-    trigger('newPassage', [
-        transition('* => *', [
-          style({opacity: 0.5, transform: 'scale(0.8)'}), 
-          animate('300ms ease-in', style({opacity: 1, transform: 'scale(1)'}))
-        ])
-    ])
-  ]
+  templateUrl: './browse-topic.component.html'
 })
 export class BrowseTopicComponent implements OnInit {
   searching: boolean = false;
@@ -26,8 +17,6 @@ export class BrowseTopicComponent implements OnInit {
   currentIndex: number = 0;
   currUser: string = null;
   topicName: string = null;
-  isTranslCollapsed: boolean = true;
-  translationOptions: string[] = ['niv', 'nas', 'nkj', 'esv', 'kjv', 'csb', 'nlt', 'bbe', 'asv'];
 
   constructor(private memoryService: MemoryService, private activeRoute:ActivatedRoute, private route: Router) { }
 
@@ -49,14 +38,7 @@ export class BrowseTopicComponent implements OnInit {
       }
       this.passages = passages;
       this.memoryService.getPreferences().subscribe(prefs => {
-        if (prefs && prefs.length > 0) {
-          for (let pref of prefs) {
-            if (pref.key === "preferred_translation" && pref.value && pref.value.length > 0) {
-              this.translation = pref.value;
-              break;
-            }
-          }
-        }
+        this.translation = PassageUtils.getPreferredTranslationFromPrefs(prefs, 'niv');
         this.currentIndex = 0;
         this.displayPassage();
         this.searching = false;

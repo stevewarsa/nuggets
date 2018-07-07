@@ -1,21 +1,12 @@
 import { Passage } from 'src/app/passage';
 import { Component, OnInit } from '@angular/core';
-import { trigger, state, style, animate, transition } from '@angular/animations';
 import { MemoryService } from 'src/app/memory.service';
 import { ActivatedRoute } from '@angular/router';
 import { PassageUtils } from 'src/app/passage-utils';
 import { Constants } from 'src/app/constants';
 
 @Component({
-  templateUrl: './view-chapter.component.html',
-  animations: [
-    trigger('newPassage', [
-        transition('* => *', [
-          style({opacity: 0.5, transform: 'scale(0.8)'}), 
-          animate('300ms ease-in', style({opacity: 1, transform: 'scale(1)'}))
-        ])
-    ])
-  ]
+  templateUrl: './view-chapter.component.html'
 })
 export class ViewChapterComponent implements OnInit {
   searching: boolean = false;
