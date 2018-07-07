@@ -22,13 +22,16 @@ export class BrowsePassageComponent implements OnInit {
   progressString: string = null;
   shortBook: boolean = true;
   showProgressInLine: boolean = true;
+  isTranslCollapsed: boolean = true;
   SWIPE_ACTION = { LEFT: 'swipeleft', RIGHT: 'swiperight' };
   direction: string = null;
+  translationOptions: string[] = ['niv', 'nas', 'nkj', 'esv', 'kjv', 'csb', 'nlt', 'bbe', 'asv'];
   
   constructor() { }
   
   @Output() nextEvent: EventEmitter<string>  = new EventEmitter<string>();
   @Output() prevEvent: EventEmitter<string>  = new EventEmitter<string>();
+  @Output() changeTranslationEvent: EventEmitter<string>  = new EventEmitter<string>();
 
   @Input() currentIndex: number = -1;
   @Input() passagesLength: number = -1;
@@ -69,6 +72,17 @@ export class BrowsePassageComponent implements OnInit {
 
   next() {
     this.nextEvent.emit('next');
+  }
+
+  toggleTranslationOptions() {
+    this.isTranslCollapsed = !this.isTranslCollapsed;
+  }
+
+  selectTranslation(translation: string): boolean {
+    this.selectedTranslation = translation;
+    this.isTranslCollapsed = true;
+    this.changeTranslationEvent.emit(this.selectedTranslation);
+    return false;
   }
 
   logIt(event: any, mode: string) {

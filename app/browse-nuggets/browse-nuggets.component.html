@@ -6,5 +6,6 @@
   [searchingMessage]="searchingMessage" 
   [passage]="currentPassage" 
   (nextEvent)="next()" 
-  (prevEvent)="prev()">
+  (prevEvent)="prev()" 
+  (changeTranslationEvent)="selectTranslation($event)">
 </mem-browse-passage>

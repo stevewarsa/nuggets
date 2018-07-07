@@ -29,10 +29,20 @@ export class BrowseNuggetsComponent implements OnInit {
     this.memoryService.getNuggetIdList().subscribe((nuggetIds: any[]) => {
       PassageUtils.shuffleArray(nuggetIds);
       this.passageIds = nuggetIds;
-      this.currentIndex = 0;
-      this.retrievePassage();
-      this.searching = false;
-      this.searchingMessage = null;
+      this.memoryService.getPreferences().subscribe(prefs => {
+        if (prefs && prefs.length > 0) {
+          for (let pref of prefs) {
+            if (pref.key === "preferred_translation" && pref.value && pref.value.length > 0) {
+              this.selectedTranslation = pref.value;
+              break;
+            }
+          }
+        }
+        this.currentIndex = 0;
+        this.retrievePassage();
+        this.searching = false;
+        this.searchingMessage = null;
+      });
     });
   }
 
@@ -57,5 +67,10 @@ export class BrowseNuggetsComponent implements OnInit {
       this.searching = false;
       this.searchingMessage = null;
     });
+  }
+
+  selectTranslation(translation: string) {
+    this.selectedTranslation = translation;
+    this.retrievePassage();
   }
 }

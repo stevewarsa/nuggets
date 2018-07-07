@@ -14,7 +14,11 @@
         </a>&nbsp;
         <a (click)="next()">
           <i class="fa fa-arrow-right" style="color: lightgreen;"></i>
-        </a>
+        </a>&nbsp;
+        <button style="margin-right: 10px;" (click)="toggleTranslationOptions()" type="button" class="btn btn-primary dropdown-toggle" [attr.aria-haspopup]="isTranslCollapsed" [attr.aria-expanded]="!isTranslCollapsed">Transl</button>
+        <div class="dropdown-menu dropdown-menu-right" [ngbCollapse]="isTranslCollapsed">
+          <a *ngFor="let translationOption of translationOptions" (click)="selectTranslation(translationOption)" style="color: black !important;" class="dropdown-item">{{translationOption}}</a>
+        </div>
       </div>
     </div>
   </div>
