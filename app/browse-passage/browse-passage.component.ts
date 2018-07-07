@@ -19,9 +19,7 @@ export class BrowsePassageComponent implements OnInit {
   _passage: Passage = null;
   passageRef: string = null;
   formattedPassageText: string = null;
-  progressString: string = null;
   shortBook: boolean = true;
-  showProgressInLine: boolean = true;
   isTranslCollapsed: boolean = true;
   SWIPE_ACTION = { LEFT: 'swipeleft', RIGHT: 'swiperight' };
   direction: string = null;
@@ -33,6 +31,7 @@ export class BrowsePassageComponent implements OnInit {
   @Output() prevEvent: EventEmitter<string>  = new EventEmitter<string>();
   @Output() changeTranslationEvent: EventEmitter<string>  = new EventEmitter<string>();
 
+  @Input() showProgressInLine: boolean = true;
   @Input() currentIndex: number = -1;
   @Input() passagesLength: number = -1;
   @Input() selectedTranslation: string;
@@ -45,7 +44,6 @@ export class BrowsePassageComponent implements OnInit {
       this._passage = passage;
       this.passageRef = PassageUtils.getPassageString(this._passage, this.currentIndex, this.passagesLength, this.selectedTranslation, this.shortBook, this.showProgressInLine);
       this.formattedPassageText = PassageUtils.getFormattedPassageText(this._passage, true);
-      this.progressString = (this.currentIndex + 1) + " of " + this.passagesLength;
     }
   }
 

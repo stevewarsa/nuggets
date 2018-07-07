@@ -20,17 +20,11 @@ import { Constants } from 'src/app/constants';
 export class ViewChapterComponent implements OnInit {
   searching: boolean = false;
   searchingMessage: string = null;
-  formattedPassageText: string = null;
-  passageRef: string = null;
-  SWIPE_ACTION = { LEFT: 'swipeleft', RIGHT: 'swiperight' };
-  direction: string = null;
   passage: Passage = null;
   book: string = null;
   chapter: number = -1;
   translation: string = null;
   maxChapterByBook: any[];
-  isTranslCollapsed: boolean = true;
-  translationOptions: string[] = ['niv', 'nas', 'nkj', 'esv', 'kjv', 'csb', 'nlt', 'bbe', 'asv'];
 
   constructor(private memoryService: MemoryService, private activeRoute:ActivatedRoute) { }
 
@@ -50,25 +44,9 @@ export class ViewChapterComponent implements OnInit {
     this.memoryService.getChapter(this.book, this.chapter, this.translation).subscribe((passage: Passage) => {
       console.log(passage);
       this.passage = passage;
-      this.formattedPassageText = PassageUtils.getFormattedPassageText(this.passage, true);
-      this.passageRef = PassageUtils.getPassageStringNoIndex(this.passage, this.translation, true);
       this.searching = false;
       this.searchingMessage = null;
     });
-  }
-
-  swipe(action) {
-    if (action === this.SWIPE_ACTION.RIGHT) {
-      // this is a hack to make sure that setter gets called in the passage navigation component
-      this.direction = 'prev' + new Date();
-      this.prev();
-    }
-
-    if (action === this.SWIPE_ACTION.LEFT) {
-      // this is a hack to make sure that setter gets called in the passage navigation component
-      this.direction = 'next' + new Date();
-      this.next();
-    }
   }
 
   next() {
@@ -99,13 +77,8 @@ export class ViewChapterComponent implements OnInit {
     this.retrieveChapter();
   }
 
-  toggleTranslationOptions() {
-    this.isTranslCollapsed = !this.isTranslCollapsed;
-  }
-
   selectTranslation(translation: string): boolean {
     this.translation = translation;
-    this.isTranslCollapsed = true;
     this.retrieveChapter();
     return false;
   }
@@ -117,10 +90,5 @@ export class ViewChapterComponent implements OnInit {
       }
     }
     return -1;
-  }
-
-  logIt(event: any, mode: string) {
-    console.log('Here is the mode: ' + mode + '.  Here is the event: ');
-    console.log(event);
   }
 }
