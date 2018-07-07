@@ -1,42 +1,11 @@
-<div *ngIf="searching" class="container">
-  <div class="row mt-5">
-    <div class="col-md col-lg col-sm" style="text-align: center;">
-      <h2>{{searchingMessage}}</h2><img src="assets/ajax-loader.gif" />
-    </div>
-  </div>
-</div>
-<div *ngIf="!searching" class="container" (swipeleft)="swipe($event.type)" (swiperight)="swipe($event.type)">
-  <div class="row">
-    <div class="col-md col-lg col-sm" style="text-align: center;">
-        <h5>Topic: <span style="color: chartreuse;">'{{topicName}}'</span></h5>
-    </div>
-  </div>
-  <div class="row">
-    <div class="col-md col-lg col-sm" style="text-align: center;">
-      <div class="psg-nav">
-        <a (click)="prev()">
-          <i class="fa fa-arrow-left" style="color: lightgreen;"></i>
-        </a>&nbsp;
-        <a (click)="next()">
-          <i class="fa fa-arrow-right" style="color: lightgreen;"></i>
-        </a>&nbsp;
-        <button style="margin-right: 10px;" (click)="toggleTranslationOptions()" type="button" class="btn btn-primary dropdown-toggle" [attr.aria-haspopup]="isTranslCollapsed" [attr.aria-expanded]="!isTranslCollapsed">Transl</button>
-        <div class="dropdown-menu dropdown-menu-right" [ngbCollapse]="isTranslCollapsed">
-          <a *ngFor="let translationOption of translationOptions" (click)="selectTranslation(translationOption)" style="color: black !important;" class="dropdown-item">{{translationOption}}</a>
-        </div>
-        <label>{{translation}}</label>
-      </div>
-    </div>
-  </div>
-  <div class="row">
-    <div class="col-md col-lg col-sm">
-      <div *ngIf="!searching" class="nugget-view" [innerHTML]="passageRef" style="text-align: center;"></div>
-    </div>
-  </div>
-  <div class="row">
-    <div class="col-md col-lg col-sm">
-      <hr style="color: white !important; background: white;"/>
-      <div [@newPassage]="formattedPassageText" (@newPassage.done)="logIt($event, 'passageText')" class="nugget-view" [innerHTML]="formattedPassageText" style="text-align: center;"></div>
-    </div>
-  </div>
-</div>
+<mem-browse-passage
+  [currentIndex]="currentIndex" 
+  [passagesLength]="passages?.length" 
+  [selectedTranslation]="translation" 
+  [searching]="searching" 
+  [searchingMessage]="searchingMessage" 
+  [passage]="passage" 
+  (nextEvent)="next()" 
+  (prevEvent)="prev()" 
+  (changeTranslationEvent)="selectTranslation($event)">
+</mem-browse-passage>

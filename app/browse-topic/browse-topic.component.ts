@@ -21,13 +21,9 @@ export class BrowseTopicComponent implements OnInit {
   searching: boolean = false;
   searchingMessage: string = null;
   passages: Passage[] = [];
-  formattedPassageText: string = null;
-  passageRef: string = null;
   translation: string = null;
   passage: Passage = null;
   currentIndex: number = 0;
-  SWIPE_ACTION = { LEFT: 'swipeleft', RIGHT: 'swiperight' };
-  direction: string = null;
   currUser: string = null;
   topicName: string = null;
   isTranslCollapsed: boolean = true;
@@ -69,45 +65,18 @@ export class BrowseTopicComponent implements OnInit {
     });
   }
 
-  swipe(action) {
-    if (action === this.SWIPE_ACTION.RIGHT) {
-      // this is a hack to make sure that setter gets called in the passage navigation component
-      this.direction = 'prev' + new Date();
-      this.prev();
-    }
-
-    if (action === this.SWIPE_ACTION.LEFT) {
-      // this is a hack to make sure that setter gets called in the passage navigation component
-      this.direction = 'next' + new Date();
-      this.next();
-    }
-  }
-
   next() {
-    if (this.currentIndex === (this.passages.length - 1)) {
-      this.currentIndex = 0;
-    } else {
-      this.currentIndex += 1;
-    }
+    this.currentIndex = PassageUtils.getNextIndex(this.currentIndex, this.passages.length, true);
     this.displayPassage();
   }
 
   prev() {
-    if (this.currentIndex === 0) {
-      this.currentIndex = this.passages.length - 1;
-    } else {
-      this.currentIndex -= 1;
-    }
+    this.currentIndex = PassageUtils.getNextIndex(this.currentIndex, this.passages.length, false);
     this.displayPassage();
-  }
-
-  toggleTranslationOptions() {
-    this.isTranslCollapsed = !this.isTranslCollapsed;
   }
 
   selectTranslation(translation: string): boolean {
     this.translation = translation;
-    this.isTranslCollapsed = true;
     this.displayPassage();
     return false;
   }
@@ -123,15 +92,8 @@ export class BrowseTopicComponent implements OnInit {
       this.passage = returnedPassage;
       this.passage.bookName = passageToGet.bookName;
       this.memoryService.setCurrentPassage(this.passage, this.currUser);
-      this.formattedPassageText = PassageUtils.getFormattedPassageText(this.passage, true);
-      this.passageRef = PassageUtils.getPassageStringNoLineBreak(this.passage, this.currentIndex, this.passages.length, this.translation, true, true);
       this.searching = false;
       this.searchingMessage = null;
     });
-  }
-
-  logIt(event: any, mode: string) {
-    console.log('Here is the mode: ' + mode + '.  Here is the event: ');
-    console.log(event);
   }
 }
