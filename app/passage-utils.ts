@@ -14,6 +14,40 @@ export class PassageUtils {
     return defaultTranslation;
   }
 
+  public static getSurroundingVerses(passage: Passage, maxVerseByBookChapter: any[]): Passage {
+    let maxVerse: number = this.getMaxVerseByBookAndChapter(
+      passage.bookName, passage.chapter, -1, maxVerseByBookChapter);
+    let newStartVerse: number = passage.startVerse - 4;
+    let newEndVerse: number = passage.endVerse + 4;
+    if (newStartVerse < 1) {
+      newStartVerse = 1;
+    }
+    if (maxVerse != -1 && newEndVerse > maxVerse) {
+      newEndVerse = maxVerse;
+    }
+    let returnPassage: Passage = JSON.parse(JSON.stringify(passage));
+    returnPassage.startVerse = newStartVerse;
+    returnPassage.endVerse = newEndVerse;
+    return returnPassage;
+  }
+
+  public static getMaxVerseByBookAndChapter(bibleBookKey: string, chapter: number, defaultVal: number, maxVerseByBookChapter: any[]): number {
+    let bibleBookKeys: string[] = Object.keys(maxVerseByBookChapter);
+    for (let lBibleBookKey of bibleBookKeys) {
+      if (lBibleBookKey === bibleBookKey) {
+        let chaptersAndMaxVerse: string[] = maxVerseByBookChapter[lBibleBookKey];
+        for (let chapterAndMaxVerse of chaptersAndMaxVerse) {
+          let chap = chapterAndMaxVerse[0];
+          let maxVerse = chapterAndMaxVerse[1];
+          if (parseInt(chap) === chapter) {
+            return parseInt(maxVerse);
+          }
+        }
+      }
+    }
+    return defaultVal;
+  }
+
   public static getNextIndex(currentIndex: number, numberOfPassages: number, next: boolean): number {
     let newIndex: number = -1;
     if (next) {

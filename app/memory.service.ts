@@ -36,6 +36,12 @@ export class MemoryService {
     return this.httpService.get(this._url + 'get_passage_text.php?user=' + user + '&translation=' + passage.translationName + '&book=' + passage.bookName + '&chapter=' + passage.chapter + '&start=' + passage.startVerse + '&end=' + passage.endVerse).pipe(map(res => res.json()));
   }
 
+  public getPassageByKeys(book: string, chapter: number, startVerse: number, endVerse: number, translation: string): Observable<Passage> {
+    let bookId: number = this.getBookId(book);
+    console.log('MemoryService.getPassageByKeys - calling ' + this._url + 'get_passage_by_keys.php?bookId=' + bookId + '&translation=' + translation + '&chapter=' + chapter + '&startVerse=' + startVerse + '&endVerse=' + endVerse);
+    return this.httpService.get(this._url + 'get_passage_by_keys.php?bookId=' + bookId + '&translation=' + translation + '&chapter=' + chapter + '&startVerse=' + startVerse + '&endVerse=' + endVerse).pipe(map(res => res.json()));
+  }
+
   public getPassageById(passageId: number, selectedTranslation: string): Observable<Passage> {
     console.log('MemoryService.getPassageById - calling ' + this._url + 'get_nugget_by_id.php?nugget_id=' + passageId + '&translation=' + selectedTranslation);
     return this.httpService.get(this._url + 'get_nugget_by_id.php?nugget_id=' + passageId + '&translation=' + selectedTranslation).pipe(map(res => res.json()));

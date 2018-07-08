@@ -14,6 +14,8 @@ export class ViewChapterComponent implements OnInit {
   passage: Passage = null;
   book: string = null;
   chapter: number = -1;
+  startVerse: number = -1;
+  endVerse: number = -1;
   translation: string = null;
   maxChapterByBook: any[];
 
@@ -23,6 +25,14 @@ export class ViewChapterComponent implements OnInit {
     this.book = this.activeRoute.snapshot.params['book'];
     this.chapter = parseInt(this.activeRoute.snapshot.params['chapter']);
     this.translation = this.activeRoute.snapshot.params['translation'];
+    let startVerse = this.activeRoute.snapshot.params['startVerse'];
+    if (startVerse) {
+      this.startVerse = parseInt(startVerse);
+    }
+    let endVerse = this.activeRoute.snapshot.params['endVerse'];
+    if (endVerse) {
+      this.endVerse = parseInt(endVerse);
+    }
     this.memoryService.getMaxChaptersByBook().subscribe((response: any[]) => {
       this.maxChapterByBook = response;
     });
@@ -31,13 +41,24 @@ export class ViewChapterComponent implements OnInit {
 
   private retrieveChapter() {
     this.searching = true;
-    this.searchingMessage = 'Retrieving ' + this.book + ', chapter ' + this.chapter + '...';
-    this.memoryService.getChapter(this.book, this.chapter, this.translation).subscribe((passage: Passage) => {
-      console.log(passage);
-      this.passage = passage;
-      this.searching = false;
-      this.searchingMessage = null;
-    });
+    if (this.startVerse !== -1 && this.endVerse !== -1) {
+      this.searchingMessage = 'Retrieving ' + this.book + ', chapter ' + this.chapter + ', start verse ' + this.startVerse + ', end verse ' + this.endVerse + '...';
+      let passage: Passage = new Passage();
+      this.memoryService.getPassageByKeys(this.book, this.chapter, this.startVerse, this.endVerse, this.translation).subscribe((returnPassage: Passage) => {
+        console.log(returnPassage);
+        this.passage = returnPassage;
+        this.searching = false;
+        this.searchingMessage = null;
+      });
+    } else {
+      this.searchingMessage = 'Retrieving ' + this.book + ', chapter ' + this.chapter + '...';
+      this.memoryService.getChapter(this.book, this.chapter, this.translation).subscribe((passage: Passage) => {
+        console.log(passage);
+        this.passage = passage;
+        this.searching = false;
+        this.searchingMessage = null;
+      });
+    }
   }
 
   next() {

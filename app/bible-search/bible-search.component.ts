@@ -21,6 +21,7 @@ export class BibleSearchComponent implements OnInit {
   private selectedVerse: Passage;
   private closeResult: string;
   private openModal: NgbModalRef;
+  private maxVerseByBookChapter: any[] = [];
 
   isTranslCollapsed: boolean = true;
   isBooklistCollapsed: boolean = true;
@@ -61,9 +62,16 @@ export class BibleSearchComponent implements OnInit {
     this.searchingMessage = "Searching for '" + this.searchPhrase + "'...";
     this.searchResults = [];
     this.memoryService.searchBible(param).subscribe((passages: Passage[]) => {
-      this.searchResults = passages;
-      this.searching = false;
-      this.searchingMessage = null;
+      this.memoryService.getMaxVerseByBookChapter(this.translation).subscribe((response: any[]) => {
+        if (response && Object.keys(response).length === 66) {
+          this.maxVerseByBookChapter = response;
+        } else {
+          console.log('Unable to retrieve max verse by chapter...');
+        }
+        this.searchResults = passages;
+        this.searching = false;
+        this.searchingMessage = null;
+      });
     });
   }
 
@@ -94,6 +102,16 @@ export class BibleSearchComponent implements OnInit {
       this.openModal.close();
     }
     this.route.navigate(['/viewChapter', this.selectedVerse.bookName, this.selectedVerse.chapter, this.translation]);
+  }
+
+  goToSurroundingVerses() {
+    let passageContext: Passage = PassageUtils.getSurroundingVerses(this.selectedVerse, this.maxVerseByBookChapter);
+    console.log('Navigating to: ');
+    console.log(passageContext);
+    if (this.openModal) {
+      this.openModal.close();
+    }
+    this.route.navigate(['/viewChapter', passageContext.bookName, passageContext.chapter, passageContext.startVerse, passageContext.endVerse, this.translation]);
   }
 
   open(content, selectedVerse: Passage) {
