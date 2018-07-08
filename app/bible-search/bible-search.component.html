@@ -90,14 +90,14 @@
   <div class="row justify-content-center" *ngIf="!searching && searchResults && searchResults.length > 0">
     <div class="col-md col-sm">
       <h4>Found {{searchResults.length}} '{{searchPhrase}}' <a style="color: blueviolet !important; font-size: 12px !important;" (click)="searchResults = null">Search Again</a></h4>
-      <table class="table table-bordered" style="margin: 5px;">
+      <table class="table table-bordered" style="font-size: 18px !important; margin: 5px;">
         <tbody>
             <tr>
               <th>Passage Ref</th>
               <th>Passage Text</th>
             </tr>
             <tr *ngFor="let passage of searchResults">
-              <td><a (click)="open(content, passage)" style="font-size: 14px !important; text-decoration: underline; color: #00FFFF !important;">{{getPassageRef(passage)}}</a></td>
+              <td><a (click)="open(content, passage)" style="text-decoration: underline; color: #00FFFF !important;">{{getPassageRef(passage)}}</a></td>
               <td [innerHTML]="getPassageText(passage)"></td>
             </tr>
         </tbody>

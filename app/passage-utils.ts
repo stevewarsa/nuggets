@@ -108,8 +108,12 @@ export class PassageUtils {
   }
 
   public static updateAllMatches(find: string, str: string) {
-    let regex: RegExp = new RegExp(find, 'ig');
-    return str.replace(regex, "<span class='search_result'>$&</span>");
+    let parts: string[] = find.split('*');
+    for (let part of parts) {
+      let regex: RegExp = new RegExp(part, 'ig');
+      str = str.replace(regex, "<span class='search_result'>$&</span>");
+    }
+    return str;
   }
 
   public static getPassageStringNoIndex(passage: Passage, transl: string, translShort: boolean, appendLetter?: string) {
