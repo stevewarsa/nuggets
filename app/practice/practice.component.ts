@@ -79,20 +79,12 @@ export class PracticeComponent implements OnInit, OnDestroy {
   }
 
   next() {
-    if (this.currentIndex === (this.passages.length - 1)) {
-      this.currentIndex = 0;
-    } else {
-      this.currentIndex += 1;
-    }
+    this.currentIndex = PassageUtils.getNextIndex(this.currentIndex, this.passages.length, true);
     this.displayPassageOnScreen();
   }
 
   prev() {
-    if (this.currentIndex === 0) {
-      this.currentIndex = this.passages.length - 1;
-    } else {
-      this.currentIndex -= 1;
-    }
+    this.currentIndex = PassageUtils.getNextIndex(this.currentIndex, this.passages.length, false);
     this.displayPassageOnScreen();
   }
 
@@ -163,15 +155,15 @@ export class PracticeComponent implements OnInit, OnDestroy {
   }
 
   private completeDisplayPassage(newPassage: Passage) {
-    this.currentPassage = newPassage;
     this.memoryService.setCurrentPassage(this.currentPassage, this.currentUser);
     let dt = new Date();
     let dtNum = dt.getTime();
     let formattedDateTime = moment(dt).format('dddd, MMM d HH:mm:ss Z YYYY');
     // fire and forget...
-    this.subscription = this.memoryService.updateLastViewed(this.currentUser, this.currentPassage.passageId, dtNum, formattedDateTime).subscribe();
+    this.subscription = this.memoryService.updateLastViewed(this.currentUser, newPassage.passageId, dtNum, formattedDateTime).subscribe();
     this.searching = false;
     this.searchingMessage = null;
+    this.currentPassage = newPassage;
   }
 
   private findStartAtPassage() {

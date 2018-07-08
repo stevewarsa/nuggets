@@ -40,6 +40,7 @@ export class ViewBiblePassageComponent implements OnInit {
 
   passageRef: string = "";
   formattedPassageText: string = null;
+  currentHtmlDisplayed: string = null;
   _passage: Passage;
   progressString: string;
   SWIPE_ACTION = { LEFT: 'swipeleft', RIGHT: 'swiperight' };
@@ -57,6 +58,7 @@ export class ViewBiblePassageComponent implements OnInit {
         this.passageRef = PassageUtils.getPassageString(this._passage, this.currentIndex, this.passagesLength, this.selectedTranslation, this.shortBook, this.showProgressInLine);
       }
       this.formattedPassageText = PassageUtils.getFormattedPassageText(this._passage, this.showVerseNumbers);
+      this.currentHtmlDisplayed = this._showPsgText ? this.formattedPassageText : this.passageRef;
       this.progressString = (this.currentIndex + 1) + " of " + this.passagesLength;
     }
   }
@@ -100,6 +102,7 @@ export class ViewBiblePassageComponent implements OnInit {
     // show answer
     this.answerEvent.emit('answer');
     this._showPsgText = !this._showPsgText;
+    this.currentHtmlDisplayed = this._showPsgText ? this.formattedPassageText : this.passageRef;
   }
 
   stop() {

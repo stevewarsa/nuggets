@@ -1,21 +1,15 @@
 <div class="container" (swipeleft)="swipe($event.type)" (swiperight)="swipe($event.type)">
   <mem-passage-navigation (nextEvent)="next()" (prevEvent)="prev()" (answerEvent)="answer()" (stopPracticeEvent)="stop()" [progressString]="progressString" [showPassageTextFirst]="_showPsgText" [frequencyDays]="_passage?.frequencyDays" [lastPracticedDate]="_passage?.last_viewed_num" [swipeEvent]="direction"></mem-passage-navigation>
-  <div class="row" *ngIf="!_showPsgText">
-    <!-- This is the case where we're showing the passage ref and user needs to recite the verse-->
+  <div *ngIf="searching" class="row">
     <div class="col-md col-lg col-sm">
-      <div *ngIf="!searching" [@newPassage]="passageRef" (@newPassage.done)="logIt($event, 'passageRef')" class="nugget-view" [innerHTML]="passageRef" style="text-align: center;"></div>
-      <div *ngIf="searching" style="text-align: center;">
+      <div style="text-align: center;">
         <p class="lead">{{searchingMessage}}</p><img src="assets/ajax-loader.gif" />
       </div>
     </div>
   </div>
-  <div class="row" *ngIf="_showPsgText">
+  <div *ngIf="!searching" class="row">
     <div class="col-md col-lg col-sm">
-    <!-- This is the case where we're showing the verse and user needs to recite the passage ref -->
-    <div *ngIf="!searching" [@newPassage]="formattedPassageText" (@newPassage.done)="logIt($event, 'passageText')" class="nugget-view" [innerHTML]="formattedPassageText" style="text-align: center;"></div>
-      <div *ngIf="searching" style="text-align: center;">
-        <p class="lead">{{searchingMessage}}</p><img src="assets/ajax-loader.gif" />
-      </div>
+      <div [@newPassage]="currentHtmlDisplayed" (@newPassage.done)="logIt($event, 'passageRef')" class="nugget-view" [innerHTML]="currentHtmlDisplayed" style="text-align: center;"></div>
     </div>
   </div>
 </div>
