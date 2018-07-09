@@ -62,6 +62,9 @@ export class ViewChapterComponent implements OnInit {
   }
 
   next() {
+    // make sure during next/prev, we don't just show the verse range (start-end), if they were set
+    this.startVerse = -1;
+    this.endVerse = -1;
     this.chapter += 1;
     if (this.chapter > this.getMaxChapterForBook()) {
       let bookId = this.memoryService.getBookId(this.book);
@@ -76,6 +79,9 @@ export class ViewChapterComponent implements OnInit {
   }
 
   prev() {
+    // make sure during next/prev, we don't just show the verse range (start-end), if they were set
+    this.startVerse = -1;
+    this.endVerse = -1;
     this.chapter -= 1;
     if (this.chapter === 0) {
       let bookId = this.memoryService.getBookId(this.book);
