@@ -111,7 +111,7 @@ export class BibleSearchComponent implements OnInit {
     if (this.openModal) {
       this.openModal.close();
     }
-    this.route.navigate(['/viewChapter', passageContext.bookName, passageContext.chapter, passageContext.startVerse, passageContext.endVerse, this.translation]);
+    this.route.navigate(['/viewPassage', passageContext.bookName, passageContext.chapter, passageContext.startVerse, passageContext.endVerse, this.translation]);
   }
 
   open(content, selectedVerse: Passage) {

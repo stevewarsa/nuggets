@@ -13,7 +13,7 @@ import { Constants } from 'src/app/constants';
 export class MemoryService {
   private currentPassage: Passage = null;
   private currentUser: string = null;
-  private _url:string = "http://ps11911.com/nuggets_mobile_app/";
+  private _url:string = "http://ps11911.com/nuggets/server/";
   private cachedPassages: Passage[];
   private passageTextOverrides: Passage[] = null;
   private topicList: any[] = [];

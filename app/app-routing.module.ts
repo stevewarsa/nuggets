@@ -30,7 +30,7 @@ const routes: Routes = [
   {path: 'randomtopic', component: RandomTopicComponent},
   {path: 'browsenuggets', component: BrowseNuggetsComponent},
   {path: 'browseTopic/:topicId/:order', component: BrowseTopicComponent},
-  {path: 'viewChapter/:book/:chapter/:startVerse/:endVerse/:translation', component: ViewChapterComponent},
+  {path: 'viewPassage/:book/:chapter/:startVerse/:endVerse/:translation', component: ViewChapterComponent},
   {path: 'viewChapter/:book/:chapter/:translation', component: ViewChapterComponent},
   {path: 'practice/:mode/:order/:passageId', component: PracticeComponent}
 ];
