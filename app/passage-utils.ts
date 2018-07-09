@@ -31,6 +31,10 @@ export class PassageUtils {
     return returnPassage;
   }
 
+  public static clonePassage(passage: Passage): Passage {
+    return JSON.parse(JSON.stringify(passage));
+  }
+
   public static getMaxVerseByBookAndChapter(bibleBookKey: string, chapter: number, defaultVal: number, maxVerseByBookChapter: any[]): number {
     let bibleBookKeys: string[] = Object.keys(maxVerseByBookChapter);
     for (let lBibleBookKey of bibleBookKeys) {
@@ -112,6 +116,46 @@ export class PassageUtils {
       }
     }
     return verseText;
+  }
+  
+  public static getFormattedVersesAsArray(passage: Passage): string[] {
+    let verses: string[] = [];
+    let verseLen: number = passage.verses.length;
+    for (let i = 0; i < verseLen; i++) {
+      let verseText: string = "";
+      let versePartLen: number = passage.verses[i].verseParts.length;
+      for (let j = 0; j < versePartLen; j++) {
+        if (passage.verses[i].verseParts[j].wordsOfChrist) {
+          verseText += "<span class='wordsOfChrist'>";
+          verseText += passage.verses[i].verseParts[j].verseText
+            + " ";
+          verseText += "</span>";
+        } else {
+          verseText += passage.verses[i].verseParts[j].verseText
+            + " ";
+        }
+      }
+      verses.push(verseText);
+    }
+    return verses;
+  }
+
+  public static getPassageForClipboardAsArray(passage: Passage): string[] {
+    if (!passage || !passage.verses || passage.verses.length === 0) {
+      return [];
+    }
+    let passageArray: string[] = [];
+    let verseLen: number = passage.verses.length;
+    for (let i = 0; i < verseLen; i++) {
+      let verseText: string = "";
+      let versePartLen: number = passage.verses[i].verseParts.length;
+      for (let j = 0; j < versePartLen; j++) {
+        verseText += passage.verses[i].verseParts[j].verseText
+          + " ";
+      }
+      passageArray.push(verseText);
+    }
+    return passageArray;
   }
 
   public static getPassageForClipboard(passage: Passage): string {

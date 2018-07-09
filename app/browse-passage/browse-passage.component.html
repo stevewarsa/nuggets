@@ -1,7 +1,8 @@
 <div *ngIf="searching" class="container">
   <div class="row mt-5">
     <div class="col-md col-lg col-sm" style="text-align: center;">
-      <h2>{{searchingMessage}}</h2><img src="assets/ajax-loader.gif" />
+      <h2>{{searchingMessage}}</h2>
+      <img src="assets/ajax-loader.gif" />
     </div>
   </div>
 </div>
@@ -9,15 +10,20 @@
   <div class="row">
     <div class="col-md col-lg col-sm" style="text-align: center;">
       <div class="psg-nav">
+        <a (click)="selectForCopy(content)">
+          <i class="fa fa-copy" style="color: coral;"></i>
+        </a>&nbsp;
         <a (click)="prev()">
           <i class="fa fa-arrow-left" style="color: lightgreen;"></i>
         </a>&nbsp;
         <a (click)="next()">
           <i class="fa fa-arrow-right" style="color: lightgreen;"></i>
         </a>&nbsp;
-        <button style="margin-right: 10px;" (click)="toggleTranslationOptions()" type="button" class="btn btn-primary dropdown-toggle" [attr.aria-haspopup]="isTranslCollapsed" [attr.aria-expanded]="!isTranslCollapsed">Transl</button>
+        <button style="margin-right: 10px;" (click)="toggleTranslationOptions()" type="button" class="btn btn-primary dropdown-toggle"
+          [attr.aria-haspopup]="isTranslCollapsed" [attr.aria-expanded]="!isTranslCollapsed">Transl</button>
         <div class="dropdown-menu dropdown-menu-right" [ngbCollapse]="isTranslCollapsed">
-          <a *ngFor="let translationOption of translationOptions" (click)="selectTranslation(translationOption)" style="color: black !important;" class="dropdown-item">{{translationOption}}</a>
+          <a *ngFor="let translationOption of translationOptions" (click)="selectTranslation(translationOption)" style="color: black !important;"
+            class="dropdown-item">{{translationOption}}</a>
         </div>
       </div>
     </div>
@@ -29,8 +35,31 @@
   </div>
   <div class="row">
     <div class="col-md col-lg col-sm">
-      <hr style="color: white !important; background: white;"/>
-      <div [@newPassage]="formattedPassageText" (@newPassage.done)="logIt($event, 'passageText')" class="nugget-view" [innerHTML]="formattedPassageText" style="text-align: center;"></div>
+      <hr style="color: white !important; background: white;" />
+      <div [@newPassage]="formattedPassageText" (@newPassage.done)="logIt($event, 'passageText')" class="nugget-view" [innerHTML]="formattedPassageText"
+        style="text-align: center;"></div>
     </div>
   </div>
+  <ng-template #content let-d="dismiss">
+    <div class="modal-header">
+      <h4 class="modal-title">Select Verses To Copy</h4>
+      <button type="button" class="close" aria-label="Close" (click)="d('Cross click')">
+        <span aria-hidden="true">&times;</span>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="container">
+        <ul *ngIf="versesForSelection && versesForSelection.length > 0" class="list-group">
+          <li *ngFor="let verse of versesForSelection; let i = index" class="list-group-item text-white" style="background: black;">
+            <label class="checkbox-inline">
+              <input type="checkbox" name="{{i}}" (click)="selectVerseForCopy(i)" /><div innerHTML="{{verse}}"></div>
+            </label>
+          </li>
+        </ul>
+      </div>
+    </div>
+    <div class="modal-footer">
+        <a role="button" id="cbCopy" class="btn btn-link no-padding-top-bottom" ngxClipboard [cbContent]="passageTextForClipboard" (cbOnSuccess)="clipboardCopyComplete()"><i class="fa fa-copy" style="margin-right: 5px; font-size: 32px !important;"></i> <span class="helv-white">Copy</span></a>
+    </div>
+  </ng-template>
 </div>
