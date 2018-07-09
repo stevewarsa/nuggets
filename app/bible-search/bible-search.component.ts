@@ -5,6 +5,7 @@ import { Passage } from 'src/app/passage';
 import { PassageUtils } from 'src/app/passage-utils';
 import { Router } from '@angular/router';
 import { NgbModal, ModalDismissReasons, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   templateUrl: './bible-search.component.html'
@@ -22,6 +23,7 @@ export class BibleSearchComponent implements OnInit {
   private closeResult: string;
   private openModal: NgbModalRef;
   private maxVerseByBookChapter: any[] = [];
+  private passageTextForClipboard: string = null;
 
   isTranslCollapsed: boolean = true;
   isBooklistCollapsed: boolean = true;
@@ -30,6 +32,7 @@ export class BibleSearchComponent implements OnInit {
   constructor(
     private route: Router, 
     private memoryService: MemoryService, 
+    public toastr: ToastrService,
     private modalService: NgbModal) { }
 
   ngOnInit() {
@@ -113,15 +116,35 @@ export class BibleSearchComponent implements OnInit {
     }
     this.route.navigate(['/viewPassage', passageContext.bookName, passageContext.chapter, passageContext.startVerse, passageContext.endVerse, this.translation]);
   }
+  
+  clipboardCopyComplete() {
+    this.toastr.info('The passage has been copied to the clipboard!', 'Success!');
+    if (this.openModal) {
+      this.openModal.close();
+    }
+  }
 
   open(content, selectedVerse: Passage) {
     this.selectedVerse = selectedVerse;
+    this.populateVerseForClipboard(selectedVerse);
     this.openModal = this.modalService.open(content);
     this.openModal.result.then((result) => {
       this.closeResult = `Closed with: ${result}`;
     }, (reason) => {
       this.closeResult = `Dismissed ${this.getDismissReason(reason)}`;
     });
+  }
+
+  populateVerseForClipboard(selectedVerse: Passage) {
+    if (selectedVerse && selectedVerse !== null) {
+      this.passageTextForClipboard = PassageUtils.getPassageForClipboard(selectedVerse);
+      if (this.passageTextForClipboard === "" && this.memoryService.getCurrentUser()) {
+        this.memoryService.getUpdatedCurrentPassageText().subscribe((passage: Passage) => {
+          selectedVerse.verses = passage.verses;
+          this.passageTextForClipboard = PassageUtils.getPassageForClipboard(selectedVerse);
+        });
+      }
+    }
   }
 
   private getDismissReason(reason: any): string {

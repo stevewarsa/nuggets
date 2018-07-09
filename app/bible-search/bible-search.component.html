@@ -117,7 +117,7 @@
         <ul class="list-group">
           <li class="list-group-item bg-dark text-white" (click)="goToPassage()">View Chapter</li>
           <li class="list-group-item bg-dark text-white" (click)="goToSurroundingVerses()">View Surrounding Verses</li>
-          <li class="list-group-item bg-dark text-white">Copy to Clipboard</li>
+          <li class="list-group-item bg-dark text-white" ngxClipboard [cbContent]="passageTextForClipboard" (cbOnSuccess)="clipboardCopyComplete()">Copy to Clipboard</li>
         </ul>
       </div>
     </div>
