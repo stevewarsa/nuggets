@@ -155,7 +155,7 @@ export class PracticeComponent implements OnInit, OnDestroy {
   }
 
   private completeDisplayPassage(newPassage: Passage) {
-    this.memoryService.setCurrentPassage(this.currentPassage, this.currentUser);
+    this.memoryService.setCurrentPassage(newPassage, this.currentUser);
     let dt = new Date();
     let dtNum = dt.getTime();
     let formattedDateTime = moment(dt).format('dddd, MMM d HH:mm:ss Z YYYY');

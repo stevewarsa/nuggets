@@ -67,7 +67,7 @@ export class EditPassageComponent implements OnInit {
     }
     this.updateVerseText(true, false);
     this.frequencies.push({freqLabel: "Every Time", freqValue: -1});
-    for (let i = 1; i <= 50; i++) {
+    for (let i = 1; i <= 500; i++) {
       this.frequencies.push({freqLabel: i + "", freqValue: i});
     }
   }
