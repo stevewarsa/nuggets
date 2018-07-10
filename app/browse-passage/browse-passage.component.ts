@@ -23,6 +23,7 @@ export class BrowsePassageComponent implements OnInit {
   formattedPassageText: string = null;
   versesForSelection: string[] = [];
   passageForClipboardAsArray: string[] = [];
+  passageTextForClipboard: string = null;
   shortBook: boolean = true;
   isTranslCollapsed: boolean = true;
   SWIPE_ACTION = { LEFT: 'swipeleft', RIGHT: 'swiperight' };
@@ -54,6 +55,8 @@ export class BrowsePassageComponent implements OnInit {
       this.formattedPassageText = PassageUtils.getFormattedPassageText(this._passage, true);
       this.versesForSelection = PassageUtils.getFormattedVersesAsArray(this._passage);
       this.passageForClipboardAsArray = PassageUtils.getPassageForClipboardAsArray(this._passage);
+      this.startVerseSelected = -1;
+      this.endVerseSelected = -1;
     }
   }
 
@@ -83,6 +86,8 @@ export class BrowsePassageComponent implements OnInit {
   }
 
   selectForCopy(content) {
+    this.startVerseSelected = -1;
+    this.endVerseSelected = -1;
     this.openModal = this.modalService.open(content);
     this.openModal.result.then((result) => {
       this.closeResult = `Closed with: ${result}`;
@@ -91,25 +96,53 @@ export class BrowsePassageComponent implements OnInit {
     });
   }
 
-  selectVerseForCopy(verseIndex: number) {
+  selectVerseForCopy(verseIndex: number, event: any) {
+    console.log("selectVerseForCopy - here is the checkbox event:");
+    console.log(event);
+    // if no verses are selected yet, set both start and end verse to the selected verse index number
     if (this.startVerseSelected === -1 && this.endVerseSelected === -1) {
       this.startVerseSelected = verseIndex;
       this.endVerseSelected = verseIndex;
-      return;
-    } 
-    if (this.startVerseSelected === -1) {
-      this.startVerseSelected = verseIndex;
     } else {
-      if (verseIndex > this.startVerseSelected) {
-        this.endVerseSelected = verseIndex;
-      } else {
-        this.endVerseSelected = this.startVerseSelected;
+      // this means at least 1 verse is selected, so...
+      // if the start verse is not selected
+      if (this.startVerseSelected === -1) {
         this.startVerseSelected = verseIndex;
+        if (this.endVerseSelected < this.startVerseSelected) {
+          this.endVerseSelected = this.startVerseSelected;
+        }
+      } else {
+        // this means, the start verse is already selected
+        if (verseIndex >= this.startVerseSelected) {
+          // so, if the verse selected this time is greater than the start verse
+          // which was previously selected, then the currently selected verse can 
+          // be safely set as the end verse
+          this.endVerseSelected = verseIndex;
+        } else {
+          // this means that the currently selected verse is less than the previously
+          // selected start verse, so set the end verse to the previously selected start verse
+          // then set the start verse to the newly selected verse
+          this.endVerseSelected = this.startVerseSelected;
+          this.startVerseSelected = verseIndex;
+        }
       }
     }
-    let selectedPassage = PassageUtils.clonePassage(this._passage);
-    selectedPassage.startVerse = this.startVerseSelected;
-    selectedPassage.endVerse = this.endVerseSelected;
+    console.log("selectVerseForCopy - startVerse: " + this.startVerseSelected + ", endVerse: " + this.endVerseSelected);
+    let selectedPassage = PassageUtils.deepClonePassage(this._passage);
+    selectedPassage.startVerse = this.startVerseSelected + 1;
+    selectedPassage.endVerse = this.endVerseSelected + 1;
+    let psgRefForClipboard: string = PassageUtils.getPassageStringNoIndex(selectedPassage, null, false);
+    psgRefForClipboard += "\n\n";
+    let psgForClipboard: string = "";
+    for (let i = this.startVerseSelected; i <= this.endVerseSelected; i++) {
+      if (i === this.startVerseSelected) {
+        psgForClipboard += this.passageForClipboardAsArray[i];
+      } else {
+        psgForClipboard += " " + this.passageForClipboardAsArray[i];
+      }
+    }
+    psgForClipboard = psgForClipboard.trim();
+    this.passageTextForClipboard = psgRefForClipboard + psgForClipboard;
   }
 
   clipboardCopyComplete() {

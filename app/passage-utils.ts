@@ -31,7 +31,7 @@ export class PassageUtils {
     return returnPassage;
   }
 
-  public static clonePassage(passage: Passage): Passage {
+  public static deepClonePassage(passage: Passage): Passage {
     return JSON.parse(JSON.stringify(passage));
   }
 

@@ -52,7 +52,7 @@
         <ul *ngIf="versesForSelection && versesForSelection.length > 0" class="list-group">
           <li *ngFor="let verse of versesForSelection; let i = index" class="list-group-item text-white" style="background: black;">
             <label class="checkbox-inline">
-              <input type="checkbox" name="{{i}}" (click)="selectVerseForCopy(i)" /><div innerHTML="{{verse}}"></div>
+              <input type="checkbox" name="{{i}}" (click)="selectVerseForCopy(i, $event)" /><div innerHTML="{{(i + 1) + ' ' + verse}}"></div>
             </label>
           </li>
         </ul>
