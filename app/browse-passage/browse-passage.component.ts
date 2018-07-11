@@ -33,6 +33,7 @@ export class BrowsePassageComponent implements OnInit {
   private closeResult: string;
   private startVerseSelected: number = -1;
   private endVerseSelected: number = -1;
+  interlinearURL: string;
   
   constructor(private modalService: NgbModal, public toastr: ToastrService) { }
   
@@ -57,10 +58,21 @@ export class BrowsePassageComponent implements OnInit {
       this.passageForClipboardAsArray = PassageUtils.getPassageForClipboardAsArray(this._passage);
       this.startVerseSelected = -1;
       this.endVerseSelected = -1;
+      let urlQuery: string = null;
+      if (this._passage.startVerse === this._passage.endVerse) {
+        urlQuery = this._passage.bookName + "+" + this._passage.chapter + ":" + this._passage.startVerse + "&t=nas"
+      } else {
+        urlQuery = this._passage.bookName + "+" + this._passage.chapter + ":" + this._passage.startVerse + "-" + this._passage.endVerse + "&t=nas"
+      }
+      this.interlinearURL = "https://www.biblestudytools.com/interlinear-bible/passage/?q=" + urlQuery;
     }
   }
 
   ngOnInit() {
+  }
+
+  goToInterlinear() {
+    window.open(this.interlinearURL, '_blank');
   }
 
   swipe(action) {

@@ -19,6 +19,9 @@
         <a (click)="next()">
           <i class="fa fa-arrow-right" style="color: lightgreen;"></i>
         </a>&nbsp;
+        <a (click)="goToInterlinear()">
+          <i class="fa fa-external-link" style="color: indianred;"></i>
+        </a>&nbsp;
         <button style="margin-right: 10px;" (click)="toggleTranslationOptions()" type="button" class="btn btn-primary dropdown-toggle"
           [attr.aria-haspopup]="isTranslCollapsed" [attr.aria-expanded]="!isTranslCollapsed">Transl</button>
         <div class="dropdown-menu dropdown-menu-right" [ngbCollapse]="isTranslCollapsed">

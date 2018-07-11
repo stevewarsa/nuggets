@@ -10,6 +10,7 @@ export class PassageNavigationComponent implements OnInit {
   @Output() prevEvent: EventEmitter<string>  = new EventEmitter<string>();
   @Output() answerEvent: EventEmitter<string>  = new EventEmitter<string>();
   @Output() stopPracticeEvent: EventEmitter<string>  = new EventEmitter<string>();
+  @Output() interlinearEvent: EventEmitter<string>  = new EventEmitter<string>();
   @Input() progressString: string;
   _frequencyString: string = null;
   @Input() set frequencyDays(frequency: number) {
@@ -48,6 +49,11 @@ export class PassageNavigationComponent implements OnInit {
   ngOnInit() {
     this.questionIcon = this._showPassageTextFirst ? "question-circle" : "lightbulb-o";
     this.iconFontColor = this.questionIcon === "question-circle" ? "lightskyblue" : "yellow";
+  }
+
+  goToInterlinear() {
+    this.isCollapsed = !this.isCollapsed;
+    this.interlinearEvent.emit();
   }
 
   toggleAdditionalOptions() {

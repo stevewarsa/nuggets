@@ -45,6 +45,7 @@ export class ViewBiblePassageComponent implements OnInit {
   progressString: string;
   SWIPE_ACTION = { LEFT: 'swipeleft', RIGHT: 'swiperight' };
   direction: string = null;
+  interlinearURL: string;
 
   constructor(private route: Router) { }
 
@@ -60,10 +61,21 @@ export class ViewBiblePassageComponent implements OnInit {
       this.formattedPassageText = PassageUtils.getFormattedPassageText(this._passage, this.showVerseNumbers);
       this.currentHtmlDisplayed = this._showPsgText ? this.formattedPassageText : this.passageRef;
       this.progressString = (this.currentIndex + 1) + " of " + this.passagesLength;
+      let urlQuery: string = null;
+      if (this._passage.startVerse === this._passage.endVerse) {
+        urlQuery = this._passage.bookName + "+" + this._passage.chapter + ":" + this._passage.startVerse + "&t=nas"
+      } else {
+        urlQuery = this._passage.bookName + "+" + this._passage.chapter + ":" + this._passage.startVerse + "-" + this._passage.endVerse + "&t=nas"
+      }
+      this.interlinearURL = "https://www.biblestudytools.com/interlinear-bible/passage/?q=" + urlQuery;
     }
   }
 
   ngOnInit() {
+  }
+
+  goToInterlinear() {
+    window.open(this.interlinearURL, '_blank');
   }
 
   logIt(event: any, mode: string) {
