@@ -15,11 +15,15 @@ import { BrowseTopicComponent } from 'src/app/browse-topic/browse-topic.componen
 import { RandomTopicComponent } from 'src/app/random-topic/random-topic.component';
 import { MemoryStatsComponent } from 'src/app/memory-stats/memory-stats.component';
 import { BrowseNuggetsComponent } from 'src/app/browse-nuggets/browse-nuggets.component';
+import { AddNonbibleMemoryFactComponent } from 'src/app/add-nonbible-memory-fact/add-nonbible-memory-fact.component';
+import { PracticeNonbibleMemoryFactsComponent } from 'src/app/practice-nonbible-memory-facts/practice-nonbible-memory-facts.component';
 
 const routes: Routes = [
   {path: '', component: LoginComponent},
   {path: 'main', component: MainMenuComponent},
   {path: 'practiceSetup', component: PracticeSetupComponent},
+  {path: 'addMemoryFact', component: AddNonbibleMemoryFactComponent},
+  {path: 'practiceFacts', component: PracticeNonbibleMemoryFactsComponent},
   {path: 'search', component: SearchComponent},
   {path: 'bibleSearch', component: BibleSearchComponent},
   {path: 'chapterSelection', component: ChapterSelectionComponent},

@@ -150,6 +150,18 @@ export class MemoryService {
     return this.httpService.get(this._url + 'add_memory_passage_new.php?user=' + this.currentUser + '&translation=' + passage.translationId + '&book=' + passage.bookName + '&chapter=' + passage.chapter + '&start=' + passage.startVerse + '&end=' + passage.endVerse + '&queue=N').pipe(map(res => res.json()));
   }
 
+  public addNonBibleMemoryFact(fact: any): Observable<string> {
+    fact.user = this.currentUser;
+    fact.category = 'fact';
+    console.log('MemoryService.addNonBibleMemoryFact - calling ' + this._url + 'add_nonbible_memory_fact.php');
+    return this.httpService.post(this._url + 'add_nonbible_memory_fact.php', fact).pipe(map(res => res.json()));
+  }
+
+  public getNonBibleMemoryFactList(): Observable<any[]> {
+    console.log('MemoryService.getNonBibleMemoryFactList - calling ' + this._url + 'get_fact_list.php?user=' + this.currentUser);
+    return this.httpService.get(this._url + 'get_fact_list.php?user=' + this.currentUser).pipe(map(res => res.json()));
+  }
+
   public demoteAllPassagesByOne(notIncludingPassageId: number): Observable<string> {
     console.log('MemoryService.demoteAllPassagesByOne - calling ' + this._url + 'demote_all_verses_by_1.php?user=' + this.currentUser + '&passage_id=' + notIncludingPassageId);
     return this.httpService.get(this._url + 'demote_all_verses_by_1.php?user=' + this.currentUser + '&passage_id=' + notIncludingPassageId).pipe(map(res => res.json()));

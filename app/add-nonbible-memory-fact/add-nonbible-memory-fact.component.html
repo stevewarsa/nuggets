@@ -1,0 +1,20 @@
+<div class="container">
+  <div class="row">
+    <div class="col-md col-sm">
+      <form role="form">
+        <fieldset>
+          <h3><span><i class="fa fa-caret-square-o-right" aria-hidden="true"></i></span> Enter Data for Fact</h3>
+          <div class="form-group">
+            <label for="prompt">Prompt:</label>
+            <input #promptInput type="text" [value]="prompt" (change)="changePrompt($event)" class="form-control" id="prompt" name="prompt" placeholder="Enter Prompt For Fact">
+          </div>
+          <div class="form-group">
+            <label for="answer">Answer:</label>
+            <textarea name="answer" [cols]="50" [rows]="20" [value]="answer" (change)="changeAnswer($event)" class="form-control" id="answer"></textarea>
+          </div>
+        </fieldset>
+        <button (click)="submit()" type="submit" class="btn btn-primary">Submit</button>
+      </form>
+    </div>
+  </div>
+</div>

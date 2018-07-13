@@ -1,0 +1,38 @@
+<div *ngIf="searching" class="container">
+  <div class="row mt-5">
+    <div class="col-md col-lg col-sm" style="text-align: center;">
+      <h2>{{searchingMessage}}</h2><img src="assets/ajax-loader.gif" />
+    </div>
+  </div>
+</div>
+<div *ngIf="!searching" class="container" (swipeleft)="swipe($event.type)" (swiperight)="swipe($event.type)">
+  <div class="row">
+    <div class="col-md col-lg col-sm" style="text-align: center;">
+      <div class="psg-nav">
+        <a (click)="showAnswer()">
+          <i class="fa fa-{{questionIcon}}" [ngStyle]="{ 'color': iconFontColor }"></i>
+        </a>&nbsp;
+        <a (click)="prev()">
+          <i class="fa fa-arrow-left" style="color: lightgreen;"></i>
+        </a>&nbsp;
+        <a (click)="next()">
+          <i class="fa fa-arrow-right" style="color: lightgreen;"></i>
+        </a>
+      </div>
+    </div>
+  </div>
+  <div class="row" *ngIf="showingPrompt">
+    <div class="col-md col-lg col-sm">
+      <hr style="color: white !important; background: white;" />
+      <div [@newFact]="currentFact?.prompt" (@newFact.done)="logIt($event, 'prompt')" class="nugget-view" [innerHTML]="currentFact?.prompt"
+        style="text-align: center;"></div>
+    </div>
+  </div>
+  <div class="row" *ngIf="!showingPrompt">
+    <div class="col-md col-lg col-sm">
+      <hr style="color: white !important; background: white;" />
+      <div [@newFact]="currentFact?.answer" (@newFact.done)="logIt($event, 'answer')" class="nugget-view" [innerHTML]="answer"
+        style="text-align: center;"></div>
+    </div>
+  </div>
+</div>
