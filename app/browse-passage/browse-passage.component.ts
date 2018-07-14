@@ -58,6 +58,11 @@ export class BrowsePassageComponent implements OnInit {
       this.passageForClipboardAsArray = PassageUtils.getPassageForClipboardAsArray(this._passage);
       this.startVerseSelected = -1;
       this.endVerseSelected = -1;
+      if (this._passage.startVerse === this._passage.endVerse) {
+        this.startVerseSelected = 0;
+        this.endVerseSelected = 0;
+        this.prepareForCopyToClipboard();
+      }
       let urlQuery: string = null;
       if (this._passage.startVerse === this._passage.endVerse) {
         urlQuery = this._passage.bookName + "+" + this._passage.chapter + ":" + this._passage.startVerse + "&t=nas"
@@ -139,6 +144,10 @@ export class BrowsePassageComponent implements OnInit {
         }
       }
     }
+    this.prepareForCopyToClipboard();
+  }
+
+  private prepareForCopyToClipboard() {
     console.log("selectVerseForCopy - startVerse: " + this.startVerseSelected + ", endVerse: " + this.endVerseSelected);
     let selectedPassage = PassageUtils.deepClonePassage(this._passage);
     selectedPassage.startVerse = this.startVerseSelected + this._passage.startVerse;

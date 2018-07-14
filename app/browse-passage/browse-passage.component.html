@@ -10,7 +10,10 @@
   <div class="row">
     <div class="col-md col-lg col-sm" style="text-align: center;">
       <div class="psg-nav">
-        <a (click)="selectForCopy(content)">
+        <a *ngIf="_passage?.startVerse !== _passage?.endVerse" (click)="selectForCopy(content)">
+          <i class="fa fa-copy" style="color: coral;"></i>
+        </a>&nbsp;
+        <a *ngIf="_passage?.startVerse === _passage?.endVerse" ngxClipboard [cbContent]="passageTextForClipboard" (cbOnSuccess)="clipboardCopyComplete()">
           <i class="fa fa-copy" style="color: coral;"></i>
         </a>&nbsp;
         <a (click)="prev()">
