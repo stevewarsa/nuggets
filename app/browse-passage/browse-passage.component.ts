@@ -141,8 +141,8 @@ export class BrowsePassageComponent implements OnInit {
     }
     console.log("selectVerseForCopy - startVerse: " + this.startVerseSelected + ", endVerse: " + this.endVerseSelected);
     let selectedPassage = PassageUtils.deepClonePassage(this._passage);
-    selectedPassage.startVerse = this.startVerseSelected + 1;
-    selectedPassage.endVerse = this.endVerseSelected + 1;
+    selectedPassage.startVerse = this.startVerseSelected + this._passage.startVerse;
+    selectedPassage.endVerse = this.endVerseSelected + this._passage.startVerse;
     let psgRefForClipboard: string = PassageUtils.getPassageStringNoIndex(selectedPassage, null, false);
     psgRefForClipboard += "\n\n";
     let psgForClipboard: string = "";
