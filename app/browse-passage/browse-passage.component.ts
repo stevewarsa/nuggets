@@ -120,11 +120,24 @@ export class BrowsePassageComponent implements OnInit {
     if (event.target.checked === false) {
       // this user unchecked a checkbox
       console.log("User unselected checkbox with verse index: " + verseIndex);
-      if (this.startVerseSelected === verseIndex) {
+      if (this.startVerseSelected === verseIndex && this.endVerseSelected === verseIndex) {
         this.startVerseSelected = -1;
-      }
-      if (this.endVerseSelected === verseIndex) {
         this.endVerseSelected = -1;
+      } else {
+        if (this.startVerseSelected === verseIndex) {
+          if (this.endVerseSelected !== -1) {
+            this.startVerseSelected = this.endVerseSelected;
+          } else {
+            this.startVerseSelected = -1;
+          }
+        }
+        if (this.endVerseSelected === verseIndex) {
+          if (this.startVerseSelected !== -1) {
+            this.endVerseSelected = this.startVerseSelected;
+          } else {
+            this.endVerseSelected = -1;
+          }
+        }
       }
     } else {
       // if no verses are selected yet, set both start and end verse to the selected verse index number
