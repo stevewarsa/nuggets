@@ -17,4 +17,8 @@ export class MainMenuComponent implements OnInit {
       return;
     }
   }
+
+  goTo(routerLocation: string) {
+    this.route.navigate([routerLocation]);
+  }
 }

@@ -63,3 +63,8 @@ a {
 	padding-top: 0.75rem;
 	padding-bottom: 0.75rem;
 }
+
+.main-menu-item {
+	background: black !important; 
+	border: 2px solid white !important;
+}

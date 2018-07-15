@@ -1,47 +1,78 @@
 <div class="container mt-4">
   <ngb-accordion #acc="ngbAccordion">
-    <ngb-panel title="Nuggets">
-      <ng-template ngbPanelContent>
-        Nuggets are passages from the Bible consisting of 1 or more verses and up to a whole chapter.  These are passages you can just randomly browse if you're looking to get a quick bit of Bible reading in and don't know where to start.
-        <ul class="list-group">
-          <li class="list-group-item text-white" style="background: black;"><a [routerLink]="['/browsenuggets']" class="btn btn-link no-padding-top-bottom" title="Browse Nuggets">Browse</a></li>
-        </ul>
+    <ngb-panel>
+      <ng-template ngbPanelTitle>
+        <div>Read</div>
       </ng-template>
-    </ngb-panel>
-    <ngb-panel title="Memorize">
       <ng-template ngbPanelContent>
-        This section is used for various tasks related to Bible and other memorization:
+        In this section, you can read the full bible, or you can just read selected passages from the Bible.
         <ul class="list-group">
-          <li class="list-group-item text-white" style="background: black;"><a [routerLink]="['/practiceSetup']" class="btn btn-link no-padding-top-bottom" title="Start Practice">Practice</a></li>
-          <li class="list-group-item text-white" style="background: black;"><a [routerLink]="['/search']" class="btn btn-link no-padding-top-bottom" title="Search / Add Verses to Your Memory Verse List">Search / Add</a></li>
-          <li class="list-group-item text-white" style="background: black;"><a [routerLink]="['/myverselist']" class="btn btn-link no-padding-top-bottom" title="View Your Memory Verse List">My Verses</a></li>
-          <li class="list-group-item text-white" style="background: black;"><a [routerLink]="['/memorystats']" class="btn btn-link no-padding-top-bottom" title="View Your Memory Statistics">Memory Stats</a></li>
-          <li class="list-group-item text-white" style="background: black;"><a [routerLink]="['/addMemoryFact']" class="btn btn-link no-padding-top-bottom" title="Add Memory Fact">Add Memory Fact</a></li>
-          <li class="list-group-item text-white" style="background: black;"><a [routerLink]="['/practiceFacts']" class="btn btn-link no-padding-top-bottom" title="Add Memory Fact">Practice Memory Facts</a></li>
+          <li (click)="goTo('/chapterSelection')" class="list-group-item text-white main-menu-item"><a [routerLink]="['/chapterSelection']" class="btn btn-link no-padding-top-bottom" title="Read a Chapter from the Bible">Read a Chapter</a></li>
+          <li (click)="goTo('/browsenuggets')" class="list-group-item text-white main-menu-item"><a [routerLink]="['/browsenuggets']" class="btn btn-link no-padding-top-bottom" title="Browse Nuggets">Browse</a></li>
+          <li (click)="goTo('/topiclist')" class="list-group-item text-white main-menu-item"><a [routerLink]="['/topiclist']" class="btn btn-link no-padding-top-bottom" title="Browse Bible Passages By Topic">Browse By Topic</a></li>
+          <li (click)="goTo('/randomtopic')" class="list-group-item text-white main-menu-item"><a [routerLink]="['/randomtopic']" class="btn btn-link no-padding-top-bottom" title="Browse Bible Passages By Random Topic">Browse By Random Topic</a></li>
         </ul>
       </ng-template>
     </ngb-panel>
     <ngb-panel>
       <ng-template ngbPanelTitle>
-        <span>Full Bible</span>
+        <div>Search</div>
+      </ng-template>
+      <ng-template ngbPanelContent>
+        In this section, you can search the full bible for any word or phrase, including wildcards.  The search can be performed in Old Testament, New Testament or the Full Bible, or you can limit the search to a particular book of the Bible.  Additionally, you can search any of the supported translations of the Bible.
+        <ul class="list-group">
+          <li (click)="goTo('/bibleSearch')" class="list-group-item text-white main-menu-item"><a [routerLink]="['/bibleSearch']" class="btn btn-link no-padding-top-bottom" title="Search the Full Bible">Search Full Bible</a></li>
+        </ul>
+      </ng-template>
+    </ngb-panel>
+    <ngb-panel>
+      <ng-template ngbPanelTitle>
+        <div>Nuggets</div>
+      </ng-template>
+      <ng-template ngbPanelContent>
+        Nuggets are passages from the Bible consisting of 1 or more verses and up to a whole chapter.  These are passages you can just randomly browse if you're looking to get a quick bit of Bible reading in and don't know where to start.
+        <ul class="list-group">
+          <li (click)="goTo('/browsenuggets')" class="list-group-item text-white main-menu-item"><a [routerLink]="['/browsenuggets']" class="btn btn-link no-padding-top-bottom" title="Browse Nuggets">Browse</a></li>
+        </ul>
+      </ng-template>
+    </ngb-panel>
+    <ngb-panel>
+      <ng-template ngbPanelTitle>
+        <div>Memorize</div>
+      </ng-template>
+      <ng-template ngbPanelContent>
+        This section is used for various tasks related to Bible and other memorization:
+        <ul class="list-group">
+          <li (click)="goTo('/practiceSetup')" class="list-group-item text-white main-menu-item"><a [routerLink]="['/practiceSetup']" class="btn btn-link no-padding-top-bottom" title="Start Practice">Practice</a></li>
+          <li (click)="goTo('/search')" class="list-group-item text-white main-menu-item"><a [routerLink]="['/search']" class="btn btn-link no-padding-top-bottom" title="Search / Add Verses to Your Memory Verse List">Search / Add</a></li>
+          <li (click)="goTo('/myverselist')" class="list-group-item text-white main-menu-item"><a [routerLink]="['/myverselist']" class="btn btn-link no-padding-top-bottom" title="View Your Memory Verse List">My Verses</a></li>
+          <li (click)="goTo('/memorystats')" class="list-group-item text-white main-menu-item"><a [routerLink]="['/memorystats']" class="btn btn-link no-padding-top-bottom" title="View Your Memory Statistics">Memory Stats</a></li>
+          <li (click)="goTo('/addMemoryFact')" class="list-group-item text-white main-menu-item"><a [routerLink]="['/addMemoryFact']" class="btn btn-link no-padding-top-bottom" title="Add Memory Fact">Add Memory Fact</a></li>
+          <li (click)="goTo('/practiceFacts')" class="list-group-item text-white main-menu-item"><a [routerLink]="['/practiceFacts']" class="btn btn-link no-padding-top-bottom" title="Add Memory Fact">Practice Memory Facts</a></li>
+        </ul>
+      </ng-template>
+    </ngb-panel>
+    <ngb-panel>
+      <ng-template ngbPanelTitle>
+        <div>Full Bible</div>
       </ng-template>
       <ng-template ngbPanelContent>
         This section is used for searching and reading the whole Bible:
         <ul class="list-group">
-          <li class="list-group-item text-white" style="background: black;"><a [routerLink]="['/bibleSearch']" class="btn btn-link no-padding-top-bottom" title="Search the Full Bible">Search Full Bible</a></li>
-          <li class="list-group-item text-white" style="background: black;"><a [routerLink]="['/chapterSelection']" class="btn btn-link no-padding-top-bottom" title="Read a Chapter from the Bible">Read a Chapter</a></li>
+          <li (click)="goTo('/bibleSearch')" class="list-group-item text-white main-menu-item"><a [routerLink]="['/bibleSearch']" class="btn btn-link no-padding-top-bottom" title="Search the Full Bible">Search Full Bible</a></li>
+          <li (click)="goTo('/chapterSelection')" class="list-group-item text-white main-menu-item"><a [routerLink]="['/chapterSelection']" class="btn btn-link no-padding-top-bottom" title="Read a Chapter from the Bible">Read a Chapter</a></li>
         </ul>
       </ng-template>
     </ngb-panel>
     <ngb-panel>
       <ng-template ngbPanelTitle>
-        <span>Topics</span>
+        <div>Topics</div>
       </ng-template>
       <ng-template ngbPanelContent>
         This section is used for browsing the Bible by Topic:
         <ul class="list-group">
-          <li class="list-group-item text-white" style="background: black;"><a [routerLink]="['/topiclist']" class="btn btn-link no-padding-top-bottom" title="Browse Bible Passages By Topic">Browse By Topic</a></li>
-          <li class="list-group-item text-white" style="background: black;"><a [routerLink]="['/randomtopic']" class="btn btn-link no-padding-top-bottom" title="Browse Bible Passages By Random Topic">Browse By Random Topic</a></li>
+          <li (click)="goTo('/topiclist')" class="list-group-item text-white main-menu-item"><a [routerLink]="['/topiclist']" class="btn btn-link no-padding-top-bottom" title="Browse Bible Passages By Topic">Browse By Topic</a></li>
+          <li (click)="goTo('/randomtopic')" class="list-group-item text-white main-menu-item"><a [routerLink]="['/randomtopic']" class="btn btn-link no-padding-top-bottom" title="Browse Bible Passages By Random Topic">Browse By Random Topic</a></li>
         </ul>
       </ng-template>
     </ngb-panel>
