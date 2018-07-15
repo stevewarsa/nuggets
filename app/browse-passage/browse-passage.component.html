@@ -58,14 +58,14 @@
         <ul *ngIf="versesForSelection && versesForSelection.length > 0" class="list-group">
           <li *ngFor="let verse of versesForSelection; let i = index" class="list-group-item text-white" style="background: black;">
             <label class="checkbox-inline">
-              <input type="checkbox" name="{{i}}" (click)="selectVerseForCopy(i, $event)" /><div innerHTML="{{(i + _passage.startVerse) + ' ' + verse}}"></div>
+              <input type="checkbox" name="{{i}}" (click)="selectVerseForCopy(i, $event)" [checked]="i === 0 || i === (versesForSelection.length - 1)" /><div innerHTML="{{(i + _passage.startVerse) + ' ' + verse}}"></div>
             </label>
           </li>
         </ul>
       </div>
     </div>
     <div class="modal-footer">
-        <a role="button" id="cbCopy" class="btn btn-link no-padding-top-bottom" ngxClipboard [cbContent]="passageTextForClipboard" (cbOnSuccess)="clipboardCopyComplete()"><i class="fa fa-copy" style="margin-right: 5px; font-size: 32px !important;"></i> <span class="helv-white">Copy</span></a>
+        <button [disabled]="startVerseSelected === -1 || endVerseSelected === -1" type="button" id="cbCopy" class="btn btn-link no-padding-top-bottom" ngxClipboard [cbContent]="passageTextForClipboard" (cbOnSuccess)="clipboardCopyComplete()"><i class="fa fa-copy" style="margin-right: 5px; font-size: 32px !important;"></i> <span class="helv-white">Copy</span></button>
     </div>
   </ng-template>
 </div>

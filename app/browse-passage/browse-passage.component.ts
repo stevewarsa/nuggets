@@ -103,8 +103,9 @@ export class BrowsePassageComponent implements OnInit {
   }
 
   selectForCopy(content) {
-    this.startVerseSelected = -1;
-    this.endVerseSelected = -1;
+    this.startVerseSelected = 0;
+    this.endVerseSelected = this.versesForSelection.length - 1;
+    this.prepareForCopyToClipboard();
     this.openModal = this.modalService.open(content);
     this.openModal.result.then((result) => {
       this.closeResult = `Closed with: ${result}`;
@@ -116,31 +117,42 @@ export class BrowsePassageComponent implements OnInit {
   selectVerseForCopy(verseIndex: number, event: any) {
     console.log("selectVerseForCopy - here is the checkbox event:");
     console.log(event);
-    // if no verses are selected yet, set both start and end verse to the selected verse index number
-    if (this.startVerseSelected === -1 && this.endVerseSelected === -1) {
-      this.startVerseSelected = verseIndex;
-      this.endVerseSelected = verseIndex;
+    if (event.target.checked === false) {
+      // this user unchecked a checkbox
+      console.log("User unselected checkbox with verse index: " + verseIndex);
+      if (this.startVerseSelected === verseIndex) {
+        this.startVerseSelected = -1;
+      }
+      if (this.endVerseSelected === verseIndex) {
+        this.endVerseSelected = -1;
+      }
     } else {
-      // this means at least 1 verse is selected, so...
-      // if the start verse is not selected
-      if (this.startVerseSelected === -1) {
+      // if no verses are selected yet, set both start and end verse to the selected verse index number
+      if (this.startVerseSelected === -1 && this.endVerseSelected === -1) {
         this.startVerseSelected = verseIndex;
-        if (this.endVerseSelected < this.startVerseSelected) {
-          this.endVerseSelected = this.startVerseSelected;
-        }
+        this.endVerseSelected = verseIndex;
       } else {
-        // this means, the start verse is already selected
-        if (verseIndex >= this.startVerseSelected) {
-          // so, if the verse selected this time is greater than the start verse
-          // which was previously selected, then the currently selected verse can 
-          // be safely set as the end verse
-          this.endVerseSelected = verseIndex;
-        } else {
-          // this means that the currently selected verse is less than the previously
-          // selected start verse, so set the end verse to the previously selected start verse
-          // then set the start verse to the newly selected verse
-          this.endVerseSelected = this.startVerseSelected;
+        // this means at least 1 verse is selected, so...
+        // if the start verse is not selected
+        if (this.startVerseSelected === -1) {
           this.startVerseSelected = verseIndex;
+          if (this.endVerseSelected < this.startVerseSelected) {
+            this.endVerseSelected = this.startVerseSelected;
+          }
+        } else {
+          // this means, the start verse is already selected
+          if (verseIndex >= this.startVerseSelected) {
+            // so, if the verse selected this time is greater than the start verse
+            // which was previously selected, then the currently selected verse can 
+            // be safely set as the end verse
+            this.endVerseSelected = verseIndex;
+          } else {
+            // this means that the currently selected verse is less than the previously
+            // selected start verse, so set the end verse to the previously selected start verse
+            // then set the start verse to the newly selected verse
+            this.endVerseSelected = this.startVerseSelected;
+            this.startVerseSelected = verseIndex;
+          }
         }
       }
     }
@@ -149,6 +161,10 @@ export class BrowsePassageComponent implements OnInit {
 
   private prepareForCopyToClipboard() {
     console.log("selectVerseForCopy - startVerse: " + this.startVerseSelected + ", endVerse: " + this.endVerseSelected);
+    if (this.startVerseSelected === -1 || this.endVerseSelected === -1) {
+      console.log("Can't copy verses: selectVerseForCopy - startVerse: " + this.startVerseSelected + ", endVerse: " + this.endVerseSelected);
+      return;
+    }
     let selectedPassage = PassageUtils.deepClonePassage(this._passage);
     selectedPassage.startVerse = this.startVerseSelected + this._passage.startVerse;
     selectedPassage.endVerse = this.endVerseSelected + this._passage.startVerse;
