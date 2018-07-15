@@ -195,6 +195,10 @@ export class BrowsePassageComponent implements OnInit {
     this.passageTextForClipboard = psgRefForClipboard + psgForClipboard;
   }
 
+  getVerseDisplayForCheckbox(i: number, verse: string): string {
+    return (i + parseInt(this._passage.startVerse + "")) + " " + verse;
+  }
+
   clipboardCopyComplete() {
     this.toastr.info('The passage has been copied to the clipboard!', 'Success!');
     if (this.openModal) {
