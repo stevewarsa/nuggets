@@ -179,8 +179,8 @@ export class BrowsePassageComponent implements OnInit {
       return;
     }
     let selectedPassage = PassageUtils.deepClonePassage(this._passage);
-    selectedPassage.startVerse = this.startVerseSelected + parseInt(this._passage.startVerse + "");
-    selectedPassage.endVerse = this.endVerseSelected + parseInt(this._passage.startVerse + "");
+    selectedPassage.startVerse = this.startVerseSelected + this._passage.startVerse;
+    selectedPassage.endVerse = this.endVerseSelected + this._passage.startVerse;
     let psgRefForClipboard: string = PassageUtils.getPassageStringNoIndex(selectedPassage, null, false);
     psgRefForClipboard += "\n\n";
     let psgForClipboard: string = "";
@@ -196,7 +196,7 @@ export class BrowsePassageComponent implements OnInit {
   }
 
   getVerseDisplayForCheckbox(i: number, verse: string): string {
-    return (i + parseInt(this._passage.startVerse + "")) + " " + verse;
+    return (i + this._passage.startVerse) + " " + verse;
   }
 
   clipboardCopyComplete() {
