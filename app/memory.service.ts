@@ -17,6 +17,7 @@ export class MemoryService {
   private cachedPassages: Passage[];
   private passageTextOverrides: Passage[] = null;
   private topicList: any[] = [];
+  public GUEST_USER: string = 'Guest';
   currentPassageChangeEvent: Subject<Passage> = new Subject<Passage>();
 
   constructor(private httpService:Http) { }

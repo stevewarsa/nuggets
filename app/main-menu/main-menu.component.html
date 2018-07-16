@@ -47,7 +47,7 @@
           <li (click)="goTo('/search')" class="list-group-item text-white main-menu-item"><a [routerLink]="['/search']" class="btn btn-link no-padding-top-bottom" title="Search / Add Verses to Your Memory Verse List">Search / Add</a></li>
           <li (click)="goTo('/myverselist')" class="list-group-item text-white main-menu-item"><a [routerLink]="['/myverselist']" class="btn btn-link no-padding-top-bottom" title="View Your Memory Verse List">My Verses</a></li>
           <li (click)="goTo('/memorystats')" class="list-group-item text-white main-menu-item"><a [routerLink]="['/memorystats']" class="btn btn-link no-padding-top-bottom" title="View Your Memory Statistics">Memory Stats</a></li>
-          <li (click)="goTo('/addMemoryFact')" class="list-group-item text-white main-menu-item"><a [routerLink]="['/addMemoryFact']" class="btn btn-link no-padding-top-bottom" title="Add Memory Fact">Add Memory Fact</a></li>
+          <li *ngIf="currUser !== memoryService.GUEST_USER" (click)="goTo('/addMemoryFact')" class="list-group-item text-white main-menu-item"><a [routerLink]="['/addMemoryFact']" class="btn btn-link no-padding-top-bottom" title="Add Memory Fact">Add Memory Fact</a></li>
           <li (click)="goTo('/practiceFacts')" class="list-group-item text-white main-menu-item"><a [routerLink]="['/practiceFacts']" class="btn btn-link no-padding-top-bottom" title="Add Memory Fact">Practice Memory Facts</a></li>
         </ul>
       </ng-template>

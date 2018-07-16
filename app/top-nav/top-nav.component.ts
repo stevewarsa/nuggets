@@ -5,6 +5,7 @@ import { Passage } from 'src/app/passage';
 import { PassageUtils } from 'src/app/passage-utils';
 import { Router, NavigationEnd } from '@angular/router';
 import { Subject } from 'rxjs';
+import { CookieUtils } from 'src/app/cookie-utils';
 
 @Component({
   selector: 'mem-top-nav',
@@ -51,6 +52,13 @@ export class TopNavComponent implements OnInit, OnDestroy {
     }
     let passageTextForClipboard: string = PassageUtils.getPassageForClipboard(currentPassage);
     return passageTextForClipboard;
+  }
+
+  doLogout() {
+    this.toggleExpanded();
+    this.memoryService.setCurrentUser(null);
+    CookieUtils.deleteCookie('user.name');
+    this.router.navigate(['']);
   }
 
   toggleExpanded(): boolean {

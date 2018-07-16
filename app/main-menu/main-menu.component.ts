@@ -6,12 +6,12 @@ import { Router } from '@angular/router';
   templateUrl: './main-menu.component.html'
 })
 export class MainMenuComponent implements OnInit {
-
+  currUser: string = null;
   constructor(private route: Router, private memoryService: MemoryService) { }
 
   ngOnInit() {
-    let currUser = this.memoryService.getCurrentUser();
-    if (!currUser) {
+    this.currUser = this.memoryService.getCurrentUser();
+    if (!this.currUser) {
       // user not logged in, so re-route to login
       this.route.navigate(['']);
       return;
