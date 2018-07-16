@@ -7,7 +7,7 @@ import { Router } from '@angular/router';
 })
 export class MainMenuComponent implements OnInit {
   currUser: string = null;
-  constructor(private route: Router, private memoryService: MemoryService) { }
+  constructor(private route: Router, public memoryService: MemoryService) { }
 
   ngOnInit() {
     this.currUser = this.memoryService.getCurrentUser();

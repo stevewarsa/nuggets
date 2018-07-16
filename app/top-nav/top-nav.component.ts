@@ -20,7 +20,7 @@ export class TopNavComponent implements OnInit, OnDestroy {
   currentPassage: Passage;
   passageSubscription: any;
 
-  constructor(private memoryService: MemoryService, public toastr: ToastrService, private router: Router) { }
+  constructor(public memoryService: MemoryService, public toastr: ToastrService, private router: Router) { }
 
   ngOnInit() {
     if (window.screen.width < 500) { // 768px portrait
