@@ -10,23 +10,25 @@
   <div class="row">
     <div class="col-md col-lg col-sm" style="text-align: center;">
       <div class="psg-nav">
-        <a *ngIf="_passage?.startVerse !== _passage?.endVerse" (click)="selectForCopy(content)">
+        <a class="psg-nav-icon" *ngIf="_passage?.startVerse !== _passage?.endVerse" (click)="selectForCopy(content)">
           <i class="fa fa-copy" style="color: coral;"></i>
-        </a>&nbsp;
-        <a *ngIf="_passage?.startVerse === _passage?.endVerse" ngxClipboard [cbContent]="passageTextForClipboard" (cbOnSuccess)="clipboardCopyComplete()">
+        </a>
+        <a class="psg-nav-icon" *ngIf="_passage?.startVerse === _passage?.endVerse" ngxClipboard [cbContent]="passageTextForClipboard" (cbOnSuccess)="clipboardCopyComplete()">
           <i class="fa fa-copy" style="color: coral;"></i>
-        </a>&nbsp;
-        <a (click)="prev()">
+        </a>
+        <a class="psg-nav-icon" (click)="prev()">
           <i class="fa fa-arrow-left" style="color: lightgreen;"></i>
-        </a>&nbsp;
-        <a (click)="next()">
+        </a>
+        <a class="psg-nav-icon" (click)="next()">
           <i class="fa fa-arrow-right" style="color: lightgreen;"></i>
-        </a>&nbsp;
-        <a (click)="goToInterlinear()">
+        </a>
+        <a class="psg-nav-icon" (click)="goToInterlinear()">
           <i class="fa fa-external-link" style="color: indianred;"></i>
-        </a>&nbsp;
-        <button style="margin-right: 10px;" (click)="toggleTranslationOptions()" type="button" class="btn btn-primary dropdown-toggle"
-          [attr.aria-haspopup]="isTranslCollapsed" [attr.aria-expanded]="!isTranslCollapsed">Transl</button>
+        </a>
+        <a class="psg-nav-icon" (click)="toggleTranslationOptions()"  class="dropdown-toggle"
+          [attr.aria-haspopup]="isTranslCollapsed" [attr.aria-expanded]="!isTranslCollapsed">
+          <i class="fa fa-newspaper-o" style="color:yellow;"></i>
+        </a>
         <div class="dropdown-menu dropdown-menu-right" [ngbCollapse]="isTranslCollapsed">
           <a *ngFor="let translationOption of translationOptions" (click)="selectTranslation(translationOption)" style="color: black !important;"
             class="dropdown-item">{{translationOption}}</a>
