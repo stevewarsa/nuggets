@@ -158,6 +158,13 @@ export class MemoryService {
     return this.httpService.post(this._url + 'add_nonbible_memory_fact.php', fact).pipe(map(res => res.json()));
   }
 
+  public addNonBibleQuote(quote: any): Observable<string> {
+    quote.user = this.currentUser;
+    quote.category = 'quote';
+    console.log('MemoryService.addNonBibleMemoryFact - calling ' + this._url + 'add_nonbible_memory_fact.php');
+    return this.httpService.post(this._url + 'add_nonbible_memory_fact.php', quote).pipe(map(res => res.json()));
+  }
+
   public getNonBibleMemoryFactList(): Observable<any[]> {
     console.log('MemoryService.getNonBibleMemoryFactList - calling ' + this._url + 'get_fact_list.php?user=' + this.currentUser);
     return this.httpService.get(this._url + 'get_fact_list.php?user=' + this.currentUser).pipe(map(res => res.json()));

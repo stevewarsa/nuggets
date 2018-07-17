@@ -17,12 +17,14 @@ import { MemoryStatsComponent } from 'src/app/memory-stats/memory-stats.componen
 import { BrowseNuggetsComponent } from 'src/app/browse-nuggets/browse-nuggets.component';
 import { AddNonbibleMemoryFactComponent } from 'src/app/add-nonbible-memory-fact/add-nonbible-memory-fact.component';
 import { PracticeNonbibleMemoryFactsComponent } from 'src/app/practice-nonbible-memory-facts/practice-nonbible-memory-facts.component';
+import { AddNonbibleQuoteComponent } from 'src/app/add-nonbible-quote/add-nonbible-quote.component';
 
 const routes: Routes = [
   {path: '', component: LoginComponent},
   {path: 'main', component: MainMenuComponent},
   {path: 'practiceSetup', component: PracticeSetupComponent},
   {path: 'addMemoryFact', component: AddNonbibleMemoryFactComponent},
+  {path: 'addQuote', component: AddNonbibleQuoteComponent},
   {path: 'practiceFacts', component: PracticeNonbibleMemoryFactsComponent},
   {path: 'search', component: SearchComponent},
   {path: 'bibleSearch', component: BibleSearchComponent},
