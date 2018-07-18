@@ -107,6 +107,11 @@ export class MemoryService {
     return this.httpService.get(this._url + 'get_tag_list.php').pipe(map(res => res.json()));
   }
 
+  public getQuoteList(): Observable<any[]> {
+    console.log('MemoryService.getQuoteList - calling ' + this._url + 'get_quote_list.php?user=' + this.currentUser)
+    return this.httpService.get(this._url + 'get_quote_list.php?user=' + this.currentUser).pipe(map(res => res.json()));
+  }
+
   public setTopicList(topicList: any[]) {
     this.topicList = topicList;
   }

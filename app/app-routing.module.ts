@@ -18,6 +18,7 @@ import { BrowseNuggetsComponent } from 'src/app/browse-nuggets/browse-nuggets.co
 import { AddNonbibleMemoryFactComponent } from 'src/app/add-nonbible-memory-fact/add-nonbible-memory-fact.component';
 import { PracticeNonbibleMemoryFactsComponent } from 'src/app/practice-nonbible-memory-facts/practice-nonbible-memory-facts.component';
 import { AddNonbibleQuoteComponent } from 'src/app/add-nonbible-quote/add-nonbible-quote.component';
+import { BrowseQuotesComponent } from 'src/app/browse-quotes/browse-quotes.component';
 
 const routes: Routes = [
   {path: '', component: LoginComponent},
@@ -35,6 +36,7 @@ const routes: Routes = [
   {path: 'topiclist', component: TopicListComponent},
   {path: 'randomtopic', component: RandomTopicComponent},
   {path: 'browsenuggets', component: BrowseNuggetsComponent},
+  {path: 'browsequotes', component: BrowseQuotesComponent},
   {path: 'browseTopic/:topicId/:order', component: BrowseTopicComponent},
   {path: 'viewPassage/:book/:chapter/:startVerse/:endVerse/:translation', component: ViewChapterComponent},
   {path: 'viewChapter/:book/:chapter/:translation', component: ViewChapterComponent},

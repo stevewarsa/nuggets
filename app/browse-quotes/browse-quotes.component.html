@@ -1,0 +1,32 @@
+<div *ngIf="searching" class="container">
+  <div class="row mt-5">
+    <div class="col-md col-lg col-sm" style="text-align: center;">
+      <h2>{{searchingMessage}}</h2><img src="assets/ajax-loader.gif" />
+    </div>
+  </div>
+</div>
+<div *ngIf="!searching" class="container" (swipeleft)="swipe($event.type)" (swiperight)="swipe($event.type)">
+  <div class="row">
+    <div class="col-md col-lg col-sm" style="text-align: center;">
+      <div class="psg-nav">
+        <a class="psg-nav-icon" ngxClipboard [cbContent]="currentQuoteForClipboard" (cbOnSuccess)="clipboardCopyComplete()">
+          <i class="fa fa-copy" style="color: coral;"></i>
+        </a>
+        <a (click)="prev()">
+          <i class="fa fa-arrow-left" style="color: lightgreen;"></i>
+        </a>&nbsp;
+        <a (click)="next()">
+          <i class="fa fa-arrow-right" style="color: lightgreen;"></i>
+        </a>
+      </div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md col-lg col-sm">
+      <p style="text-align: center;">{{currentIndex + 1}} of {{allQuotes.length}}</p>
+      <hr style="color: white !important; background: white;" />
+      <div [@newQuote]="currentQuote" (@newQuote.done)="logIt($event, 'quoteText')" class="nugget-view" [innerHTML]="currentQuote"
+        style="text-align: center;"></div>
+    </div>
+  </div>
+</div>
