@@ -1,0 +1,72 @@
+<div class="container">
+  <div class="row justify-content-center">
+    <div class="col-md col-sm">
+      <h2 style="text-align: center;padding-top: 15px;">Search Facts and Quotes</h2>
+    </div>
+    <hr style="background: white; width: 90%;" />
+  </div>
+  <div class="row justify-content-center" *ngIf="!searching && (searchResults === null || searchResults.length === 0)">
+    <form class="form-horizontal justify-content-center" role="form" style="font-size: large; width: 90%;">
+      <div class="form-group">
+        <div class="row">
+          <div class="col-md col-sm">
+            <label for="practiceMode" class="control-label">Section of Bible to Search:</label>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md col-sm">
+            <label class="radio-inline" style="margin: 5px;">
+              <input type="radio" name="searchCategory" value="fact" [(ngModel)]="searchCategory" /> Search Fact
+            </label>
+            <label class="radio-inline" style="margin: 5px;">
+              <input type="radio" name="searchCategory" value="quote" [(ngModel)]="searchCategory" /> Search Quote
+            </label>
+          </div>
+        </div>
+      </div>
+      <hr style="background: white; width: 100%;" />
+      <div class="form-group">
+        <div class="row">
+          <div class="col-md col-sm">
+            <label for="searchPhrase">Search Phrase</label>
+            <input type="text" [(ngModel)]="searchPhrase" class="form-control" id="searchPhrase" name="searchPhrase" (focus)="$event.target.select()" placeholder="Enter phrase to search for (wildcards allowed)">
+          </div>
+        </div>
+      </div>
+      <hr style="background: white; width: 100%;" />
+      <div class="form-group">
+        <div class="row">
+          <div class="btn-group">
+            <a role="button" (click)="doSearch()" class="btn btn-link no-padding-top-bottom" title="Start Search">
+              <i class="fa fa-search" style="margin-right: 5px; font-size: 32px !important;"></i>
+              <span class="helv-white">Search</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+  <div class="row justify-content-center" *ngIf="searching">
+    <div class="col-md col-sm">
+      <div style="text-align: center;">
+        <p class="lead">{{searchingMessage}}</p><img src="assets/ajax-loader.gif" />
+      </div>
+    </div>
+  </div>
+  <div class="row justify-content-center" *ngIf="!searching && searchResults && searchResults.length > 0">
+    <div class="col-md col-sm">
+      <h4>Found {{searchResults.length}} '{{searchPhrase}}' <a style="color: blueviolet !important; font-size: 12px !important;" (click)="searchResults = null">Search Again</a></h4>
+      <table class="table table-bordered" style="font-size: 18px !important; margin: 5px;">
+        <tbody>
+            <tr>
+              <th [innerHTML]="searchCategory === 'fact' ? 'Fact Text' : 'Quote Text'"></th>
+            </tr>
+            <tr *ngFor="let searchResult of searchResults">
+              <td [innerHTML]="getSearchResultText(searchResult)"></td>
+            </tr>
+        </tbody>
+      </table>
+      <h4 *ngIf="searchResults.length > 10">Found {{searchResults.length}} '{{searchPhrase}}' <a style="color: blueviolet !important; font-size: 12px !important;" (click)="searchResults = null">Search Again</a></h4>
+    </div>
+  </div>
+</div>

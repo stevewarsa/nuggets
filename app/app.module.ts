@@ -33,6 +33,7 @@ import { AddNonbibleMemoryFactComponent } from './add-nonbible-memory-fact/add-n
 import { PracticeNonbibleMemoryFactsComponent } from './practice-nonbible-memory-facts/practice-nonbible-memory-facts.component';
 import { AddNonbibleQuoteComponent } from './add-nonbible-quote/add-nonbible-quote.component';
 import { BrowseQuotesComponent } from './browse-quotes/browse-quotes.component';
+import { SearchFactsAndQuotesComponent } from './search-facts-and-quotes/search-facts-and-quotes.component';
 export class MyHammerConfig extends HammerGestureConfig {
   overrides = <any>{
     'pinch': { enable: false },
@@ -65,7 +66,8 @@ export class MyHammerConfig extends HammerGestureConfig {
     AddNonbibleMemoryFactComponent,
     PracticeNonbibleMemoryFactsComponent,
     AddNonbibleQuoteComponent,
-    BrowseQuotesComponent
+    BrowseQuotesComponent,
+    SearchFactsAndQuotesComponent
   ],
   imports: [
     BrowserModule,

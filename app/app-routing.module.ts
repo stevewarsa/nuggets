@@ -19,6 +19,7 @@ import { AddNonbibleMemoryFactComponent } from 'src/app/add-nonbible-memory-fact
 import { PracticeNonbibleMemoryFactsComponent } from 'src/app/practice-nonbible-memory-facts/practice-nonbible-memory-facts.component';
 import { AddNonbibleQuoteComponent } from 'src/app/add-nonbible-quote/add-nonbible-quote.component';
 import { BrowseQuotesComponent } from 'src/app/browse-quotes/browse-quotes.component';
+import { SearchFactsAndQuotesComponent } from 'src/app/search-facts-and-quotes/search-facts-and-quotes.component';
 
 const routes: Routes = [
   {path: '', component: LoginComponent},
@@ -27,6 +28,7 @@ const routes: Routes = [
   {path: 'addMemoryFact', component: AddNonbibleMemoryFactComponent},
   {path: 'addQuote', component: AddNonbibleQuoteComponent},
   {path: 'practiceFacts', component: PracticeNonbibleMemoryFactsComponent},
+  {path: 'searchFactsAndQuotes', component: SearchFactsAndQuotesComponent},
   {path: 'search', component: SearchComponent},
   {path: 'bibleSearch', component: BibleSearchComponent},
   {path: 'chapterSelection', component: ChapterSelectionComponent},

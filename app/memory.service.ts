@@ -186,6 +186,11 @@ export class MemoryService {
     return this.httpService.post(this._url + 'bible_search.php', searchParam).pipe(map(res => res.json()));
   }
 
+  public searchFactOrQuote(searchParam: any): Observable<any[]> {
+    console.log('MemoryService.searchFactOrQuote - calling ' + this._url + 'search_facts_and_quotes.php');
+    return this.httpService.post(this._url + 'search_facts_and_quotes.php', searchParam).pipe(map(res => res.json()));
+  }
+
   public getNuggetIdList(): Observable<any[]> {
     console.log('MemoryService.getNuggetIdList - calling ' + this._url + 'get_nugget_id_list.php');
     return this.httpService.get(this._url + 'get_nugget_id_list.php').pipe(map(res => res.json()));
