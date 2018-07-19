@@ -10,19 +10,28 @@
       <div class="form-group">
         <div class="row">
           <div class="col-md col-sm">
-            <label for="practiceMode" class="control-label">Testament:</label>
+            <label for="practiceMode" class="control-label">Section of Bible to Search:</label>
           </div>
         </div>
         <div class="row">
           <div class="col-md col-sm">
             <label class="radio-inline" style="margin: 5px;">
-              <input type="radio" name="testament" value="new" [(ngModel)]="testament" /> New
+              <input type="radio" name="testament" value="new" [(ngModel)]="testament" /> NT
             </label>
             <label class="radio-inline" style="margin: 5px;">
-              <input type="radio" name="testament" value="old" [(ngModel)]="testament" /> Old
+              <input type="radio" name="testament" value="old" [(ngModel)]="testament" /> OT
             </label>
             <label class="radio-inline" style="margin: 5px;">
-              <input type="radio" name="testament" value="both" [(ngModel)]="testament" /> Both
+              <input type="radio" name="testament" value="both" [(ngModel)]="testament" /> Full
+            </label>
+            <label class="radio-inline" style="margin: 5px;">
+              <input type="radio" name="testament" value="gospels" [(ngModel)]="testament" /> Gospels
+            </label>
+            <label class="radio-inline" style="margin: 5px;">
+              <input type="radio" name="testament" value="pauls_letters" [(ngModel)]="testament" /> Paul's Letters
+            </label>
+            <label class="radio-inline" style="margin: 5px;">
+              <input type="radio" name="testament" value="non_pauline_letters" [(ngModel)]="testament" /> Non-Pauline Letters
             </label>
           </div>
         </div>
