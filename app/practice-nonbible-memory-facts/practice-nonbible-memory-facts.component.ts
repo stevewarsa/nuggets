@@ -79,8 +79,7 @@ export class PracticeNonbibleMemoryFactsComponent implements OnInit {
     this.showingPrompt = false;
     this.questionIcon = "question-circle";
     this.iconFontColor = "lightskyblue";
-    let re = /\n/gi;
-    this.answer = this.currentFact.answer.replace(re, '<br/>');
+    this.answer = PassageUtils.updateLineFeedsWithBr(this.currentFact.answer);
   }
 
   logIt(event: any, mode: string) {

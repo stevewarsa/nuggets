@@ -28,9 +28,7 @@ export class SearchFactsAndQuotesComponent implements OnInit {
   getSearchResultText(searchResult: any): string {
     let text: string = this.searchCategory === 'fact' ? searchResult.prompt + ' <br> ' + searchResult.answer : searchResult.answer;
     text = PassageUtils.updateAllMatches(this.searchPhrase, text);
-    let re = /\n/gi;
-    text = text.replace(re, '<br/>');
-    return text;
+    return PassageUtils.updateLineFeedsWithBr(text);
   }
 
   doSearch() {

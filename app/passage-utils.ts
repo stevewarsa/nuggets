@@ -194,6 +194,12 @@ export class PassageUtils {
     return str;
   }
 
+  public static updateLineFeedsWithBr(stringToModify: string): string {
+    let re = /\n/gi;
+    stringToModify = stringToModify.replace(re, '<br/>');
+    return stringToModify;
+  }
+
   public static getPassageStringNoIndex(passage: Passage, transl: string, translShort: boolean, appendLetter?: string) {
     var verseNumbers = null;
     if (passage.startVerse === passage.endVerse) {

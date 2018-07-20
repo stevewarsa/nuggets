@@ -70,8 +70,7 @@ export class BrowseQuotesComponent implements OnInit {
   }
 
   private displayQuote() {
-    let re = /\n/gi;
-    this.currentQuote = this.allQuotes[this.currentIndex].answer.replace(re, '<br/>');
+    this.currentQuote = PassageUtils.updateLineFeedsWithBr(this.allQuotes[this.currentIndex].answer);
     this.currentQuoteForClipboard = this.allQuotes[this.currentIndex].answer;
   }
 

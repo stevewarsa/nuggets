@@ -79,5 +79,20 @@
         </ul>
       </ng-template>
     </ngb-panel>
+    <ngb-panel>
+      <ng-template ngbPanelTitle>
+        <div>Facts &amp; Quotes</div>
+      </ng-template>
+      <ng-template ngbPanelContent>
+        This section is used for browsing and managing extra-biblical content such as facts and quotes:
+        <ul class="list-group">
+          <li (click)="goTo('/browsequotes')" class="list-group-item text-white main-menu-item"><a [routerLink]="['/browsequotes']" class="btn btn-link no-padding-top-bottom" title="Browse Quotes">Browse Quotes</a></li>
+          <li *ngIf="currUser !== memoryService.GUEST_USER" (click)="goTo('/addQuote')" class="list-group-item text-white main-menu-item"><a [routerLink]="['/addQuote']" class="btn btn-link no-padding-top-bottom" title="Add Quote">Add Quote</a></li>
+          <li *ngIf="currUser !== memoryService.GUEST_USER" (click)="goTo('/addMemoryFact')" class="list-group-item text-white main-menu-item"><a [routerLink]="['/addMemoryFact']" class="btn btn-link no-padding-top-bottom" title="Add Memory Fact">Add Memory Fact</a></li>
+          <li (click)="goTo('/searchFactsAndQuotes')" class="list-group-item text-white main-menu-item"><a [routerLink]="['/searchFactsAndQuotes']" class="btn btn-link no-padding-top-bottom" title="Search Facts and Quotes">Search Facts and Quotes</a></li>
+          <li (click)="goTo('/practiceFacts')" class="list-group-item text-white main-menu-item"><a [routerLink]="['/practiceFacts']" class="btn btn-link no-padding-top-bottom" title="Add Memory Fact">Practice Memory Facts</a></li>
+        </ul>
+      </ng-template>
+    </ngb-panel>
   </ngb-accordion>
 </div>

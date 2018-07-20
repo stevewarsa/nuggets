@@ -5,7 +5,14 @@
     </div>
   </div>
 </div>
-<div *ngIf="!searching" class="container" (swipeleft)="swipe($event.type)" (swiperight)="swipe($event.type)">
+<div *ngIf="!searching && (!facts || facts.length === 0)" class="container">
+  <div class="row mt-5">
+    <div class="col-md col-lg col-sm" style="text-align: center;">
+      <h2>No facts exist, please add fact to memorize first</h2>
+    </div>
+  </div>
+</div>
+<div *ngIf="!searching && facts && facts.length > 0" class="container" (swipeleft)="swipe($event.type)" (swiperight)="swipe($event.type)">
   <div class="row">
     <div class="col-md col-lg col-sm" style="text-align: center;">
       <div class="psg-nav">
