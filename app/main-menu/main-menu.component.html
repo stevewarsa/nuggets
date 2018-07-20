@@ -94,5 +94,16 @@
         </ul>
       </ng-template>
     </ngb-panel>
+    <ngb-panel *ngIf="currUser == 'SteveWarsa'">
+      <ng-template ngbPanelTitle>
+        <div>Steve's Tasks</div>
+      </ng-template>
+      <ng-template ngbPanelContent>
+        This section is used for tasks that only the creator of this program (Steve) can do:
+        <ul class="list-group">
+          <li (click)="goTo('/copyThisDbToGuest')" class="list-group-item text-white main-menu-item"><a [routerLink]="['/copyThisDbToGuest']" class="btn btn-link no-padding-top-bottom" title="Copy This DB to Guest">Copy This DB to Guest</a></li>
+        </ul>
+      </ng-template>
+    </ngb-panel>
   </ngb-accordion>
 </div>

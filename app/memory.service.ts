@@ -196,6 +196,11 @@ export class MemoryService {
     return this.httpService.get(this._url + 'get_nugget_id_list.php').pipe(map(res => res.json()));
   }
 
+  public copyDbToGuestDb(): Observable<string> {
+    console.log('MemoryService.copyDbToGuestDb - calling ' + this._url + 'copy_db_to_another.php?dbSource=SteveWarsa&dbDest=Guest');
+    return this.httpService.get(this._url + 'copy_db_to_another.php?dbSource=SteveWarsa&dbDest=Guest').pipe(map(res => res.json()));
+  }
+
   public setCurrentPassage(passage: Passage, currentUser: string) {
     this.currentPassage = passage;
     this.currentUser = currentUser;

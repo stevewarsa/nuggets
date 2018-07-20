@@ -20,10 +20,12 @@ import { PracticeNonbibleMemoryFactsComponent } from 'src/app/practice-nonbible-
 import { AddNonbibleQuoteComponent } from 'src/app/add-nonbible-quote/add-nonbible-quote.component';
 import { BrowseQuotesComponent } from 'src/app/browse-quotes/browse-quotes.component';
 import { SearchFactsAndQuotesComponent } from 'src/app/search-facts-and-quotes/search-facts-and-quotes.component';
+import { CopyDbToGuestComponent } from 'src/app/copy-db-to-guest/copy-db-to-guest.component';
 
 const routes: Routes = [
   {path: '', component: LoginComponent},
   {path: 'main', component: MainMenuComponent},
+  {path: 'copyThisDbToGuest', component: CopyDbToGuestComponent},
   {path: 'practiceSetup', component: PracticeSetupComponent},
   {path: 'addMemoryFact', component: AddNonbibleMemoryFactComponent},
   {path: 'addQuote', component: AddNonbibleQuoteComponent},
