@@ -1,9 +1,12 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, Injector } from '@angular/core';
 import { MemoryService } from 'src/app/memory.service';
 import { Router } from '@angular/router';
 import { PassageUtils } from 'src/app/passage-utils';
 import { trigger, state, style, animate, transition } from '@angular/animations';
 import { ToastrService } from 'ngx-toastr';
+import { NgbModal, NgbModalRef, ModalDismissReasons } from '@ng-bootstrap/ng-bootstrap';
+import { MemUser } from 'src/app/mem-user';
+import { ModalHelperService } from 'src/app/modal-helper.service';
 
 @Component({
   templateUrl: './browse-quotes.component.html',
@@ -25,8 +28,18 @@ export class BrowseQuotesComponent implements OnInit {
   currentIndex: number = 0;
   currentQuote: string = "";
   currentQuoteForClipboard: string = "";
+  isCollapsed: boolean = true;
+  private openModal: NgbModalRef;
+  private closeResult: string;
+  users: MemUser[] = [];
 
-  constructor(private memoryService: MemoryService, private route: Router, public toastr: ToastrService) { }
+  constructor(
+    private memoryService: MemoryService, 
+    private route: Router, 
+    public toastr: ToastrService, 
+    private modalService: NgbModal, 
+    private modalHelperService: ModalHelperService, 
+    private injector: Injector) { }
 
   ngOnInit() {
     let currentUser: string = this.memoryService.getCurrentUser();
@@ -74,6 +87,55 @@ export class BrowseQuotesComponent implements OnInit {
     this.currentQuoteForClipboard = this.allQuotes[this.currentIndex].answer;
   }
 
+  toggleAdditionalOptions() {
+    this.isCollapsed = !this.isCollapsed;
+  }
+
+  open(content) {
+    this.isCollapsed = true;
+    this.searching = true;
+    this.searchingMessage = "Retrieving users...";
+    this.memoryService.getAllUsers().subscribe((users: MemUser[]) => {
+      console.log(users);
+      this.users = users;
+      this.searching = false;
+      this.openModal = this.modalService.open(content);
+      this.openModal.result.then((result) => {
+        this.closeResult = `Closed with: ${result}`;
+      }, (reason) => {
+        this.closeResult = `Dismissed ${this.getDismissReason(reason)}`;
+      });
+    });
+  }
+
+  private getDismissReason(reason: any): string {
+    if (reason === ModalDismissReasons.ESC) {
+      return 'by pressing ESC';
+    } else if (reason === ModalDismissReasons.BACKDROP_CLICK) {
+      return 'by clicking on a backdrop';
+    } else {
+      return  `with: ${reason}`;
+    }
+  }
+
+  sendQuoteToUser(user: MemUser) {
+    if (this.openModal) {
+      this.openModal.close();
+    }
+    let modalHelper: ModalHelperService = this.injector.get(ModalHelperService);
+    this.modalHelperService.confirm({ message: "Send current quote to user " + user.userName + "?", header: "Send Quote" }).result.then(
+      () => {
+        console.log("Sending quote to: ");
+        console.log(user);
+        modalHelper.alert({ message: "Please note - feature not implemented yet", header: "Feature Not Implemented" });
+      },
+      () => {
+        console.log("NOT Sending quote to: ");
+        console.log(user);
+        modalHelper.alert({ message: "Please note - feature not implemented yet", header: "Feature Not Implemented" });
+      }
+    );
+  }
 
   logIt(event: any, mode: string) {
     console.log('Here is the mode: ' + mode + '.  Here is the event: ');

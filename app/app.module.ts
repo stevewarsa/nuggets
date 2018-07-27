@@ -35,6 +35,8 @@ import { AddNonbibleQuoteComponent } from './add-nonbible-quote/add-nonbible-quo
 import { BrowseQuotesComponent } from './browse-quotes/browse-quotes.component';
 import { SearchFactsAndQuotesComponent } from './search-facts-and-quotes/search-facts-and-quotes.component';
 import { CopyDbToGuestComponent } from './copy-db-to-guest/copy-db-to-guest.component';
+import { ConfirmComponent } from './confirm/confirm.component';
+import { AlertComponent } from './alert/alert.component';
 export class MyHammerConfig extends HammerGestureConfig {
   overrides = <any>{
     'pinch': { enable: false },
@@ -69,7 +71,9 @@ export class MyHammerConfig extends HammerGestureConfig {
     AddNonbibleQuoteComponent,
     BrowseQuotesComponent,
     SearchFactsAndQuotesComponent,
-    CopyDbToGuestComponent
+    CopyDbToGuestComponent,
+    ConfirmComponent,
+    AlertComponent
   ],
   imports: [
     BrowserModule,
@@ -90,6 +94,7 @@ export class MyHammerConfig extends HammerGestureConfig {
       useClass: MyHammerConfig
     }
   ],
+  entryComponents: [ConfirmComponent, AlertComponent],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

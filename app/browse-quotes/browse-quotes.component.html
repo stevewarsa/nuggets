@@ -17,7 +17,13 @@
         </a>&nbsp;
         <a (click)="next()">
           <i class="fa fa-arrow-right" style="color: lightgreen;"></i>
+        </a>&nbsp;
+        <a (click)="toggleAdditionalOptions()" class="dropdown-toggle" aria-haspopup="true" aria-expanded="false">
+          <i class="fa fa-ellipsis-h" style="color: white;"></i>
         </a>
+        <div class="dropdown-menu dropdown-menu-right" [ngbCollapse]="isCollapsed">
+          <a style="color: black !important;" class="dropdown-item" (click)="open(content)"><i class="fa fa-share-alt"></i>&nbsp; Send Quote...</a>
+        </div>
       </div>
     </div>
   </div>
@@ -29,4 +35,19 @@
         style="text-align: center;"></div>
     </div>
   </div>
+  <ng-template #content let-d="dismiss">
+    <div class="modal-header">
+      <h4 class="modal-title">Select Person To Send To</h4>
+      <button type="button" class="close" aria-label="Close" (click)="d('Cross click')">
+        <span aria-hidden="true">&times;</span>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="container">
+        <ul class="list-group">
+          <li *ngFor="let user of users" class="list-group-item bg-dark text-white" (click)="sendQuoteToUser(user)">{{user.userName}}</li>
+        </ul>
+      </div>
+    </div>
+  </ng-template>
 </div>
