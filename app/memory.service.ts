@@ -201,6 +201,11 @@ export class MemoryService {
     return this.httpService.get(this._url + 'copy_db_to_another.php?dbSource=SteveWarsa&dbDest=Guest').pipe(map(res => res.json()));
   }
 
+  public sendQuoteToUser(param: any): Observable<string> {
+    console.log('MemoryService.sendQuoteToUser - calling ' + this._url + 'send_quote_to_user.php');
+    return this.httpService.post(this._url + 'send_quote_to_user.php', param).pipe(map(res => res.json()));
+  }
+
   public setCurrentPassage(passage: Passage, currentUser: string) {
     this.currentPassage = passage;
     this.currentUser = currentUser;

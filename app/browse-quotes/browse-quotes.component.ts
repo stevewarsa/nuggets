@@ -7,6 +7,7 @@ import { ToastrService } from 'ngx-toastr';
 import { NgbModal, NgbModalRef, ModalDismissReasons } from '@ng-bootstrap/ng-bootstrap';
 import { MemUser } from 'src/app/mem-user';
 import { ModalHelperService } from 'src/app/modal-helper.service';
+import { StringUtils } from 'src/app/string.utils';
 
 @Component({
   templateUrl: './browse-quotes.component.html',
@@ -51,6 +52,7 @@ export class BrowseQuotesComponent implements OnInit {
     this.searching = true;
     this.searchingMessage = 'Retrieving quote list...';
     this.memoryService.getQuoteList().subscribe((quotes: any[]) => {
+      quotes = this.filterOutNonApprovedQuotes(quotes);
       PassageUtils.shuffleArray(quotes);
       this.allQuotes = quotes;
       this.currentIndex = 0;
@@ -58,6 +60,16 @@ export class BrowseQuotesComponent implements OnInit {
       this.searching = false;
       this.searchingMessage = null;
     });
+  }
+
+  private filterOutNonApprovedQuotes(quotes: any[]): any[] {
+    let modQuotes: any[] = [];
+    for (let quote of quotes) {
+      if (StringUtils.isEmpty(quote.approved) || quote.approved === 'Y') {
+        modQuotes.push(quote);
+      }
+    }
+    return modQuotes;
   }
 
   swipe(action) {
@@ -127,7 +139,25 @@ export class BrowseQuotesComponent implements OnInit {
       () => {
         console.log("Sending quote to: ");
         console.log(user);
-        modalHelper.alert({ message: "Please note - feature not implemented yet", header: "Feature Not Implemented" });
+        this.searching = true;
+        this.searchingMessage = 'Sending quote to ' + user.userName + '...';
+        let param: any = {
+          user: user,
+          fromUser: this.memoryService.getCurrentUser(),
+          quote: this.allQuotes[this.currentIndex],
+          emailTo: 'psalms119v11@gmail.com'
+        };
+        this.memoryService.sendQuoteToUser(param).subscribe((response: any) => {
+          if (response === 'error') {
+            console.log('Unable to send quote to ' + user + '...');
+          } else {
+            console.log('Here is the quote sent to ' + user + ':');
+            console.log(response);
+          }
+          this.searching = false;
+          this.searchingMessage = null;
+        });
+        //modalHelper.alert({ message: "Please note - feature not implemented yet", header: "Feature Not Implemented" });
       },
       () => {
         console.log("NOT Sending quote to: ");
