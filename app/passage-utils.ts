@@ -14,6 +14,17 @@ export class PassageUtils {
     return defaultTranslation;
   }
 
+  public static getPref(prefs: any[], key: string, defaultValueToReturn: string): string {
+    if (prefs && prefs.length > 0) {
+      for (let pref of prefs) {
+        if (pref.key === key && pref.value && pref.value.length > 0) {
+          return pref.value;
+        }
+      }
+    }
+    return defaultValueToReturn;
+  }
+
   public static getSurroundingVerses(passage: Passage, maxVerseByBookChapter: any[]): Passage {
     let maxVerse: number = this.getMaxVerseByBookAndChapter(
       passage.bookName, passage.chapter, -1, maxVerseByBookChapter);

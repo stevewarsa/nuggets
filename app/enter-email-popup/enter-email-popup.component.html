@@ -1,0 +1,12 @@
+<div class="modal-header">
+	<h4 class="modal-title"><span class="mr-1 fa fa-check-square-o"></span>Enter E-Mail Address</h4>
+	<button type="button" class="close" aria-label="Close" (click)="activeModal.dismiss('Cross Click')">
+    <span aria-hidden="true">&times;</span>
+	</button>
+</div>
+<div class="modal-body">
+  <input type="email" (focus)="$event.target.select()" placeholder="Enter E-Mail Address here" size="30" [(ngModel)]="email">
+</div>
+<div class="modal-footer">
+  <button type="button" (click)="handleClick()" class="btn btn-primary">Submit</button>
+</div>

@@ -33,6 +33,7 @@ export class BrowseQuotesComponent implements OnInit {
   private openModal: NgbModalRef;
   private closeResult: string;
   users: MemUser[] = [];
+  defaultEmail: string = null;
 
   constructor(
     private memoryService: MemoryService, 
@@ -110,6 +111,10 @@ export class BrowseQuotesComponent implements OnInit {
     this.memoryService.getAllUsers().subscribe((users: MemUser[]) => {
       console.log(users);
       this.users = users;
+      this.memoryService.getPreferences().subscribe(prefs => {
+        this.defaultEmail = PassageUtils.getPref(prefs, 'last_send_quote_email', null);
+      });
+  
       this.searching = false;
       this.openModal = this.modalService.open(content);
       this.openModal.result.then((result) => {
@@ -137,32 +142,35 @@ export class BrowseQuotesComponent implements OnInit {
     let modalHelper: ModalHelperService = this.injector.get(ModalHelperService);
     this.modalHelperService.confirm({ message: "Send current quote to user " + user.userName + "?", header: "Send Quote" }).result.then(
       () => {
-        console.log("Sending quote to: ");
-        console.log(user);
-        this.searching = true;
-        this.searchingMessage = 'Sending quote to ' + user.userName + '...';
-        let param: any = {
-          user: user,
-          fromUser: this.memoryService.getCurrentUser(),
-          quote: this.allQuotes[this.currentIndex],
-          emailTo: 'psalms119v11@gmail.com'
-        };
-        this.memoryService.sendQuoteToUser(param).subscribe((response: any) => {
-          if (response === 'error') {
-            console.log('Unable to send quote to ' + user + '...');
-          } else {
-            console.log('Here is the quote sent to ' + user + ':');
-            console.log(response);
-          }
-          this.searching = false;
-          this.searchingMessage = null;
+        modalHelper.openEnterEmail(this.defaultEmail).result.then((email: string) => {
+          console.log("Sending quote to: ");
+          console.log(user);
+          this.searching = true;
+          this.searchingMessage = 'Sending quote to ' + user.userName + '...';
+          let param: any = {
+            user: user,
+            fromUser: this.memoryService.getCurrentUser(),
+            quote: this.allQuotes[this.currentIndex],
+            emailTo: email
+          };
+          this.memoryService.sendQuoteToUser(param).subscribe((response: any) => {
+            if (response === 'error') {
+              console.log('Unable to send quote to ' + user + '...');
+            } else {
+              console.log('Here is the quote sent to ' + user + ':');
+              console.log(response);
+            }
+            this.searching = false;
+            this.searchingMessage = null;
+          });  
+        }, () => {
+          console.log("No email entered, NOT Sending quote to: ");
+          console.log(user);
         });
-        //modalHelper.alert({ message: "Please note - feature not implemented yet", header: "Feature Not Implemented" });
       },
       () => {
         console.log("NOT Sending quote to: ");
         console.log(user);
-        modalHelper.alert({ message: "Please note - feature not implemented yet", header: "Feature Not Implemented" });
       }
     );
   }

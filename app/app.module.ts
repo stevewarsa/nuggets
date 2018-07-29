@@ -37,6 +37,7 @@ import { SearchFactsAndQuotesComponent } from './search-facts-and-quotes/search-
 import { CopyDbToGuestComponent } from './copy-db-to-guest/copy-db-to-guest.component';
 import { ConfirmComponent } from './confirm/confirm.component';
 import { AlertComponent } from './alert/alert.component';
+import { EnterEmailPopupComponent } from './enter-email-popup/enter-email-popup.component';
 export class MyHammerConfig extends HammerGestureConfig {
   overrides = <any>{
     'pinch': { enable: false },
@@ -73,7 +74,8 @@ export class MyHammerConfig extends HammerGestureConfig {
     SearchFactsAndQuotesComponent,
     CopyDbToGuestComponent,
     ConfirmComponent,
-    AlertComponent
+    AlertComponent,
+    EnterEmailPopupComponent
   ],
   imports: [
     BrowserModule,
@@ -94,7 +96,7 @@ export class MyHammerConfig extends HammerGestureConfig {
       useClass: MyHammerConfig
     }
   ],
-  entryComponents: [ConfirmComponent, AlertComponent],
+  entryComponents: [ConfirmComponent, AlertComponent, EnterEmailPopupComponent],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
