@@ -6,7 +6,7 @@
           <h3><span><i class="fa fa-caret-square-o-right" aria-hidden="true"></i></span> Enter Quote</h3>
           <div class="form-group">
             <label for="answer">Quote:</label>
-            <textarea #quoteInput name="quote" [cols]="50" [rows]="20" [value]="quote" (change)="changeQuote($event)" class="form-control" id="quote"></textarea>
+            <textarea #quoteInput name="quote" [cols]="50" [rows]="15" [value]="quote" (change)="changeQuote($event)" class="form-control" id="quote"></textarea>
           </div>
         </fieldset>
         <button (click)="submit()" type="submit" class="btn btn-primary">Submit</button>
