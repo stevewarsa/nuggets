@@ -23,17 +23,17 @@ export class MemoryService {
   constructor(private httpService:Http) { }
 
   public getMemoryPassageList(user: string): Observable<Passage[]> {
-    console.log('MemoryService.getMemoryPassageList - calling ' + this._url + 'get_mempsg_list.php...')
+    console.log('MemoryService.getMemoryPassageList - calling ' + this._url + 'get_mempsg_list.php...');
     return this.httpService.get(this._url + 'get_mempsg_list.php?user=' + user).pipe(map(res => res.json()));
   }
 
   public getMemoryPassageCount(user: string): Observable<number> {
-    console.log('MemoryService.getMemoryPassageCount - calling ' + this._url + 'get_mempsg_count.php...')
+    console.log('MemoryService.getMemoryPassageCount - calling ' + this._url + 'get_mempsg_count.php...');
     return this.httpService.get(this._url + 'get_mempsg_count.php?user=' + user).pipe(map(res => res.json()));
   }
 
   public getPassage(passage: Passage, user: string): Observable<Passage> {
-    console.log('MemoryService.getPassage - calling ' + this._url + 'get_passage_text.php?user=' + user + '&translation=' + passage.translationName + '&book=' + passage.bookName + '&chapter=' + passage.chapter + '&start=' + passage.startVerse + '&end=' + passage.endVerse)
+    console.log('MemoryService.getPassage - calling ' + this._url + 'get_passage_text.php?user=' + user + '&translation=' + passage.translationName + '&book=' + passage.bookName + '&chapter=' + passage.chapter + '&start=' + passage.startVerse + '&end=' + passage.endVerse);
     return this.httpService.get(this._url + 'get_passage_text.php?user=' + user + '&translation=' + passage.translationName + '&book=' + passage.bookName + '&chapter=' + passage.chapter + '&start=' + passage.startVerse + '&end=' + passage.endVerse).pipe(map(res => res.json()));
   }
 
@@ -67,7 +67,7 @@ export class MemoryService {
   }
 
   public getMemoryPassageTextOverrides(user: string): Observable<Passage[]> {
-    console.log('MemoryService.getMemoryPassageTextOverrides - calling ' + this._url + 'get_mempsg_text_overrides.php?user=' + user + '...')
+    console.log('MemoryService.getMemoryPassageTextOverrides - calling ' + this._url + 'get_mempsg_text_overrides.php?user=' + user + '...');
     return this.httpService.get(this._url + 'get_mempsg_text_overrides.php?user=' + user).pipe(map(res => res.json()));
   }
 
@@ -88,28 +88,28 @@ export class MemoryService {
   }
 
   public updatePassage(updatePassageParam: UpdatePassageParam): Observable<string> {
-    console.log('MemoryService.updatePassage - calling ' + this._url + 'update_passage.php...')
+    console.log('MemoryService.updatePassage - calling ' + this._url + 'update_passage.php...');
     return this.httpService.post(this._url + 'update_passage.php', updatePassageParam).pipe(map(res => res.json()));
   }
 
   public getMaxChaptersByBook(): Observable<any[]> {
-    console.log('MemoryService.getMaxChaptersByBook - calling ' + this._url + 'get_max_chapter_by_book.php...')
+    console.log('MemoryService.getMaxChaptersByBook - calling ' + this._url + 'get_max_chapter_by_book.php...');
     return this.httpService.get(this._url + 'get_max_chapter_by_book.php').pipe(map(res => res.json()));
   }
 
   public getMaxVerseByBookChapter(translation: string): Observable<any[]> {
-    console.log('MemoryService.getMaxVerseByBookChapter - calling ' + this._url + 'get_max_verse_by_book_chapter.php?translation=' + translation + '...')
+    console.log('MemoryService.getMaxVerseByBookChapter - calling ' + this._url + 'get_max_verse_by_book_chapter.php?translation=' + translation + '...');
     return this.httpService.get(this._url + 'get_max_verse_by_book_chapter.php?translation=' + translation).pipe(map(res => res.json()));
   }
 
   public getTopicList(): Observable<any[]> {
-    console.log('MemoryService.getTopicList - calling ' + this._url + 'get_tag_list.php')
+    console.log('MemoryService.getTopicList - calling ' + this._url + 'get_tag_list.php');
     return this.httpService.get(this._url + 'get_tag_list.php').pipe(map(res => res.json()));
   }
 
-  public getQuoteList(): Observable<any[]> {
-    console.log('MemoryService.getQuoteList - calling ' + this._url + 'get_quote_list.php?user=' + this.currentUser)
-    return this.httpService.get(this._url + 'get_quote_list.php?user=' + this.currentUser).pipe(map(res => res.json()));
+  public getQuoteList(userName?: string): Observable<any[]> {
+    console.log('MemoryService.getQuoteList - calling ' + this._url + 'get_quote_list.php?user=' + (userName ? userName : this.currentUser));
+    return this.httpService.get(this._url + 'get_quote_list.php?user=' + (userName ? userName : this.currentUser)).pipe(map(res => res.json()));
   }
 
   public setTopicList(topicList: any[]) {
@@ -126,13 +126,13 @@ export class MemoryService {
   }
 
   public getPassagesForTopic(topicId: number): Observable<Passage[]> {
-    console.log('MemoryService.getPassagesForTopic - calling ' + this._url + 'get_tag_list.php?tagId=' + topicId)
+    console.log('MemoryService.getPassagesForTopic - calling ' + this._url + 'get_tag_list.php?tagId=' + topicId);
     return this.httpService.get(this._url + 'get_tag_list.php?tagId=' + topicId).pipe(map(res => res.json()));
   }
 
   public updateLastViewed(userName: string, passageId: number, lastViewedNum: number, lastViewedString: string): Observable<string> {
     var encodedLastViewedString = encodeURIComponent(lastViewedString);
-    console.log('MemoryService.updateLastViewed - calling ' + this._url + 'update_last_viewed.php?user=' + userName + '&passageId=' + passageId + '&lastViewedNum=' + lastViewedNum + '&lastViewedStr=' + encodedLastViewedString + '...')
+    console.log('MemoryService.updateLastViewed - calling ' + this._url + 'update_last_viewed.php?user=' + userName + '&passageId=' + passageId + '&lastViewedNum=' + lastViewedNum + '&lastViewedStr=' + encodedLastViewedString + '...');
     return this.httpService.get(this._url + 'update_last_viewed.php?user=' + userName + '&passageId=' + passageId + '&lastViewedNum=' + lastViewedNum + '&lastViewedStr=' + encodedLastViewedString).pipe(map(res => res.json()));
   }
 

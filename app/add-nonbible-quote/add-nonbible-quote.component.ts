@@ -31,7 +31,9 @@ export class AddNonbibleQuoteComponent implements OnInit {
   submit() {
     let quote: any = {
       prompt: this.quote.substring(0, this.quote.length > 10 ? 10 : this.quote.length) + '...',
-      answer: this.quote
+      answer: this.quote,
+      sourceId: null,
+      fromUser: null
     };
     console.log(quote);
     this.memoryService.addNonBibleQuote(quote).subscribe((response: any) => {

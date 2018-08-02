@@ -21,6 +21,7 @@ import { AddNonbibleQuoteComponent } from 'src/app/add-nonbible-quote/add-nonbib
 import { BrowseQuotesComponent } from 'src/app/browse-quotes/browse-quotes.component';
 import { SearchFactsAndQuotesComponent } from 'src/app/search-facts-and-quotes/search-facts-and-quotes.component';
 import { CopyDbToGuestComponent } from 'src/app/copy-db-to-guest/copy-db-to-guest.component';
+import { SelectQuotesComponent } from 'src/app/select-quotes/select-quotes.component';
 
 const routes: Routes = [
   {path: '', component: LoginComponent},
@@ -31,6 +32,7 @@ const routes: Routes = [
   {path: 'addQuote', component: AddNonbibleQuoteComponent},
   {path: 'practiceFacts', component: PracticeNonbibleMemoryFactsComponent},
   {path: 'searchFactsAndQuotes', component: SearchFactsAndQuotesComponent},
+  {path: 'selectQuotes', component: SelectQuotesComponent},
   {path: 'search', component: SearchComponent},
   {path: 'bibleSearch', component: BibleSearchComponent},
   {path: 'chapterSelection', component: ChapterSelectionComponent},

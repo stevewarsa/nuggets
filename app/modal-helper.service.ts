@@ -4,6 +4,7 @@ import { ConfirmComponent } from 'src/app/confirm/confirm.component';
 import { DOCUMENT } from "@angular/common";
 import { AlertComponent } from 'src/app/alert/alert.component';
 import { EnterEmailPopupComponent } from 'src/app/enter-email-popup/enter-email-popup.component';
+import { SelectUserComponent } from 'src/app/select-user/select-user.component';
 
 @Injectable({
   providedIn: 'root'
@@ -36,6 +37,13 @@ export class ModalHelperService {
     const modalRef: NgbModalRef = this.openModal(EnterEmailPopupComponent);
     const emailComp: EnterEmailPopupComponent = modalRef.componentInstance as EnterEmailPopupComponent;
     emailComp.email = defaultEmail;
+    return modalRef;
+  }
+
+  openSelectUser(currentUser: string): NgbModalRef {
+    const modalRef: NgbModalRef = this.openModal(SelectUserComponent);
+    const selectUserComp: SelectUserComponent = modalRef.componentInstance as SelectUserComponent;
+    selectUserComp.excludeUser = currentUser;
     return modalRef;
   }
 

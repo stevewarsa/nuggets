@@ -1,0 +1,13 @@
+<div class="modal-header">
+  <h4 class="modal-title">
+    <span class="mr-1 fa fa-check-square-o"></span>Select User</h4>
+  <button type="button" class="close" aria-label="Close" (click)="activeModal.dismiss('Cross Click')">
+    <span aria-hidden="true">&times;</span>
+  </button>
+</div>
+<div class="modal-body">
+  <!-- <p *ngIf="searching">{{searchingMessage}}</p> -->
+  <ul *ngIf="users && users.length > 0" class="list-group">
+    <li *ngFor="let user of users" class="list-group-item bg-dark text-white" (click)="selectUser(user)">{{user.userName}}</li>
+  </ul>
+</div>
