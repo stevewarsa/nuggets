@@ -3,6 +3,7 @@ import { MemoryService } from 'src/app/memory.service';
 import { ModalHelperService } from 'src/app/modal-helper.service';
 import { MemUser } from 'src/app/mem-user';
 import { Router } from '@angular/router';
+import { PassageUtils } from 'src/app/passage-utils';
 
 @Component({
   templateUrl: './select-quotes.component.html'
@@ -37,7 +38,9 @@ export class SelectQuotesComponent implements OnInit, AfterViewInit {
       this.modalHelper.openSelectUser(this.memoryService.getCurrentUser()).result.then((selectedUser: MemUser) => {
         this.selectedUser = selectedUser;
         this.memoryService.getQuoteList(this.selectedUser.userName).subscribe((quotes: any[]) => {
-          this.quotesForSelection = this.filterQuotesAlreadyAddedFromUser(quotes);
+          let filteredQuotes: any[] = this.filterQuotesAlreadyAddedFromUser(quotes);
+          PassageUtils.shuffleArray(filteredQuotes);
+          this.quotesForSelection = filteredQuotes;
         });
       });
     }, 300);
