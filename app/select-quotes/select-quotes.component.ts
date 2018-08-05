@@ -13,6 +13,8 @@ export class SelectQuotesComponent implements OnInit, AfterViewInit {
   myQuotes: any[] = [];
   selectedUser: MemUser = null;
   currUser: string = null;
+  searching: boolean = false;
+  searchingMessage: string = null;
 
   constructor(private route: Router, private memoryService: MemoryService, private modalHelper: ModalHelperService) { }
 
@@ -23,8 +25,12 @@ export class SelectQuotesComponent implements OnInit, AfterViewInit {
       this.route.navigate(['']);
       return;
     }
+    this.searching = true;
+    this.searchingMessage = "Retrieving quotes for user " + this.currUser;
     this.memoryService.getQuoteList().subscribe((quotes: any[]) => {
       this.myQuotes = quotes;
+      this.searching = false;
+      this.searchingMessage = null;
     });
   }
 
@@ -37,10 +43,14 @@ export class SelectQuotesComponent implements OnInit, AfterViewInit {
     setTimeout(() => {
       this.modalHelper.openSelectUser(this.memoryService.getCurrentUser()).result.then((selectedUser: MemUser) => {
         this.selectedUser = selectedUser;
+        this.searching = true;
+        this.searchingMessage = "Retrieving quotes for selected user: " + this.selectedUser.userName;
         this.memoryService.getQuoteList(this.selectedUser.userName).subscribe((quotes: any[]) => {
           let filteredQuotes: any[] = this.filterQuotesAlreadyAddedFromUser(quotes);
           PassageUtils.shuffleArray(filteredQuotes);
           this.quotesForSelection = filteredQuotes;
+          this.searching = false;
+          this.searchingMessage = null;
         });
       });
     }, 300);
@@ -76,6 +86,8 @@ export class SelectQuotesComponent implements OnInit, AfterViewInit {
   }
 
   addQuote(quote: any) {
+    this.searching = true;
+    this.searchingMessage = "Adding quote from selected user: " + this.selectedUser.userName;
     let quoteToAdd: any = {
       prompt: quote.prompt,
       answer: quote.answer,
@@ -84,6 +96,8 @@ export class SelectQuotesComponent implements OnInit, AfterViewInit {
     };
     console.log(quoteToAdd);
     this.memoryService.addNonBibleQuote(quoteToAdd).subscribe((response: any) => {
+      this.searching = false;
+      this.searchingMessage = null;
       console.log('Response from addNonBibleQuote: ');
       console.log(response);
       if (response !== "error") {

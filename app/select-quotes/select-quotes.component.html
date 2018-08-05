@@ -1,3 +1,11 @@
+<div *ngIf="searching" class="container">
+  <div class="row mt-5">
+    <div class="col-md col-lg col-sm" style="text-align: center;">
+      <h2>{{searchingMessage}}</h2>
+      <img src="assets/ajax-loader.gif" />
+    </div>
+  </div>
+</div>
 <div class="container">
   <h3>Select Quotes to Add</h3>
   <div class="row">
