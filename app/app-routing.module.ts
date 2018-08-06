@@ -22,6 +22,7 @@ import { BrowseQuotesComponent } from 'src/app/browse-quotes/browse-quotes.compo
 import { SearchFactsAndQuotesComponent } from 'src/app/search-facts-and-quotes/search-facts-and-quotes.component';
 import { CopyDbToGuestComponent } from 'src/app/copy-db-to-guest/copy-db-to-guest.component';
 import { SelectQuotesComponent } from 'src/app/select-quotes/select-quotes.component';
+import { QuotesNoLoginComponent } from 'src/app/quotes-no-login/quotes-no-login.component';
 
 const routes: Routes = [
   {path: '', component: LoginComponent},
@@ -43,6 +44,7 @@ const routes: Routes = [
   {path: 'randomtopic', component: RandomTopicComponent},
   {path: 'browsenuggets', component: BrowseNuggetsComponent},
   {path: 'browsequotes', component: BrowseQuotesComponent},
+  {path: 'quotes', component: QuotesNoLoginComponent},
   {path: 'browseTopic/:topicId/:order', component: BrowseTopicComponent},
   {path: 'viewPassage/:book/:chapter/:startVerse/:endVerse/:translation', component: ViewChapterComponent},
   {path: 'viewChapter/:book/:chapter/:translation', component: ViewChapterComponent},

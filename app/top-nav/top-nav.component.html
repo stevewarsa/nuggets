@@ -1,5 +1,6 @@
 <nav class="navbar navbar-expand-md navbar-dark">
     <img *ngIf="mobile" style="max-height: 40px; max-width: 35px;" alt="God's Word is like Nuggets of Gold" class="navbar-brand brand-image" src="assets/goldnuggeticon.png">
+    <span *ngIf="mobile" style="font-size: 18px; font-weight: bold; color: khaki;"> User: {{currentUser}}</span>
     <button class="navbar-toggler" (click)="toggleExpanded()" [attr.aria-expanded]="!isCollapsed" type="button" aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>
@@ -36,4 +37,5 @@
       </li>
     </ul>
   </div>
+  <span *ngIf="!mobile" style="font-size: 18px; font-weight: bold; color: khaki;"> User: {{currentUser}}</span>
 </nav>

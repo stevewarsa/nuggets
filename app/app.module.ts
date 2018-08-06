@@ -40,6 +40,7 @@ import { AlertComponent } from './alert/alert.component';
 import { EnterEmailPopupComponent } from './enter-email-popup/enter-email-popup.component';
 import { SelectQuotesComponent } from './select-quotes/select-quotes.component';
 import { SelectUserComponent } from './select-user/select-user.component';
+import { QuotesNoLoginComponent } from './quotes-no-login/quotes-no-login.component';
 export class MyHammerConfig extends HammerGestureConfig {
   overrides = <any>{
     'pinch': { enable: false },
@@ -79,7 +80,8 @@ export class MyHammerConfig extends HammerGestureConfig {
     AlertComponent,
     EnterEmailPopupComponent,
     SelectQuotesComponent,
-    SelectUserComponent
+    SelectUserComponent,
+    QuotesNoLoginComponent
   ],
   imports: [
     BrowserModule,
