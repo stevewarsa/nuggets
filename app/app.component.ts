@@ -2,13 +2,14 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { MemoryService } from 'src/app/memory.service';
 import { Subscription } from 'rxjs';
 import { Router, NavigationStart } from '@angular/router';
+import { StringUtils } from 'src/app/string.utils';
 
 @Component({
   selector: 'mem-root',
   templateUrl: './app.component.html'
 })
 export class AppComponent implements OnInit, OnDestroy {
-  title = 'Memory Verses';
+  title = 'Bible Nuggets';
   user: string = null;
   subscription: Subscription;
 
@@ -21,6 +22,10 @@ export class AppComponent implements OnInit, OnDestroy {
         this.user = this.memoryService.getCurrentUser();
       }
     });
+    let dest = StringUtils.getParameterByName('dest');
+    if (!StringUtils.isEmpty(dest)) {
+      this.router.navigate([dest]);
+    }
   }
   ngOnDestroy() {
     if (this.subscription) {

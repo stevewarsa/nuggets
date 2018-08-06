@@ -84,5 +84,21 @@ export class StringUtils {
       }
       return formattedMsg;
     }
+
+    static getParameterByName(name: string) {
+      // S. Warsa - had to use javascript here to get access to URL params without routing...
+      let url: string = window.location.href;
+      name = name.replace(/[\[\]]/g, "\\$&");
+      let regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)");
+      let results = regex.exec(url);
+      if (results === null || results.length === 0) {
+        return null;
+      }
+      if (results[2] === null || results[2].length === 0) {
+        return '';
+      }
+      let decodedUri: string = decodeURIComponent(results[2].replace(/\+/g, " "));
+      return decodedUri;
+    }
   }
   
