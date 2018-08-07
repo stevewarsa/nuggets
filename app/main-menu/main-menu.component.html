@@ -2,7 +2,7 @@
   <ngb-accordion #acc="ngbAccordion">
     <ngb-panel>
       <ng-template ngbPanelTitle>
-        <div>Read</div>
+        <div><i class="fa fa-book" style="margin-right: 5px; font-size: 18px !important;"></i> Read</div>
       </ng-template>
       <ng-template ngbPanelContent>
         In this section, you can read the full bible, or you can just read selected passages from the Bible.
@@ -16,7 +16,7 @@
     </ngb-panel>
     <ngb-panel>
       <ng-template ngbPanelTitle>
-        <div>Search</div>
+        <div><i class="fa fa-search" style="margin-right: 5px; font-size: 18px !important;"></i> Search</div>
       </ng-template>
       <ng-template ngbPanelContent>
         In this section, you can search the full bible for any word or phrase, including wildcards.  The search can be performed in Old Testament, New Testament or the Full Bible, or you can limit the search to a particular book of the Bible.  Additionally, you can search any of the supported translations of the Bible.
@@ -28,7 +28,7 @@
     </ngb-panel>
     <ngb-panel>
       <ng-template ngbPanelTitle>
-        <div>Nuggets</div>
+        <div><i class="fa fa-diamond" style="margin-right: 5px; font-size: 18px !important;"></i> Nuggets</div>
       </ng-template>
       <ng-template ngbPanelContent>
         Nuggets are passages from the Bible consisting of 1 or more verses and up to a whole chapter.  These are passages you can just randomly browse if you're looking to get a quick bit of Bible reading in and don't know where to start.
@@ -43,7 +43,8 @@
     </ngb-panel>
     <ngb-panel>
       <ng-template ngbPanelTitle>
-        <div>Memorize</div>
+        <!-- fa-puzzle-piece, fa-eye -->
+        <div><i class="fa fa-dot-circle-o" style="margin-right: 5px; font-size: 18px !important;"></i> Memorize</div>
       </ng-template>
       <ng-template ngbPanelContent>
         This section is used for various tasks related to Bible and other memorization:
@@ -59,7 +60,7 @@
     </ngb-panel>
     <ngb-panel>
       <ng-template ngbPanelTitle>
-        <div>Full Bible</div>
+        <div><i class="fa fa-map-o" style="margin-right: 5px; font-size: 18px !important;"></i> Full Bible</div>
       </ng-template>
       <ng-template ngbPanelContent>
         This section is used for searching and reading the whole Bible:
@@ -71,7 +72,7 @@
     </ngb-panel>
     <ngb-panel>
       <ng-template ngbPanelTitle>
-        <div>Topics</div>
+        <div><i class="fa fa-object-group" style="margin-right: 5px; font-size: 18px !important;"></i> Topics</div>
       </ng-template>
       <ng-template ngbPanelContent>
         This section is used for browsing the Bible by Topic:
@@ -83,7 +84,7 @@
     </ngb-panel>
     <ngb-panel>
       <ng-template ngbPanelTitle>
-        <div>Facts &amp; Quotes</div>
+        <div><i class="fa fa-quote-left" style="margin-right: 5px; font-size: 18px !important;"></i> Facts &amp; Quotes <i class="fa fa-quote-right" style="margin-right: 5px; font-size: 18px !important;"></i></div>
       </ng-template>
       <ng-template ngbPanelContent>
         This section is used for browsing and managing extra-biblical content such as facts and quotes:
@@ -99,7 +100,7 @@
     </ngb-panel>
     <ngb-panel *ngIf="currUser == 'SteveWarsa'">
       <ng-template ngbPanelTitle>
-        <div>Steve's Tasks</div>
+        <div><i class="fa fa-check-circle-o" style="margin-right: 5px; font-size: 18px !important;"></i> Steve's Tasks</div>
       </ng-template>
       <ng-template ngbPanelContent>
         This section is used for tasks that only the creator of this program (Steve) can do:
