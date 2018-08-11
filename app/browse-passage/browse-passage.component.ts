@@ -81,6 +81,11 @@ export class BrowsePassageComponent implements OnInit {
   }
 
   swipe(action) {
+    if (window.screen.width > 500) { // 768px portrait
+      // this is Desktop, so don't allow swipe
+      console.log("Not allowing swipe");
+      return;
+    }
     if (action === this.SWIPE_ACTION.RIGHT) {
       // this is a hack to make sure that setter gets called in the passage navigation component
       this.direction = 'prev' + new Date();

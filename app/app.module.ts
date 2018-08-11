@@ -41,11 +41,18 @@ import { EnterEmailPopupComponent } from './enter-email-popup/enter-email-popup.
 import { SelectQuotesComponent } from './select-quotes/select-quotes.component';
 import { SelectUserComponent } from './select-user/select-user.component';
 import { QuotesNoLoginComponent } from './quotes-no-login/quotes-no-login.component';
+import { HammerInstance } from '@angular/platform-browser/src/dom/events/hammer_gestures';
+declare var Hammer: any;
 export class MyHammerConfig extends HammerGestureConfig {
   overrides = <any>{
     'pinch': { enable: false },
     'rotate': { enable: false }
   }
+
+  // dynamically turn off user select blocking for Desktop
+  options = window.screen.width > 500 ? <any>{
+    cssProps: { userSelect: false }
+  } : {};
 }
 
 @NgModule({

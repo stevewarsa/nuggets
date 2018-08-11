@@ -109,6 +109,10 @@ export class PracticeComponent implements OnInit, OnDestroy {
           passage.frequencyDays = this.currentPassage.frequencyDays;
           passage.last_viewed_num = this.currentPassage.last_viewed_num;
           passage.last_viewed_str = this.currentPassage.last_viewed_str;
+          passage.passageId = this.currentPassage.passageId;
+          passage.bookName = this.currentPassage.bookName;
+          passage.translationId = this.currentPassage.translationId;
+          passage.translationName = this.currentPassage.translationName;
           this.currentPassage = passage;
           this.memoryService.setCurrentPassage(this.currentPassage, this.currentUser);
           this.searching = false;

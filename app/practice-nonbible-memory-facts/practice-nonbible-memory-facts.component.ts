@@ -47,6 +47,11 @@ export class PracticeNonbibleMemoryFactsComponent implements OnInit {
   }
 
   swipe(action) {
+    if (window.screen.width > 500) { // 768px portrait
+      // this is Desktop, so don't allow swipe
+      console.log("Not allowing swipe");
+      return;
+    }
     if (action === this.SWIPE_ACTION.RIGHT) {
       this.direction = 'prev' + new Date();
       this.prev();

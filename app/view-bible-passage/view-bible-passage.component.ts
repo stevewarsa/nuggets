@@ -24,7 +24,6 @@ export class ViewBiblePassageComponent implements OnInit {
   @Input() showVerseNumbers: boolean = false;
   @Input() shortBook: boolean = true;
   @Input() showProgressInLine: boolean = false;
-  @Input() allowSwipe: boolean = true;
   @Input() searching: boolean = false;
   @Input() searchingMessage: string;
   _defaultShowPsgText: boolean = false;
@@ -84,7 +83,9 @@ export class ViewBiblePassageComponent implements OnInit {
   }
 
   swipe(action) {
-    if (!this.allowSwipe) {
+    if (window.screen.width > 500) { // 768px portrait
+      // this is desktop, so don't allow swipe
+      console.log("Not allowing swipe");
       return;
     }
     if (action === this.SWIPE_ACTION.RIGHT) {
