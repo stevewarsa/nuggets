@@ -1,5 +1,18 @@
 <div class="container" (swipeleft)="swipe($event.type)" (swiperight)="swipe($event.type)">
-  <mem-passage-navigation (nextEvent)="next()" (prevEvent)="prev()" (answerEvent)="answer()" (stopPracticeEvent)="stop()" (interlinearEvent)="goToInterlinear()" [progressString]="progressString" [showPassageTextFirst]="_showPsgText" [frequencyDays]="_passage?.frequencyDays" [lastPracticedDate]="_passage?.last_viewed_num" [swipeEvent]="direction"></mem-passage-navigation>
+  <mem-passage-navigation 
+    (nextEvent)="next()" 
+    (prevEvent)="prev()" 
+    (answerEvent)="answer()" 
+    (stopPracticeEvent)="stop()" 
+    (interlinearEvent)="goToInterlinear()" 
+    (clipboardEvent)="copyToClipboard()" 
+    (toggleEvent)="prepareForCopyToClipboard()" 
+    [progressString]="progressString" 
+    [showPassageTextFirst]="_showPsgText" 
+    [frequencyDays]="_passage?.frequencyDays" 
+    [lastPracticedDate]="_passage?.last_viewed_num" 
+    [swipeEvent]="direction">
+  </mem-passage-navigation>
   <div *ngIf="searching" class="row">
     <div class="col-md col-lg col-sm">
       <div style="text-align: center;">

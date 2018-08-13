@@ -11,6 +11,8 @@ export class PassageNavigationComponent implements OnInit {
   @Output() answerEvent: EventEmitter<string>  = new EventEmitter<string>();
   @Output() stopPracticeEvent: EventEmitter<string>  = new EventEmitter<string>();
   @Output() interlinearEvent: EventEmitter<string>  = new EventEmitter<string>();
+  @Output() clipboardEvent: EventEmitter<string>  = new EventEmitter<string>();
+  @Output() toggleEvent: EventEmitter<string>  = new EventEmitter<string>();
   @Input() progressString: string;
   _frequencyString: string = null;
   @Input() set frequencyDays(frequency: number) {
@@ -41,6 +43,8 @@ export class PassageNavigationComponent implements OnInit {
       this.beenSet = true;
     }
   }
+
+  @Input() currentPassageForClipboard: string = null;
   questionIcon: string = null;
   isCollapsed: boolean = true;
 
@@ -56,8 +60,14 @@ export class PassageNavigationComponent implements OnInit {
     this.interlinearEvent.emit();
   }
 
+  clipboardCopy() {
+    this.clipboardEvent.emit();
+    this.isCollapsed = !this.isCollapsed;
+  }
+
   toggleAdditionalOptions() {
     this.isCollapsed = !this.isCollapsed;
+    this.toggleEvent.emit();
   }
 
   next() {

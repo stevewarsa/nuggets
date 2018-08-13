@@ -4,6 +4,10 @@ import { trigger, state, style, animate, transition } from '@angular/animations'
 import { Passage } from 'src/app/passage';
 import { PassageUtils } from 'src/app/passage-utils';
 import { Router } from '@angular/router';
+import { ClipboardService } from 'ngx-clipboard';
+import { StringUtils } from 'src/app/string.utils';
+import { MemoryService } from 'src/app/memory.service';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'mem-view-bible-passage',
@@ -40,13 +44,20 @@ export class ViewBiblePassageComponent implements OnInit {
   passageRef: string = "";
   formattedPassageText: string = null;
   currentHtmlDisplayed: string = null;
+  currentPassageForClipboard: string = null;
   _passage: Passage;
   progressString: string;
   SWIPE_ACTION = { LEFT: 'swipeleft', RIGHT: 'swiperight' };
   direction: string = null;
   interlinearURL: string;
+  clipboardContent: string = null;
 
-  constructor(private route: Router) { }
+
+  constructor(
+    private route: Router, 
+    private clipboardService: ClipboardService,
+    private memoryService: MemoryService,
+    public toastr: ToastrService) { }
 
   @Input() set passage(passage: Passage) {
     if (passage) {
@@ -75,6 +86,28 @@ export class ViewBiblePassageComponent implements OnInit {
 
   goToInterlinear() {
     window.open(this.interlinearURL, '_blank');
+  }
+
+  copyToClipboard() {
+    this.clipboardService.copyFromContent(this.clipboardContent);
+    this.toastr.info('The passage has been copied to the clipboard!', 'Success!');
+  }
+
+  prepareForCopyToClipboard() {
+    this.clipboardContent = PassageUtils.getPassageForClipboard(this._passage);
+    console.log("First attempt to get content: " + this.clipboardContent);
+    if (StringUtils.isEmpty(this.clipboardContent)) {
+      this.searching = true;
+      this.searchingMessage = "Retrieving passage text for copy to clipboard...";
+      this.memoryService.getUpdatedCurrentPassageText().subscribe((passage: Passage) => {
+        this._passage.verses = passage.verses;
+        this.memoryService.setCurrentPassage(this._passage, this.memoryService.getCurrentUser());
+        this.clipboardContent = PassageUtils.getPassageForClipboard(this._passage);
+        console.log("Second attempt to get content: " + this.clipboardContent);
+        this.searching = false;
+        this.searchingMessage = null;
+      });
+    }
   }
 
   logIt(event: any, mode: string) {
