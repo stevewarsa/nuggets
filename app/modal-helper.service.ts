@@ -5,6 +5,7 @@ import { DOCUMENT } from "@angular/common";
 import { AlertComponent } from 'src/app/alert/alert.component';
 import { EnterEmailPopupComponent } from 'src/app/enter-email-popup/enter-email-popup.component';
 import { SelectUserComponent } from 'src/app/select-user/select-user.component';
+import { QuoteSearchResultActionsComponent } from 'src/app/quote-search-result-actions/quote-search-result-actions.component';
 
 @Injectable({
   providedIn: 'root'
@@ -44,6 +45,11 @@ export class ModalHelperService {
     const modalRef: NgbModalRef = this.openModal(SelectUserComponent);
     const selectUserComp: SelectUserComponent = modalRef.componentInstance as SelectUserComponent;
     selectUserComp.excludeUser = currentUser;
+    return modalRef;
+  }
+
+  openQuoteSearchResultActions(): NgbModalRef {
+    const modalRef: NgbModalRef = this.openModal(QuoteSearchResultActionsComponent);
     return modalRef;
   }
 

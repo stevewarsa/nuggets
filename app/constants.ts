@@ -1,4 +1,8 @@
 export class Constants {
+    public static ACTION_GO_TO: string[] = ["GO_TO", "Go to Quote"];
+    public static ACTION_SEND_QUOTE: string[] = ["SEND_QUOTE", "Send Quote"];
+    public static ACTION_COPY: string[] = ["COPY", "Copy Quote to Clipboard"];
+
     public static translations: any[] = [
         { code: 'asv', translationName: 'ASV - American Standard Version' },
         { code: 'bbe', translationName: 'BBE - Bible in Basic English' },

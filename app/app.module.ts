@@ -41,6 +41,7 @@ import { EnterEmailPopupComponent } from './enter-email-popup/enter-email-popup.
 import { SelectQuotesComponent } from './select-quotes/select-quotes.component';
 import { SelectUserComponent } from './select-user/select-user.component';
 import { QuotesNoLoginComponent } from './quotes-no-login/quotes-no-login.component';
+import { QuoteSearchResultActionsComponent } from './quote-search-result-actions/quote-search-result-actions.component';
 
 export class MyHammerConfig extends HammerGestureConfig {
   overrides = <any>{
@@ -87,7 +88,8 @@ export class MyHammerConfig extends HammerGestureConfig {
     EnterEmailPopupComponent,
     SelectQuotesComponent,
     SelectUserComponent,
-    QuotesNoLoginComponent
+    QuotesNoLoginComponent,
+    QuoteSearchResultActionsComponent
   ],
   imports: [
     BrowserModule,
@@ -112,7 +114,8 @@ export class MyHammerConfig extends HammerGestureConfig {
     ConfirmComponent, 
     AlertComponent, 
     EnterEmailPopupComponent, 
-    SelectUserComponent
+    SelectUserComponent, 
+    QuoteSearchResultActionsComponent
   ],
   bootstrap: [AppComponent]
 })

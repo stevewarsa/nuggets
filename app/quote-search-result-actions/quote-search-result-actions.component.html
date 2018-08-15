@@ -1,0 +1,12 @@
+<div class="modal-header">
+    <h4 class="modal-title">
+      <span class="mr-1 fa fa-check-square-o"></span>Select Action</h4>
+    <button type="button" class="close" aria-label="Close" (click)="activeModal.dismiss('Cross Click')">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  <div class="modal-body">
+    <ul class="list-group">
+      <li *ngFor="let action of actions" style="cursor: pointer;" class="list-group-item bg-dark text-white" (click)="selectAction(action[0])">{{action[1]}}</li>
+    </ul>
+  </div>

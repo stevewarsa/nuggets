@@ -1,6 +1,6 @@
 import { Component, OnInit, Injector } from '@angular/core';
 import { MemoryService } from 'src/app/memory.service';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { PassageUtils } from 'src/app/passage-utils';
 import { trigger, state, style, animate, transition } from '@angular/animations';
 import { ToastrService } from 'ngx-toastr';
@@ -34,6 +34,7 @@ export class BrowseQuotesComponent implements OnInit {
   private closeResult: string;
   users: MemUser[] = [];
   defaultEmail: string = null;
+  startingId: number = 0;
 
   constructor(
     private memoryService: MemoryService, 
@@ -41,6 +42,7 @@ export class BrowseQuotesComponent implements OnInit {
     public toastr: ToastrService, 
     private modalService: NgbModal, 
     private modalHelperService: ModalHelperService, 
+    private activeRoute:ActivatedRoute,
     private injector: Injector) { }
 
   ngOnInit() {
@@ -50,13 +52,17 @@ export class BrowseQuotesComponent implements OnInit {
       this.route.navigate(['']);
       return;
     }
+    let quoteId = this.activeRoute.snapshot.params['quoteId'];
+    if (quoteId) {
+      this.startingId = parseInt(quoteId);
+    }
     this.searching = true;
     this.searchingMessage = 'Retrieving quote list...';
     this.memoryService.getQuoteList().subscribe((quotes: any[]) => {
       quotes = this.filterOutNonApprovedQuotes(quotes);
       PassageUtils.shuffleArray(quotes);
       this.allQuotes = quotes;
-      this.currentIndex = 0;
+      this.currentIndex = this.findStartingQuote();
       this.displayQuote();
       this.searching = false;
       this.searchingMessage = null;
@@ -73,6 +79,14 @@ export class BrowseQuotesComponent implements OnInit {
     return modQuotes;
   }
 
+  private findStartingQuote(): number {
+    for (let i: number = 0; i < this.allQuotes.length; i++) {
+      if (this.allQuotes[i].objectionId == this.startingId) {
+        return i;
+      }
+    }
+    return 0;
+  }
   swipe(action) {
     if (window.screen.width > 500) { // 768px portrait
       // this is Desktop, so don't allow swipe

@@ -59,9 +59,11 @@
       <table class="table table-bordered" style="font-size: 18px !important; margin: 5px;">
         <tbody>
             <tr>
+              <th><i class="fa fa-asterisk" style="font-size: 16px !important;"></i></th>
               <th [innerHTML]="searchCategory === 'fact' ? 'Fact Text' : 'Quote Text'"></th>
             </tr>
             <tr *ngFor="let searchResult of searchResults">
+              <td><a (click)="showActions(searchResult)" style="text-decoration: underline; color: #00FFFF !important;">Go</a></td>
               <td [innerHTML]="getSearchResultText(searchResult)"></td>
             </tr>
         </tbody>

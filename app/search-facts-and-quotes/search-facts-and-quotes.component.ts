@@ -2,6 +2,10 @@ import { Component, OnInit } from '@angular/core';
 import { MemoryService } from 'src/app/memory.service';
 import { Router } from '@angular/router';
 import { PassageUtils } from 'src/app/passage-utils';
+import { ModalHelperService } from 'src/app/modal-helper.service';
+import { Constants } from 'src/app/constants';
+import { ClipboardService } from 'ngx-clipboard';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   templateUrl: './search-facts-and-quotes.component.html'
@@ -14,7 +18,12 @@ export class SearchFactsAndQuotesComponent implements OnInit {
   searchResults: any[] = [];
   currentUser: string = null;
 
-  constructor(private memoryService: MemoryService, private route: Router) { }
+  constructor(
+    private memoryService: MemoryService, 
+    private route: Router, 
+    private clipboardService: ClipboardService,
+    public toastr: ToastrService,
+    private modalHelper: ModalHelperService) { }
 
   ngOnInit() {
     this.currentUser = this.memoryService.getCurrentUser();
@@ -23,6 +32,17 @@ export class SearchFactsAndQuotesComponent implements OnInit {
       this.route.navigate(['']);
       return;
     }
+  }
+
+  showActions(searchResult: any) {
+    this.modalHelper.openQuoteSearchResultActions().result.then((selectedAction: string) => {
+      if (selectedAction === Constants.ACTION_COPY[0]) {
+        this.clipboardService.copyFromContent(searchResult.answer);
+        this.toastr.info('The passage has been copied to the clipboard!', 'Success!');
+      } else if (selectedAction === Constants.ACTION_GO_TO[0]) {
+        this.route.navigate(['browsequotes', searchResult.objectionId]);
+      }
+    });
   }
 
   getSearchResultText(searchResult: any): string {

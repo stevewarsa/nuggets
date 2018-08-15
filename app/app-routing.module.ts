@@ -44,6 +44,7 @@ const routes: Routes = [
   {path: 'randomtopic', component: RandomTopicComponent},
   {path: 'browsenuggets', component: BrowseNuggetsComponent},
   {path: 'browsequotes', component: BrowseQuotesComponent},
+  {path: 'browsequotes/:quoteId', component: BrowseQuotesComponent},
   {path: 'quotes', component: QuotesNoLoginComponent},
   {path: 'browseTopic/:topicId/:order', component: BrowseTopicComponent},
   {path: 'viewPassage/:book/:chapter/:startVerse/:endVerse/:translation', component: ViewChapterComponent},
