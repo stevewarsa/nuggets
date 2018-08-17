@@ -35,6 +35,7 @@ export class BrowseQuotesComponent implements OnInit {
   users: MemUser[] = [];
   defaultEmail: string = null;
   startingId: number = 0;
+  currUser: string = null;
 
   constructor(
     private memoryService: MemoryService, 
@@ -46,8 +47,8 @@ export class BrowseQuotesComponent implements OnInit {
     private injector: Injector) { }
 
   ngOnInit() {
-    let currentUser: string = this.memoryService.getCurrentUser();
-    if (!currentUser) {
+    this.currUser = this.memoryService.getCurrentUser();
+    if (!this.currUser) {
       // user not logged in, so re-route to login
       this.route.navigate(['']);
       return;
@@ -59,7 +60,17 @@ export class BrowseQuotesComponent implements OnInit {
     this.searching = true;
     this.searchingMessage = 'Retrieving quote list...';
     this.memoryService.getQuoteList().subscribe((quotes: any[]) => {
+      if (!quotes || quotes.length === 0) {
+        this.searching = false;
+        this.searchingMessage = null;
+        return;
+      }
       quotes = this.filterOutNonApprovedQuotes(quotes);
+      if (!quotes || quotes.length === 0) {
+        this.searching = false;
+        this.searchingMessage = null;
+        return;
+      }
       PassageUtils.shuffleArray(quotes);
       this.allQuotes = quotes;
       this.currentIndex = this.findStartingQuote();

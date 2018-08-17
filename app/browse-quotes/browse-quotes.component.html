@@ -5,7 +5,18 @@
     </div>
   </div>
 </div>
-<div *ngIf="!searching" class="container" (swipeleft)="swipe($event.type)" (swiperight)="swipe($event.type)">
+<div *ngIf="!allQuotes || allQuotes.length === 0" class="container">
+  <div class="row mt-5">
+    <div class="col-md col-lg col-sm" style="text-align: left;">
+      <h4>There are no quotes in the quote database.  If you would like to add quotes, you can:</h4>
+      <ol style="text-align: left;">
+        <li *ngIf="currUser !== memoryService.GUEST_USER"><a style="cursor: pointer; text-decoration: underline;" [routerLink]="['/addQuote']" title="Add Quote">Add Your Own Quote</a></li>
+        <li *ngIf="currUser !== memoryService.GUEST_USER"><a style="cursor: pointer; text-decoration: underline;" [routerLink]="['/selectQuotes']" title="Select Quotes to Add">Select Quotes to Add from Another User</a></li>
+      </ol>
+    </div>
+  </div>
+</div>
+<div *ngIf="!searching && allQuotes && allQuotes.length > 0" class="container" (swipeleft)="swipe($event.type)" (swiperight)="swipe($event.type)">
   <div class="row">
     <div class="col-md col-lg col-sm" style="text-align: center;">
       <div class="psg-nav">
