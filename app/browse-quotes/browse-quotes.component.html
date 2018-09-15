@@ -5,7 +5,7 @@
     </div>
   </div>
 </div>
-<div *ngIf="!allQuotes || allQuotes.length === 0" class="container">
+<div *ngIf="!searching && (!allQuotes || allQuotes.length === 0)" class="container">
   <div class="row mt-5">
     <div class="col-md col-lg col-sm" style="text-align: left;">
       <h4>There are no quotes in the quote database.  If you would like to add quotes, you can:</h4>

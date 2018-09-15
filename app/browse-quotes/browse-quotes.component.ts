@@ -33,7 +33,7 @@ export class BrowseQuotesComponent implements OnInit {
   private openModal: NgbModalRef;
   private closeResult: string;
   users: MemUser[] = [];
-  defaultEmail: string = null;
+  mappings: any[] = [];
   startingId: number = 0;
   currUser: string = null;
 
@@ -141,11 +141,13 @@ export class BrowseQuotesComponent implements OnInit {
     this.memoryService.getAllUsers().subscribe((users: MemUser[]) => {
       console.log(users);
       this.users = users;
-      this.memoryService.getPreferences().subscribe(prefs => {
-        this.defaultEmail = PassageUtils.getPref(prefs, 'last_send_quote_email', null);
+      this.searchingMessage = "Retrieving email mappings...";
+      this.memoryService.getEmailMappings({user: this.currUser}).subscribe((mappings: any[]) => {
+        this.mappings = mappings;
+        this.searching = false;
+        this.searchingMessage = null;
       });
   
-      this.searching = false;
       this.openModal = this.modalService.open(content);
       this.openModal.result.then((result) => {
         this.closeResult = `Closed with: ${result}`;
@@ -165,14 +167,27 @@ export class BrowseQuotesComponent implements OnInit {
     }
   }
 
+  private getDefaultEmail(user: MemUser): string {
+    if (!this.mappings || this.mappings.length === 0) {
+      return "";
+    }
+    for (let mapping of this.mappings) {
+      if (mapping.userName === user.userName) {
+        return mapping.emailAddress;
+      }
+    }
+    return "";
+  }
+
   sendQuoteToUser(user: MemUser) {
     if (this.openModal) {
       this.openModal.close();
     }
     let modalHelper: ModalHelperService = this.injector.get(ModalHelperService);
+    let defaultEmail = this.getDefaultEmail(user);
     this.modalHelperService.confirm({ message: "Send current quote to user " + user.userName + "?", header: "Send Quote" }).result.then(
       () => {
-        modalHelper.openEnterEmail(this.defaultEmail).result.then((email: string) => {
+        modalHelper.openEnterEmail(defaultEmail).result.then((email: string) => {
           console.log("Sending quote to: ");
           console.log(user);
           this.searching = true;

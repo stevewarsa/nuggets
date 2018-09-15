@@ -23,6 +23,7 @@ import { SearchFactsAndQuotesComponent } from 'src/app/search-facts-and-quotes/s
 import { CopyDbToGuestComponent } from 'src/app/copy-db-to-guest/copy-db-to-guest.component';
 import { SelectQuotesComponent } from 'src/app/select-quotes/select-quotes.component';
 import { QuotesNoLoginComponent } from 'src/app/quotes-no-login/quotes-no-login.component';
+import { ManageEmailsComponent } from 'src/app/manage-emails/manage-emails.component';
 
 const routes: Routes = [
   {path: '', component: LoginComponent},
@@ -43,6 +44,7 @@ const routes: Routes = [
   {path: 'topiclist', component: TopicListComponent},
   {path: 'randomtopic', component: RandomTopicComponent},
   {path: 'browsenuggets', component: BrowseNuggetsComponent},
+  {path: 'manageEmails', component: ManageEmailsComponent},
   {path: 'browsequotes', component: BrowseQuotesComponent},
   {path: 'browsequotes/:quoteId', component: BrowseQuotesComponent},
   {path: 'quotes', component: QuotesNoLoginComponent},

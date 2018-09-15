@@ -1,0 +1,64 @@
+<div class="container" *ngIf="showInitializing" style="padding: 10px !important;">
+	<div class="row">
+		<div class="col-md col-sm">
+			<p class="lead">Initializing Data for Screen...</p>
+		</div>
+	</div>
+</div>
+<div class="container" *ngIf="sent" style="padding: 10px !important;">
+    <div class="row">
+      <div class="col-md col-sm">
+        <p class="lead">{{responseMessage}}</p>
+        <p>Click <a style="cursor: pointer; text-decoration: underline;" [routerLink]="['/main']">here</a> to proceed to main menu</p>
+      </div>
+    </div>
+  </div>
+<div class="container" *ngIf="!sent && !showInitializing">
+  <div class="row">
+    <div class="col-md col-sm">
+      <h2 style="text-align: center;padding-top: 15px;">Manage Emails</h2>
+    </div>
+  </div>
+  <div class="row">
+    <form class="form-horizontal" role="form" style="font-size: large; width: 90%;">
+      <div class="row m-3">
+        <hr style="background: white; width: 100%;" />
+      </div>
+      <div class="form-group">
+        <label for="nameSelected" class="col-md col-sm control-label">Select User Name:</label>
+        <div class="col-md col-sm">
+          <select class="form-control" id="nameSelected" name="nameSelected" [(ngModel)]="nameSelected">
+            <option value="">-Select One-</option>
+            <option *ngFor="let user of users" value="{{user.userName}}">{{user.userName}}</option>
+          </select>							
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="row">
+          <div class="col-md col-sm">
+            <label for="searchPhrase" class="col-md col-sm control-label">Email</label>
+            <div class="col-md col-sm">
+              <input type="email" [(ngModel)]="email" class="form-control" id="email" name="email" (focus)="$event.target.select()" placeholder="Enter email address">
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="row m-3">
+        <hr style="background: white; width: 100%;" />
+      </div>
+      <div class="form-group">
+        <div class="row m-3">
+          <div class="btn-group">
+            <a role="button" (click)="submit()" class="btn btn-link no-padding-top-bottom" title="Start Search">
+              <i class="fa fa-send" style="margin-right: 5px; font-size: 32px !important;"></i>
+              <span class="helv-white">Submit</span>
+            </a>
+          </div>
+        </div>
+        <div class="row m-3">
+          <hr style="background: white; width: 100%;" />
+        </div>
+      </div>
+    </form>
+  </div>
+</div>

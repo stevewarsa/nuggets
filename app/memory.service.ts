@@ -206,6 +206,16 @@ export class MemoryService {
     return this.httpService.post(this._url + 'send_quote_to_user.php', param).pipe(map(res => res.json()));
   }
 
+  public addEmailMapping(param: any): Observable<string> {
+    console.log('MemoryService.addEmailMapping - calling ' + this._url + 'add_email_mapping.php');
+    return this.httpService.post(this._url + 'add_email_mapping.php', param).pipe(map(res => res.json()));
+  }
+
+  public getEmailMappings(param: any): Observable<any[]> {
+    console.log('MemoryService.getEmailMappings - calling ' + this._url + 'get_email_mappings.php');
+    return this.httpService.post(this._url + 'get_email_mappings.php', param).pipe(map(res => res.json()));
+  }
+
   public setCurrentPassage(passage: Passage, currentUser: string) {
     this.currentPassage = passage;
     this.currentUser = currentUser;

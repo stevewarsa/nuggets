@@ -126,5 +126,16 @@
         </ul>
       </ng-template>
     </ngb-panel>
+    <ngb-panel>
+      <ng-template ngbPanelTitle>
+        <div><i class="fa fa-cog" style="margin-right: 5px; font-size: 18px !important;"></i> Settings</div>
+      </ng-template>
+      <ng-template ngbPanelContent>
+        Manage your settings for this site
+        <ul class="list-group">
+          <li (click)="goTo('/manageEmails')" class="list-group-item text-white main-menu-item"><a [routerLink]="['/manageEmails']" class="btn btn-link no-padding-top-bottom" title="Manage Email Associations">Manage Email Associations</a></li>
+        </ul>
+      </ng-template>
+    </ngb-panel>
   </ngb-accordion>
 </div>
