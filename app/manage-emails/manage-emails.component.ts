@@ -4,6 +4,7 @@ import { MemUser } from 'src/app/mem-user';
 import { Router } from '@angular/router';
 import { StringUtils } from 'src/app/string.utils';
 import { ModalHelperService } from 'src/app/modal-helper.service';
+import { PassageUtils } from 'src/app/passage-utils';
 
 @Component({
   templateUrl: './manage-emails.component.html'
@@ -29,7 +30,7 @@ export class ManageEmailsComponent implements OnInit {
     this.showInitializing = true;
     this.memoryService.getAllUsers().subscribe((users: MemUser[]) => {
       console.log(users);
-      this.users = users;
+      this.users = PassageUtils.sortUserListByName(users);
       this.showInitializing = false;
     });
   }
