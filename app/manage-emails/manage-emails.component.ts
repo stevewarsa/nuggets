@@ -17,6 +17,7 @@ export class ManageEmailsComponent implements OnInit {
   nameSelected: string = null;
   currUser: string = null;
   responseMessage: string = "";
+  mappings: any[] = [];
 
   constructor(private route: Router, private memoryService: MemoryService, private modalHelperService: ModalHelperService) { }
 
@@ -31,6 +32,9 @@ export class ManageEmailsComponent implements OnInit {
     this.memoryService.getAllUsers().subscribe((users: MemUser[]) => {
       console.log(users);
       this.users = PassageUtils.sortUserListByName(users);
+      this.memoryService.getEmailMappings({user: this.currUser}).subscribe((mappings: any[]) => {
+        this.mappings = mappings;
+      });
       this.showInitializing = false;
     });
   }
@@ -53,5 +57,11 @@ export class ManageEmailsComponent implements OnInit {
         this.responseMessage = "Email mapping created for user " + this.nameSelected + " with email address " + this.email;
       }
     });
+  }
+
+  editMapping(mapping: any) {
+    this.nameSelected = mapping.userName;
+    this.email = mapping.emailAddress;
+    console.log("editMapping - nameSelected: " + this.nameSelected + ", email: " + this.email);
   }
 }
