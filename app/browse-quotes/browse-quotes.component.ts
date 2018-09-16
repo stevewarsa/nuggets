@@ -140,7 +140,19 @@ export class BrowseQuotesComponent implements OnInit {
     this.searchingMessage = "Retrieving users...";
     this.memoryService.getAllUsers().subscribe((users: MemUser[]) => {
       console.log(users);
-      this.users = users;
+      this.users = users.sort((a: MemUser, b: MemUser) => {
+        let nameA = a.userName.toUpperCase();
+        let nameB = b.userName.toUpperCase();
+        if (nameA < nameB) {
+          return -1;
+        }
+        if (nameA > nameB) {
+          return 1;
+        }
+      
+        // names must be equal
+        return 0;
+      });
       this.searchingMessage = "Retrieving email mappings...";
       this.memoryService.getEmailMappings({user: this.currUser}).subscribe((mappings: any[]) => {
         this.mappings = mappings;
