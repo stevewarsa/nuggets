@@ -4,6 +4,7 @@ import { Component, OnInit } from '@angular/core';
 import { CookieUtils } from 'src/app/cookie-utils';
 import { MemoryService } from 'src/app/memory.service';
 import { Router } from '@angular/router';
+import { PassageUtils } from 'src/app/passage-utils';
 
 @Component({
   selector: 'mem-login',
@@ -38,19 +39,7 @@ export class LoginComponent implements OnInit {
     } else {
       this.memoryService.getAllUsers().subscribe((users: MemUser[]) => {
         console.log(users);
-        this.users = users.sort((a: MemUser, b: MemUser) => {
-          let nameA = a.userName.toUpperCase();
-          let nameB = b.userName.toUpperCase();
-          if (nameA < nameB) {
-            return -1;
-          }
-          if (nameA > nameB) {
-            return 1;
-          }
-        
-          // names must be equal
-          return 0;
-        });
+        this.users = PassageUtils.sortUserListByName(users);
         this.showInitializing = false;
       });
     }

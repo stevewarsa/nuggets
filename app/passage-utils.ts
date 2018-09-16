@@ -1,5 +1,6 @@
 import { Passage } from "src/app/passage";
 import { Constants } from "src/app/constants";
+import { MemUser } from "src/app/mem-user";
 
 export class PassageUtils {
 
@@ -304,6 +305,21 @@ export class PassageUtils {
       });
     }
     return arr;
+  }
+
+  public static sortUserListByName(users: MemUser[]): MemUser[] {
+    return users.sort((a: MemUser, b: MemUser) => {
+      let nameA = a.userName.toUpperCase();
+      let nameB = b.userName.toUpperCase();
+      if (nameA < nameB) {
+        return -1;
+      }
+      if (nameA > nameB) {
+        return 1;
+      }
+      // names must be equal
+      return 0;
+    });
   }
 
   public static randomizeWithinFrequencyGroups(passages: Passage[]): Passage[] {
