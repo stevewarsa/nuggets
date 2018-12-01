@@ -19,6 +19,9 @@
     </p>
     <div class="dropdown-menu dropdown-menu-right" [ngbCollapse]="isCollapsed">
       <a style="color: black !important;" class="dropdown-item" [routerLink]="['/edit']"><i class="fa fa-edit"></i> Edit</a>
+      <a (click)="everyTime()" style="color: black !important;" class="dropdown-item">
+        <i class="fa fa-arrow-circle-up"></i> Every Time...
+      </a>    
       <a style="color: black !important;" class="dropdown-item" [routerLink]="['/search']"><i class="fa fa-search"></i> Search</a>
       <a style="color: black !important;" class="dropdown-item" [routerLink]="['/practiceSetup']"><i class="fa fa-play"></i> Practice Restart</a>
       <a (click)="goToInterlinear()" style="color: black !important;" class="dropdown-item">

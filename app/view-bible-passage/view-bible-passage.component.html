@@ -7,6 +7,7 @@
     (interlinearEvent)="goToInterlinear()" 
     (clipboardEvent)="copyToClipboard()" 
     (toggleEvent)="prepareForCopyToClipboard()" 
+    (everyTimeEvent)="setFrequencyEveryTime()" 
     [progressString]="progressString" 
     [showPassageTextFirst]="_showPsgText" 
     [frequencyDays]="_passage?.frequencyDays" 
@@ -23,6 +24,11 @@
   <div *ngIf="!searching" class="row">
     <div class="col-md col-lg col-sm">
       <div [@newPassage]="currentHtmlDisplayed" (@newPassage.done)="logIt($event, 'passageRef')" class="nugget-view" [innerHTML]="currentHtmlDisplayed" style="text-align: center;"></div>
+    </div>
+  </div>
+  <div *ngIf="!searching && !_showPsgText" class="row">
+    <div class="col-md col-lg col-sm">
+      <button (click)="answer()" class="btn btn-primary btn-lg btn-block" style="margin-top: 30px; padding: 20px; font-size: 44px;"><i class="fa fa-lightbulb-o"></i> Answer</button>
     </div>
   </div>
 </div>

@@ -57,11 +57,15 @@ a {
 	background-color: black !important;
 }
 
-.card-body{
+.card-body {
 	color: white;
 	background-color: black;
 	padding-top: 0.75rem;
 	padding-bottom: 0.75rem;
+}
+
+.btn-link {
+	color: white !important;
 }
 
 .main-menu-item {

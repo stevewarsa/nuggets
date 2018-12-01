@@ -1,5 +1,6 @@
 import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
 import * as moment from 'moment';
+import { ModalHelperService } from '../modal-helper.service';
 
 @Component({
   selector: 'mem-passage-navigation',
@@ -13,6 +14,7 @@ export class PassageNavigationComponent implements OnInit {
   @Output() interlinearEvent: EventEmitter<string>  = new EventEmitter<string>();
   @Output() clipboardEvent: EventEmitter<string>  = new EventEmitter<string>();
   @Output() toggleEvent: EventEmitter<string>  = new EventEmitter<string>();
+  @Output() everyTimeEvent: EventEmitter<string>  = new EventEmitter<string>();
   @Input() progressString: string;
   _frequencyString: string = null;
   @Input() set frequencyDays(frequency: number) {
@@ -48,7 +50,7 @@ export class PassageNavigationComponent implements OnInit {
   questionIcon: string = null;
   isCollapsed: boolean = true;
 
-  constructor() { }
+  constructor(private modalHelperService: ModalHelperService) { }
 
   ngOnInit() {
     this.questionIcon = this._showPassageTextFirst ? "question-circle" : "lightbulb-o";
@@ -90,5 +92,15 @@ export class PassageNavigationComponent implements OnInit {
 
   stopPracticeSession() {
     this.stopPracticeEvent.emit('stop');
+  }
+
+  everyTime() {
+    this.isCollapsed = !this.isCollapsed;
+    this.modalHelperService.confirm({message: "Would you like to change practice frequency to 'Every Time'?", header: "Every Time?", labels: ["Change", "Keep As Is"]}).result.then(() => {
+      console.log("Selected to change...");
+      this.everyTimeEvent.emit('everyTime');
+    }, () => {
+      console.log("Did not select to change...");
+    });
   }
 }

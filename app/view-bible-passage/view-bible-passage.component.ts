@@ -1,3 +1,4 @@
+import { UpdatePassageParam } from 'src/app/update-passage-param';
 import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
 import { trigger, state, style, animate, transition } from '@angular/animations';
 
@@ -91,6 +92,26 @@ export class ViewBiblePassageComponent implements OnInit {
   copyToClipboard() {
     this.clipboardService.copyFromContent(this.clipboardContent);
     this.toastr.info('The passage has been copied to the clipboard!', 'Success!');
+  }
+
+  setFrequencyEveryTime() {
+    let updatePassageParam: UpdatePassageParam = new UpdatePassageParam();
+    let previousFrequency: number = this._passage.frequencyDays;
+    this._passage.frequencyDays = -1;
+    updatePassageParam.passage = this._passage;
+    updatePassageParam.user = this.memoryService.getCurrentUser();
+    this.memoryService.setFrequencyToEveryTime(updatePassageParam).subscribe((response: string) => {
+      if (response === "success") {
+        console.log("Frequency has been set to every time.");
+      } else {
+        console.log("Frequency has NOT been set to every time.");
+        this._passage.frequencyDays = previousFrequency;
+      }
+    },
+    () => {
+      console.log("Frequency has NOT been set to every time.");
+      this._passage.frequencyDays = previousFrequency;
+    });
   }
 
   prepareForCopyToClipboard() {
