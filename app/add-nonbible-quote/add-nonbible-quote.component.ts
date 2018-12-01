@@ -39,7 +39,7 @@ export class AddNonbibleQuoteComponent implements OnInit {
     this.memoryService.addNonBibleQuote(quote).subscribe((response: any) => {
       console.log('Response from addNonBibleQuote: ');
       console.log(response);
-      this.route.navigate(['/main']);
+      this.route.navigate(['browsequotes/' + response.objectionId]);
     });
   }
 }
