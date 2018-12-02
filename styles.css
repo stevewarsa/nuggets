@@ -73,6 +73,10 @@ a {
 	border: 2px solid white !important;
 }
 
+.main-menu-category {
+	font-size: 1.75em;
+}
+
 .psg-nav-icon {
 	margin: 9px; 
 }

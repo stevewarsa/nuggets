@@ -81,10 +81,14 @@ export class PracticeNonbibleMemoryFactsComponent implements OnInit {
   }
 
   showAnswer() {
-    this.showingPrompt = false;
-    this.questionIcon = "question-circle";
-    this.iconFontColor = "lightskyblue";
-    this.answer = PassageUtils.updateLineFeedsWithBr(this.currentFact.answer);
+    if (!this.showingPrompt) {
+      this.showFactPrompt();
+    } else {
+      this.showingPrompt = false;
+      this.questionIcon = "question-circle";
+      this.iconFontColor = "lightskyblue";
+      this.answer = PassageUtils.updateLineFeedsWithBr(this.currentFact.answer);
+    }
   }
 
   logIt(event: any, mode: string) {
