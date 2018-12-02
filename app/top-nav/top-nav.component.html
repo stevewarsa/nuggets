@@ -15,6 +15,9 @@
         </a>
       </li>
       <li class="nav-item">
+        <a class="nav-link" (click)="toggleExpanded()" [routerLink]="['addQuote']">Add Quote</a>
+      </li>
+      <li class="nav-item">
         <a class="nav-link" (click)="toggleExpanded()" [routerLink]="['myverselist']">My Passage List</a>
       </li>
       <li class="nav-item" *ngIf="currentUser !== memoryService.GUEST_USER">

@@ -53,7 +53,7 @@ export class BrowseQuotesComponent implements OnInit {
       this.route.navigate(['']);
       return;
     }
-    let quoteId = this.activeRoute.snapshot.params['quoteId'];
+    let quoteId: string = this.activeRoute.snapshot.params['quoteId'];
     if (quoteId) {
       this.startingId = parseInt(quoteId);
     }
@@ -132,6 +132,11 @@ export class BrowseQuotesComponent implements OnInit {
 
   toggleAdditionalOptions() {
     this.isCollapsed = !this.isCollapsed;
+  }
+
+  addNewQuote() {
+    this.isCollapsed = true;
+    this.route.navigate(['addQuote']);
   }
 
   open(content) {

@@ -25,10 +25,15 @@ export class AddNonbibleQuoteComponent implements OnInit {
   }
 
   changeQuote(event: any) {
-    this.quote = event.target.value;
+    //this.quote = event.target.value;
+    const textArea = this.promptInput.nativeElement;
+    textArea.style.overflow = 'hidden';
+    textArea.style.height = '0px';
+    textArea.style.height = textArea.scrollHeight + 'px';
   }
 
   submit() {
+    this.quote = this.promptInput.nativeElement.value;
     let quote: any = {
       prompt: this.quote.substring(0, this.quote.length > 10 ? 10 : this.quote.length) + '...',
       answer: this.quote,
