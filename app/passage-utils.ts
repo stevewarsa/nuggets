@@ -230,11 +230,11 @@ export class PassageUtils {
     } else {
       regularBook = Constants.booksByNum[passage.bookId];
     }
-    if (transl) {
+    if (passage.translationId) {
       if (translShort) {
-        return regularBook + " " + passage.chapter + ":" + verseNumbers + " (" + transl + ")";
+        return regularBook + " " + passage.chapter + ":" + verseNumbers + " (" + passage.translationId + ")";
       } else {
-        return regularBook + " " + passage.chapter + ":" + verseNumbers + " (" + Constants.translationMediumNames[transl] + ")";
+        return regularBook + " " + passage.chapter + ":" + verseNumbers + " (" + Constants.translationMediumNames[passage.translationId] + ")";
       }
     } else {
       return regularBook + " " + passage.chapter + ":" + verseNumbers;

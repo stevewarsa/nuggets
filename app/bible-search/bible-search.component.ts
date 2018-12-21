@@ -27,7 +27,7 @@ export class BibleSearchComponent implements OnInit {
 
   isTranslCollapsed: boolean = true;
   isBooklistCollapsed: boolean = true;
-  translationOptions: string[] = ['niv', 'nas', 'nkj', 'esv', 'kjv', 'csb', 'nlt', 'bbe', 'asv'];
+  translationOptions: string[] = ['all', 'niv', 'nas', 'nkj', 'esv', 'kjv', 'csb', 'nlt', 'bbe', 'asv'];
   bibleBooks: string[] = [];
   constructor(
     private route: Router, 
@@ -55,9 +55,15 @@ export class BibleSearchComponent implements OnInit {
     console.log("translation: " + this.translation);
     console.log("testament: " + this.testament);
     console.log("searchPhrase: " + this.searchPhrase);
+    let translations: string[] = null;
+    if (this.translation === 'all') {
+      translations = this.translationOptions.filter(transl => transl !== 'all');
+    } else {
+      translations = [this.translation];
+    }
     let param: any = {
       book: this.book,
-      translation: this.translation,
+      translations: translations,
       testament: this.testament,
       searchPhrase: this.searchPhrase
     };
@@ -65,7 +71,7 @@ export class BibleSearchComponent implements OnInit {
     this.searchingMessage = "Searching for '" + this.searchPhrase + "'...";
     this.searchResults = [];
     this.memoryService.searchBible(param).subscribe((passages: Passage[]) => {
-      this.memoryService.getMaxVerseByBookChapter(this.translation).subscribe((response: any[]) => {
+      this.memoryService.getMaxVerseByBookChapter(param.translations[0]).subscribe((response: any[]) => {
         if (response && Object.keys(response).length === 66) {
           this.maxVerseByBookChapter = response;
         } else {

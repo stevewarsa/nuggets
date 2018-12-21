@@ -48,18 +48,10 @@
           </div>
         </div>
       </div>
-      <!-- <div class="form-group">
-        <div class="col-md col-sm">
-          <div class="row">
-            <button style="margin-right: 10px;" (click)="selectChapters()" type="button" class="btn btn-primary">Search Chapters</button>
-            <label>{{chapter}}</label>
-          </div>
-        </div>
-      </div> -->
       <div class="form-group">
         <div class="col-md col-sm">
           <div class="row">
-            <button style="margin-right: 10px;" (click)="toggleTranslationOptions()" type="button" class="btn btn-primary dropdown-toggle" [attr.aria-haspopup]="isTranslCollapsed" [attr.aria-expanded]="!isTranslCollapsed">Search Translation</button>
+            <button (click)="toggleTranslationOptions()" type="button" class="btn btn-primary dropdown-toggle mr-3" [attr.aria-haspopup]="isTranslCollapsed" [attr.aria-expanded]="!isTranslCollapsed">Search Translation</button>
             <div class="dropdown-menu" [ngbCollapse]="isTranslCollapsed">
               <a *ngFor="let translationOption of translationOptions" (click)="selectTranslation(translationOption)" style="color: black !important;" class="dropdown-item">{{translationOption}}</a>
             </div>
