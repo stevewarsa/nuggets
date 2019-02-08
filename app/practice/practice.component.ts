@@ -36,14 +36,14 @@ export class PracticeComponent implements OnInit, OnDestroy {
       this.route.navigate(['']);
       return;
     }
-    let mode: string = this.activeRoute.snapshot.params['mode'];
+    let mode: string = this.activeRoute.snapshot.queryParamMap.get('mode');
     // console.log('mode=' + mode);
     this.showPsgRefFirst = mode === 'by_ref';
     this.showingPassageRef = this.showPsgRefFirst;
     this.showVerseNumbers = this.showPsgRefFirst;
-    let order: string = this.activeRoute.snapshot.params['order'];
+    let order: string = this.activeRoute.snapshot.queryParamMap.get('order');
     // console.log('order=' + order);
-    let passageId: string = this.activeRoute.snapshot.params['passageId'];
+    let passageId: string = this.activeRoute.snapshot.queryParamMap.get('passageId');
     if (passageId) {
       this.startAtPassageId = parseInt(passageId);
     }

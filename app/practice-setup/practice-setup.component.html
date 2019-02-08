@@ -64,7 +64,7 @@
 			<div class="form-group">
 				<div class="row">
 					<div class="btn-group">
-						<a role="button" [routerLink]="['/practice', practiceSettings.practiceMode, practiceSettings.displayOrder, -1]" class="btn btn-link no-padding-top-bottom" title="Start Practice"><i class="fa fa-play" style="margin-right: 5px; font-size: 32px !important;"></i> <span class="helv-white">Start</span></a>
+						<a role="button" [routerLink]="['/practice']" [queryParams]="{mode: practiceSettings.practiceMode, order: practiceSettings.displayOrder, passageId: -1}" class="btn btn-link no-padding-top-bottom" title="Start Practice"><i class="fa fa-play" style="margin-right: 5px; font-size: 32px !important;"></i> <span class="helv-white">Start</span></a>
 					</div>
 				</div> 
 			</div>

@@ -51,7 +51,7 @@ const routes: Routes = [
   {path: 'browseTopic/:topicId/:order', component: BrowseTopicComponent},
   {path: 'viewPassage/:book/:chapter/:startVerse/:endVerse/:translation', component: ViewChapterComponent},
   {path: 'viewChapter/:book/:chapter/:translation', component: ViewChapterComponent},
-  {path: 'practice/:mode/:order/:passageId', component: PracticeComponent}
+  {path: 'practice', component: PracticeComponent}
 ];
 
 @NgModule({
