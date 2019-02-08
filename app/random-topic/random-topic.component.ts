@@ -78,7 +78,7 @@ export class RandomTopicComponent implements OnInit {
   }
 
   browseSelectedTopic() {
-    this.route.navigate(['browseTopic', this.currentTopic.id, 'rand']);
+    this.route.navigate(['browseTopic'], {queryParams: {topicId: this.currentTopic.id, order: 'rand'}});
   }
 
   logIt(event: any, mode: string) {

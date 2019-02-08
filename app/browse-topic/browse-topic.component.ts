@@ -27,9 +27,9 @@ export class BrowseTopicComponent implements OnInit {
       this.route.navigate(['']);
       return;
     }
-    let topicId: number = parseInt(this.activeRoute.snapshot.params['topicId']);
+    let topicId: number = parseInt(this.activeRoute.snapshot.queryParamMap.get('topicId'));
     this.topicName = this.memoryService.getTopicName(topicId);
-    let topicOrder: string = this.activeRoute.snapshot.params['order'];
+    let topicOrder: string = this.activeRoute.snapshot.queryParamMap.get('order');
     this.searching = true;
     this.searchingMessage = 'Retrieving passages for topic ' + topicId + '...';
     this.memoryService.getPassagesForTopic(topicId).subscribe((passages: Passage[]) => {

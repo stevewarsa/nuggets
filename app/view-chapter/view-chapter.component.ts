@@ -2,7 +2,6 @@ import { Passage } from 'src/app/passage';
 import { Component, OnInit } from '@angular/core';
 import { MemoryService } from 'src/app/memory.service';
 import { ActivatedRoute } from '@angular/router';
-import { PassageUtils } from 'src/app/passage-utils';
 import { Constants } from 'src/app/constants';
 
 @Component({
@@ -22,14 +21,14 @@ export class ViewChapterComponent implements OnInit {
   constructor(private memoryService: MemoryService, private activeRoute:ActivatedRoute) { }
 
   ngOnInit() {
-    this.book = this.activeRoute.snapshot.params['book'];
-    this.chapter = parseInt(this.activeRoute.snapshot.params['chapter']);
-    this.translation = this.activeRoute.snapshot.params['translation'];
-    let startVerse = this.activeRoute.snapshot.params['startVerse'];
+    this.book = this.activeRoute.snapshot.queryParamMap.get('book');
+    this.chapter = parseInt(this.activeRoute.snapshot.queryParamMap.get('chapter'));
+    this.translation = this.activeRoute.snapshot.queryParamMap.get('translation');
+    let startVerse = this.activeRoute.snapshot.queryParamMap.get('startVerse');
     if (startVerse) {
       this.startVerse = parseInt(startVerse);
     }
-    let endVerse = this.activeRoute.snapshot.params['endVerse'];
+    let endVerse = this.activeRoute.snapshot.queryParamMap.get('endVerse');
     if (endVerse) {
       this.endVerse = parseInt(endVerse);
     }

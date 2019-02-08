@@ -29,6 +29,6 @@ export class TopicListComponent implements OnInit {
   }
 
   browseTopic(topicToBrowse: any) {
-    this.route.navigate(['browseTopic', topicToBrowse.id, 'rand']);
+    this.route.navigate(['browseTopic'], {queryParams: {topicId: topicToBrowse.id, order: 'rand'}});
   }
 }

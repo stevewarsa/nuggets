@@ -88,6 +88,6 @@ export class ChapterSelectionComponent implements OnInit {
   }
 
   goToChapter() {
-    this.route.navigate(['/viewChapter', this.book, this.chapter, this.translation]);
+    this.route.navigate(['/viewChapter'], {queryParams: {book: this.book, chapter: this.chapter, translation: this.translation}});
   }
 }

@@ -110,7 +110,7 @@ export class BibleSearchComponent implements OnInit {
     if (this.openModal) {
       this.openModal.close();
     }
-    this.route.navigate(['/viewChapter', this.selectedVerse.bookName, this.selectedVerse.chapter, this.translation]);
+    this.route.navigate(['/viewChapter'], {queryParams: {book: this.selectedVerse.bookName, chapter: this.selectedVerse.chapter, translation: this.translation}});
   }
 
   goToSurroundingVerses() {
@@ -120,7 +120,7 @@ export class BibleSearchComponent implements OnInit {
     if (this.openModal) {
       this.openModal.close();
     }
-    this.route.navigate(['/viewPassage', passageContext.bookName, passageContext.chapter, passageContext.startVerse, passageContext.endVerse, this.translation]);
+    this.route.navigate(['/viewPassage'], {queryParams: {book: passageContext.bookName, chapter: passageContext.chapter, startVerse: passageContext.startVerse, endVerse: passageContext.endVerse, translation: this.translation}});
   }
   
   clipboardCopyComplete() {

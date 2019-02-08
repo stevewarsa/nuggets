@@ -48,9 +48,9 @@ const routes: Routes = [
   {path: 'browsequotes', component: BrowseQuotesComponent},
   {path: 'browsequotes/:quoteId', component: BrowseQuotesComponent},
   {path: 'quotes', component: QuotesNoLoginComponent},
-  {path: 'browseTopic/:topicId/:order', component: BrowseTopicComponent},
-  {path: 'viewPassage/:book/:chapter/:startVerse/:endVerse/:translation', component: ViewChapterComponent},
-  {path: 'viewChapter/:book/:chapter/:translation', component: ViewChapterComponent},
+  {path: 'browseTopic', component: BrowseTopicComponent},
+  {path: 'viewPassage', component: ViewChapterComponent},
+  {path: 'viewChapter', component: ViewChapterComponent},
   {path: 'practice', component: PracticeComponent}
 ];
 
