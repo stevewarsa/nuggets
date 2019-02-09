@@ -266,21 +266,21 @@ export class SearchComponent implements OnInit {
     this.updateVerseText();
   }
 
-  addPassage() {
-    this.processing = true;
-    this.processingMessage = "Demoting all passages by 1...";
-    this.memoryService.demoteAllPassagesByOne(-1).subscribe((result: string) => {
-      if (result === "success") {
-        this.doAddPassage();
-      } else {
-        this.processing = false;
-        this.processingMessage = null;
-        console.log("Problem demoting all passages by 1...");
-      }
-    });
-  }
+  // addPassage() {
+  //   this.processing = true;
+  //   this.processingMessage = "Demoting all passages by 1...";
+  //   this.memoryService.demoteAllPassagesByOne(-1).subscribe((result: string) => {
+  //     if (result === "success") {
+  //       this.doAddPassage();
+  //     } else {
+  //       this.processing = false;
+  //       this.processingMessage = null;
+  //       console.log("Problem demoting all passages by 1...");
+  //     }
+  //   });
+  // }
 
-  private doAddPassage() {
+  addPassage() {
     this.processingMessage = "Adding passage...";
     this.memoryService.addPassage(this.currentPassage).subscribe((passageId: number) => {
       if (passageId >= 1) {

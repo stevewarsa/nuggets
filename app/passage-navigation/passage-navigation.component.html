@@ -19,6 +19,9 @@
     </p>
     <div class="dropdown-menu dropdown-menu-right" [ngbCollapse]="isCollapsed">
       <a style="color: black !important;" class="dropdown-item" [routerLink]="['/edit']"><i class="fa fa-edit"></i> Edit</a>
+      <a (click)="delete()" style="color: black !important;" class="dropdown-item">
+        <i class="fa fa-close"></i> Delete...
+      </a>    
       <a (click)="everyTime()" style="color: black !important;" class="dropdown-item">
         <i class="fa fa-arrow-circle-up"></i> Every Time...
       </a>    

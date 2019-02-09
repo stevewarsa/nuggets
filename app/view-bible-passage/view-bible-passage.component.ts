@@ -114,6 +114,22 @@ export class ViewBiblePassageComponent implements OnInit {
     });
   }
 
+  delete() {
+    let updatePassageParam: UpdatePassageParam = new UpdatePassageParam();
+    updatePassageParam.passage = this._passage;
+    updatePassageParam.user = this.memoryService.getCurrentUser();
+    this.memoryService.deleteMemoryPassage(updatePassageParam).subscribe((response: string) => {
+      if (response === "success") {
+        console.log("Memory passage has been deleted...");
+      } else {
+        console.log("Memory passage has NOT been deleted.");
+      }
+    },
+    () => {
+      console.log("Memory passage has NOT been deleted.");
+    });
+  }
+
   prepareForCopyToClipboard() {
     this.clipboardContent = PassageUtils.getPassageForClipboard(this._passage);
     console.log("First attempt to get content: " + this.clipboardContent);

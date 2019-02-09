@@ -46,7 +46,7 @@ export class MyVerseListComponent implements OnInit {
     //   enableHtml: true
     // };
     // this.toastr.info("<strong>Passage ID</strong>: " + passage.passageId + "<br><strong>Frequency Level</strong>: " + passage.frequencyDays + "<br><strong>Last Practiced</strong>: " + passage.last_viewed_str, "Passage Details", options);
-    this.route.navigate(['/practice', 'by_psgtxt', 'by_freq', passage.passageId]);
+    this.route.navigate(['/practice'], {queryParams: { mode: 'by_psgtxt', order: 'by_freq', passageId: passage.passageId}});
 
   }
 

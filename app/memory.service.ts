@@ -97,6 +97,11 @@ export class MemoryService {
     return this.httpService.post(this._url + 'set_frequency_everytime.php', updatePassageParam).pipe(map(res => res.json()));
   }
 
+  public deleteMemoryPassage(updatePassageParam: UpdatePassageParam): Observable<string> {
+    console.log('MemoryService.deleteMemoryPassage - calling ' + this._url + 'delete_memory_passage.php...');
+    return this.httpService.post(this._url + 'delete_memory_passage.php', updatePassageParam).pipe(map(res => res.json()));
+  }
+
   public getMaxChaptersByBook(): Observable<any[]> {
     console.log('MemoryService.getMaxChaptersByBook - calling ' + this._url + 'get_max_chapter_by_book.php...');
     return this.httpService.get(this._url + 'get_max_chapter_by_book.php').pipe(map(res => res.json()));

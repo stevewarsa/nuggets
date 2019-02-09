@@ -15,6 +15,7 @@ export class PassageNavigationComponent implements OnInit {
   @Output() clipboardEvent: EventEmitter<string>  = new EventEmitter<string>();
   @Output() toggleEvent: EventEmitter<string>  = new EventEmitter<string>();
   @Output() everyTimeEvent: EventEmitter<string>  = new EventEmitter<string>();
+  @Output() deleteEvent: EventEmitter<string>  = new EventEmitter<string>();
   @Input() progressString: string;
   _frequencyString: string = null;
   @Input() set frequencyDays(frequency: number) {
@@ -103,4 +104,13 @@ export class PassageNavigationComponent implements OnInit {
       console.log("Did not select to change...");
     });
   }
-}
+
+  delete() {
+    this.isCollapsed = !this.isCollapsed;
+    this.modalHelperService.confirm({message: "Would you like to delete the current memory passage?", header: "Delete?", labels: ["Delete", "Keep"]}).result.then(() => {
+      console.log("Selected to delete...");
+      this.deleteEvent.emit('delete');
+    }, () => {
+      console.log("Did not select to delete...");
+    });
+  }}
