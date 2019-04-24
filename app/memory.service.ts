@@ -1,11 +1,11 @@
 import { Injectable } from '@angular/core';
 import { map } from 'rxjs/operators';
-import { Http } from '@angular/http';
 import { Observable, Subject } from 'rxjs';
 import { Passage } from 'src/app/passage';
 import { MemUser } from 'src/app/mem-user';
 import { UpdatePassageParam } from 'src/app/update-passage-param';
 import { Constants } from 'src/app/constants';
+import { HttpClient } from '@angular/common/http';
 
 @Injectable({
   providedIn: 'root'
@@ -13,45 +13,46 @@ import { Constants } from 'src/app/constants';
 export class MemoryService {
   private currentPassage: Passage = null;
   private currentUser: string = null;
-  private _url:string = "http://ps11911.com/nuggets/server/";
+  //private _url:string = "http://ps11911.com/nuggets/server/";
+  private _url:string = "/nuggets/server/";
   private cachedPassages: Passage[];
   private passageTextOverrides: Passage[] = null;
   private topicList: any[] = [];
   public GUEST_USER: string = 'Guest';
   currentPassageChangeEvent: Subject<Passage> = new Subject<Passage>();
 
-  constructor(private httpService:Http) { }
+  constructor(private httpService:HttpClient) { }
 
   public getMemoryPassageList(user: string): Observable<Passage[]> {
     console.log('MemoryService.getMemoryPassageList - calling ' + this._url + 'get_mempsg_list.php...');
-    return this.httpService.get(this._url + 'get_mempsg_list.php?user=' + user).pipe(map(res => res.json()));
+    return this.httpService.get<Passage[]>(this._url + 'get_mempsg_list.php?user=' + user);
   }
 
   public getMemoryPassageCount(user: string): Observable<number> {
     console.log('MemoryService.getMemoryPassageCount - calling ' + this._url + 'get_mempsg_count.php...');
-    return this.httpService.get(this._url + 'get_mempsg_count.php?user=' + user).pipe(map(res => res.json()));
+    return this.httpService.get<number>(this._url + 'get_mempsg_count.php?user=' + user);
   }
 
   public getPassage(passage: Passage, user: string): Observable<Passage> {
     console.log('MemoryService.getPassage - calling ' + this._url + 'get_passage_text.php?user=' + user + '&translation=' + passage.translationName + '&book=' + passage.bookName + '&chapter=' + passage.chapter + '&start=' + passage.startVerse + '&end=' + passage.endVerse);
-    return this.httpService.get(this._url + 'get_passage_text.php?user=' + user + '&translation=' + passage.translationName + '&book=' + passage.bookName + '&chapter=' + passage.chapter + '&start=' + passage.startVerse + '&end=' + passage.endVerse).pipe(map(res => res.json()));
+    return this.httpService.get<Passage>(this._url + 'get_passage_text.php?user=' + user + '&translation=' + passage.translationName + '&book=' + passage.bookName + '&chapter=' + passage.chapter + '&start=' + passage.startVerse + '&end=' + passage.endVerse);
   }
 
   public getPassageByKeys(book: string, chapter: number, startVerse: number, endVerse: number, translation: string): Observable<Passage> {
     let bookId: number = this.getBookId(book);
     console.log('MemoryService.getPassageByKeys - calling ' + this._url + 'get_passage_by_keys.php?bookId=' + bookId + '&translation=' + translation + '&chapter=' + chapter + '&startVerse=' + startVerse + '&endVerse=' + endVerse);
-    return this.httpService.get(this._url + 'get_passage_by_keys.php?bookId=' + bookId + '&translation=' + translation + '&chapter=' + chapter + '&startVerse=' + startVerse + '&endVerse=' + endVerse).pipe(map(res => res.json()));
+    return this.httpService.get<Passage>(this._url + 'get_passage_by_keys.php?bookId=' + bookId + '&translation=' + translation + '&chapter=' + chapter + '&startVerse=' + startVerse + '&endVerse=' + endVerse);
   }
 
   public getPassageById(passageId: number, selectedTranslation: string): Observable<Passage> {
     console.log('MemoryService.getPassageById - calling ' + this._url + 'get_nugget_by_id.php?nugget_id=' + passageId + '&translation=' + selectedTranslation);
-    return this.httpService.get(this._url + 'get_nugget_by_id.php?nugget_id=' + passageId + '&translation=' + selectedTranslation).pipe(map(res => res.json()));
+    return this.httpService.get<Passage>(this._url + 'get_nugget_by_id.php?nugget_id=' + passageId + '&translation=' + selectedTranslation);
   }
 
   public getChapter(book: string, chapter: number, translation: string): Observable<Passage> {
     let bookId: number = this.getBookId(book);
     console.log('MemoryService.getChapter - calling ' + this._url + 'get_chapter.php?bookId=' + bookId + '&chapter=' + chapter + '&translation=' + translation);
-    return this.httpService.get(this._url + 'get_chapter.php?bookId=' + bookId + '&chapter=' + chapter + '&translation=' + translation).pipe(map(res => res.json()));
+    return this.httpService.get<Passage>(this._url + 'get_chapter.php?bookId=' + bookId + '&chapter=' + chapter + '&translation=' + translation);
   }
 
   public getBookId(bookName: string): number {
@@ -68,7 +69,7 @@ export class MemoryService {
 
   public getMemoryPassageTextOverrides(user: string): Observable<Passage[]> {
     console.log('MemoryService.getMemoryPassageTextOverrides - calling ' + this._url + 'get_mempsg_text_overrides.php?user=' + user + '...');
-    return this.httpService.get(this._url + 'get_mempsg_text_overrides.php?user=' + user).pipe(map(res => res.json()));
+    return this.httpService.get<Passage[]>(this._url + 'get_mempsg_text_overrides.php?user=' + user);
   }
 
   public setMemoryPassageTextOverrides(passageTextOverrides: Passage[]) {
@@ -89,37 +90,37 @@ export class MemoryService {
 
   public updatePassage(updatePassageParam: UpdatePassageParam): Observable<string> {
     console.log('MemoryService.updatePassage - calling ' + this._url + 'update_passage.php...');
-    return this.httpService.post(this._url + 'update_passage.php', updatePassageParam).pipe(map(res => res.json()));
+    return this.httpService.post<string>(this._url + 'update_passage.php', updatePassageParam);
   }
 
   public setFrequencyToEveryTime(updatePassageParam: UpdatePassageParam): Observable<string> {
     console.log('MemoryService.setFrequencyToEveryTime - calling ' + this._url + 'set_frequency_everytime.php...');
-    return this.httpService.post(this._url + 'set_frequency_everytime.php', updatePassageParam).pipe(map(res => res.json()));
+    return this.httpService.post<string>(this._url + 'set_frequency_everytime.php', updatePassageParam);
   }
 
   public deleteMemoryPassage(updatePassageParam: UpdatePassageParam): Observable<string> {
     console.log('MemoryService.deleteMemoryPassage - calling ' + this._url + 'delete_memory_passage.php...');
-    return this.httpService.post(this._url + 'delete_memory_passage.php', updatePassageParam).pipe(map(res => res.json()));
+    return this.httpService.post<string>(this._url + 'delete_memory_passage.php', updatePassageParam);
   }
 
   public getMaxChaptersByBook(): Observable<any[]> {
     console.log('MemoryService.getMaxChaptersByBook - calling ' + this._url + 'get_max_chapter_by_book.php...');
-    return this.httpService.get(this._url + 'get_max_chapter_by_book.php').pipe(map(res => res.json()));
+    return this.httpService.get<any[]>(this._url + 'get_max_chapter_by_book.php');
   }
 
   public getMaxVerseByBookChapter(translation: string): Observable<any[]> {
     console.log('MemoryService.getMaxVerseByBookChapter - calling ' + this._url + 'get_max_verse_by_book_chapter.php?translation=' + translation + '...');
-    return this.httpService.get(this._url + 'get_max_verse_by_book_chapter.php?translation=' + translation).pipe(map(res => res.json()));
+    return this.httpService.get<any[]>(this._url + 'get_max_verse_by_book_chapter.php?translation=' + translation);
   }
 
   public getTopicList(): Observable<any[]> {
     console.log('MemoryService.getTopicList - calling ' + this._url + 'get_tag_list.php');
-    return this.httpService.get(this._url + 'get_tag_list.php').pipe(map(res => res.json()));
+    return this.httpService.get<any[]>(this._url + 'get_tag_list.php');
   }
 
   public getQuoteList(userName?: string): Observable<any[]> {
     console.log('MemoryService.getQuoteList - calling ' + this._url + 'get_quote_list.php?user=' + (userName ? userName : this.currentUser));
-    return this.httpService.get(this._url + 'get_quote_list.php?user=' + (userName ? userName : this.currentUser)).pipe(map(res => res.json()));
+    return this.httpService.get<any[]>(this._url + 'get_quote_list.php?user=' + (userName ? userName : this.currentUser));
   }
 
   public setTopicList(topicList: any[]) {
@@ -137,93 +138,93 @@ export class MemoryService {
 
   public getPassagesForTopic(topicId: number): Observable<Passage[]> {
     console.log('MemoryService.getPassagesForTopic - calling ' + this._url + 'get_tag_list.php?tagId=' + topicId);
-    return this.httpService.get(this._url + 'get_tag_list.php?tagId=' + topicId).pipe(map(res => res.json()));
+    return this.httpService.get<Passage[]>(this._url + 'get_tag_list.php?tagId=' + topicId);
   }
 
   public updateLastViewed(userName: string, passageId: number, lastViewedNum: number, lastViewedString: string): Observable<string> {
     var encodedLastViewedString = encodeURIComponent(lastViewedString);
     console.log('MemoryService.updateLastViewed - calling ' + this._url + 'update_last_viewed.php?user=' + userName + '&passageId=' + passageId + '&lastViewedNum=' + lastViewedNum + '&lastViewedStr=' + encodedLastViewedString + '...');
-    return this.httpService.get(this._url + 'update_last_viewed.php?user=' + userName + '&passageId=' + passageId + '&lastViewedNum=' + lastViewedNum + '&lastViewedStr=' + encodedLastViewedString).pipe(map(res => res.json()));
+    return this.httpService.get<string>(this._url + 'update_last_viewed.php?user=' + userName + '&passageId=' + passageId + '&lastViewedNum=' + lastViewedNum + '&lastViewedStr=' + encodedLastViewedString);
   }
 
   public getAllUsers(): Observable<MemUser[]> {
     console.log('MemoryService.getAllUsers - calling ' + this._url + 'get_all_users.php');
-    return this.httpService.get(this._url + 'get_all_users.php').pipe(map(res => res.json()));
+    return this.httpService.get<MemUser[]>(this._url + 'get_all_users.php');
   }
 
   public doLogin(userName: string): Observable<string> {
     console.log('MemoryService.doLogin - calling ' + this._url + 'nuggets_login.php?user=' + userName);
-    return this.httpService.get(this._url + 'nuggets_login.php?user=' + userName).pipe(map(res => res.json()));
+    return this.httpService.get<string>(this._url + 'nuggets_login.php?user=' + userName);
   }
 
   public getPreferences(): Observable<any[]> {
     console.log('MemoryService.getPreferences - calling ' + this._url + 'get_preferences.php?user=' + this.currentUser);
-    return this.httpService.get(this._url + 'get_preferences.php?user=' + this.currentUser).pipe(map(res => res.json()));
+    return this.httpService.get<any[]>(this._url + 'get_preferences.php?user=' + this.currentUser);
   }
 
   public addPassage(passage: Passage): Observable<number> {
     console.log('MemoryService.addPassage - calling ' + this._url + 'add_memory_passage_new.php?user=' + this.currentUser + '&translation=' + passage.translationId + '&book=' + passage.bookName + '&chapter=' + passage.chapter + '&start=' + passage.startVerse + '&end=' + passage.endVerse + '&queue=N');
-    return this.httpService.get(this._url + 'add_memory_passage_new.php?user=' + this.currentUser + '&translation=' + passage.translationId + '&book=' + passage.bookName + '&chapter=' + passage.chapter + '&start=' + passage.startVerse + '&end=' + passage.endVerse + '&queue=N').pipe(map(res => res.json()));
+    return this.httpService.get<number>(this._url + 'add_memory_passage_new.php?user=' + this.currentUser + '&translation=' + passage.translationId + '&book=' + passage.bookName + '&chapter=' + passage.chapter + '&start=' + passage.startVerse + '&end=' + passage.endVerse + '&queue=N');
   }
 
   public addNonBibleMemoryFact(fact: any): Observable<string> {
     fact.user = this.currentUser;
     fact.category = 'fact';
     console.log('MemoryService.addNonBibleMemoryFact - calling ' + this._url + 'add_nonbible_memory_fact.php');
-    return this.httpService.post(this._url + 'add_nonbible_memory_fact.php', fact).pipe(map(res => res.json()));
+    return this.httpService.post<string>(this._url + 'add_nonbible_memory_fact.php', fact);
   }
 
   public addNonBibleQuote(quote: any): Observable<string> {
     quote.user = this.currentUser;
     quote.category = 'quote';
     console.log('MemoryService.addNonBibleMemoryFact - calling ' + this._url + 'add_nonbible_memory_fact.php');
-    return this.httpService.post(this._url + 'add_nonbible_memory_fact.php', quote).pipe(map(res => res.json()));
+    return this.httpService.post<string>(this._url + 'add_nonbible_memory_fact.php', quote);
   }
 
   public getNonBibleMemoryFactList(): Observable<any[]> {
     console.log('MemoryService.getNonBibleMemoryFactList - calling ' + this._url + 'get_fact_list.php?user=' + this.currentUser);
-    return this.httpService.get(this._url + 'get_fact_list.php?user=' + this.currentUser).pipe(map(res => res.json()));
+    return this.httpService.get<any[]>(this._url + 'get_fact_list.php?user=' + this.currentUser);
   }
 
   public demoteAllPassagesByOne(notIncludingPassageId: number): Observable<string> {
     console.log('MemoryService.demoteAllPassagesByOne - calling ' + this._url + 'demote_all_verses_by_1.php?user=' + this.currentUser + '&passage_id=' + notIncludingPassageId);
-    return this.httpService.get(this._url + 'demote_all_verses_by_1.php?user=' + this.currentUser + '&passage_id=' + notIncludingPassageId).pipe(map(res => res.json()));
+    return this.httpService.get<string>(this._url + 'demote_all_verses_by_1.php?user=' + this.currentUser + '&passage_id=' + notIncludingPassageId);
   }
 
   public searchBible(searchParam: any): Observable<Passage[]> {
     searchParam.user = this.currentUser;
     console.log('MemoryService.searchBible - calling ' + this._url + 'bible_search.php');
-    return this.httpService.post(this._url + 'bible_search.php', searchParam).pipe(map(res => res.json()));
+    return this.httpService.post<Passage[]>(this._url + 'bible_search.php', searchParam);
   }
 
   public searchFactOrQuote(searchParam: any): Observable<any[]> {
     console.log('MemoryService.searchFactOrQuote - calling ' + this._url + 'search_facts_and_quotes.php');
-    return this.httpService.post(this._url + 'search_facts_and_quotes.php', searchParam).pipe(map(res => res.json()));
+    return this.httpService.post<any[]>(this._url + 'search_facts_and_quotes.php', searchParam);
   }
 
   public getNuggetIdList(): Observable<any[]> {
     console.log('MemoryService.getNuggetIdList - calling ' + this._url + 'get_nugget_id_list.php');
-    return this.httpService.get(this._url + 'get_nugget_id_list.php').pipe(map(res => res.json()));
+    return this.httpService.get<any[]>(this._url + 'get_nugget_id_list.php');
   }
 
   public copyDbToGuestDb(): Observable<string> {
     console.log('MemoryService.copyDbToGuestDb - calling ' + this._url + 'copy_db_to_another.php?dbSource=SteveWarsa&dbDest=Guest');
-    return this.httpService.get(this._url + 'copy_db_to_another.php?dbSource=SteveWarsa&dbDest=Guest').pipe(map(res => res.json()));
+    return this.httpService.get<string>(this._url + 'copy_db_to_another.php?dbSource=SteveWarsa&dbDest=Guest');
   }
 
   public sendQuoteToUser(param: any): Observable<string> {
     console.log('MemoryService.sendQuoteToUser - calling ' + this._url + 'send_quote_to_user.php');
-    return this.httpService.post(this._url + 'send_quote_to_user.php', param).pipe(map(res => res.json()));
+    return this.httpService.post<string>(this._url + 'send_quote_to_user.php', param);
   }
 
   public addEmailMapping(param: any): Observable<string> {
     console.log('MemoryService.addEmailMapping - calling ' + this._url + 'add_email_mapping.php');
-    return this.httpService.post(this._url + 'add_email_mapping.php', param).pipe(map(res => res.json()));
+    return this.httpService.post<string>(this._url + 'add_email_mapping.php', param);
   }
 
   public getEmailMappings(param: any): Observable<any[]> {
     console.log('MemoryService.getEmailMappings - calling ' + this._url + 'get_email_mappings.php');
-    return this.httpService.post(this._url + 'get_email_mappings.php', param).pipe(map(res => res.json()));
+    return this.httpService.post<any[]>(this._url + 'get_email_mappings.php', param);
   }
 
   public setCurrentPassage(passage: Passage, currentUser: string) {

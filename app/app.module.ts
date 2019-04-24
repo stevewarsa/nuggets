@@ -17,7 +17,7 @@ import { ToastrModule } from 'ngx-toastr';
 import { ClipboardModule } from 'ngx-clipboard';
 import { CommonModule } from '@angular/common';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { HttpModule } from '@angular/http';
+import { HttpClientModule } from '@angular/common/http';
 import { EditPassageComponent } from './edit-passage/edit-passage.component';
 import { BibleSearchComponent } from './bible-search/bible-search.component';
 import { ViewChapterComponent } from './view-chapter/view-chapter.component';
@@ -43,6 +43,7 @@ import { SelectUserComponent } from './select-user/select-user.component';
 import { QuotesNoLoginComponent } from './quotes-no-login/quotes-no-login.component';
 import { QuoteSearchResultActionsComponent } from './quote-search-result-actions/quote-search-result-actions.component';
 import { ManageEmailsComponent } from './manage-emails/manage-emails.component';
+import { ReadingPlanComponent } from './reading-plan/reading-plan.component';
 
 export class MyHammerConfig extends HammerGestureConfig {
   overrides = <any>{
@@ -91,7 +92,8 @@ export class MyHammerConfig extends HammerGestureConfig {
     SelectUserComponent,
     QuotesNoLoginComponent,
     QuoteSearchResultActionsComponent,
-    ManageEmailsComponent
+    ManageEmailsComponent,
+    ReadingPlanComponent
   ],
   imports: [
     BrowserModule,
@@ -103,7 +105,7 @@ export class MyHammerConfig extends HammerGestureConfig {
     ClipboardModule,
     NgbModule.forRoot(),
     FormsModule,
-    HttpModule,
+    HttpClientModule,
     AppRoutingModule
   ],
   providers: [

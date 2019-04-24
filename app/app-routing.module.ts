@@ -24,6 +24,7 @@ import { CopyDbToGuestComponent } from 'src/app/copy-db-to-guest/copy-db-to-gues
 import { SelectQuotesComponent } from 'src/app/select-quotes/select-quotes.component';
 import { QuotesNoLoginComponent } from 'src/app/quotes-no-login/quotes-no-login.component';
 import { ManageEmailsComponent } from 'src/app/manage-emails/manage-emails.component';
+import { ReadingPlanComponent } from 'src/app/reading-plan/reading-plan.component';
 
 const routes: Routes = [
   {path: '', component: LoginComponent},
@@ -51,6 +52,7 @@ const routes: Routes = [
   {path: 'browseTopic', component: BrowseTopicComponent},
   {path: 'viewPassage', component: ViewChapterComponent},
   {path: 'viewChapter', component: ViewChapterComponent},
+  {path: 'readingPlan', component: ReadingPlanComponent},
   {path: 'practice', component: PracticeComponent}
 ];
 
