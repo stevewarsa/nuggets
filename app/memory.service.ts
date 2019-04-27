@@ -33,6 +33,16 @@ export class MemoryService {
     return this.httpService.get<number>(this._url + 'get_mempsg_count.php?user=' + user);
   }
 
+  public getReadingPlanProgress(user: string, dayOfWeek: string): Observable<any> {
+    console.log('MemoryService.getReadingPlanProgress - calling ' + this._url + 'get_reading_plan_progress.php...');
+    return this.httpService.get<any>(this._url + 'get_reading_plan_progress.php?user=' + user + "&dayOfWeek=" + dayOfWeek);
+  }
+
+  public updateReadingPlan(user: string, dayOfWeek: string, book: string, bookId: number, chapter: number): Observable<string> {
+    console.log('MemoryService.updateReadingPlan - calling ' + this._url + 'update_reading_plan.php...');
+    return this.httpService.get<any>(this._url + 'update_reading_plan.php?user=' + user + "&dayOfWeek=" + dayOfWeek + "&book=" + book + "&bookId=" + bookId + "&chapter=" + chapter);
+  }
+
   public getPassage(passage: Passage, user: string): Observable<Passage> {
     console.log('MemoryService.getPassage - calling ' + this._url + 'get_passage_text.php?user=' + user + '&translation=' + passage.translationName + '&book=' + passage.bookName + '&chapter=' + passage.chapter + '&start=' + passage.startVerse + '&end=' + passage.endVerse);
     return this.httpService.get<Passage>(this._url + 'get_passage_text.php?user=' + user + '&translation=' + passage.translationName + '&book=' + passage.bookName + '&chapter=' + passage.chapter + '&start=' + passage.startVerse + '&end=' + passage.endVerse);

@@ -1,3 +1,8 @@
-<p>
-  reading-plan works!
-</p>
+<div class="container">
+  <form class="form-inline">
+    <div class="form-group mb-2">
+      <span style="font-size: 32px;" class="mr-2">{{chapterToReadString}}</span> 
+      <button (click)="goToChapter()" type="button" class="btn btn-primary mb-2">Read</button>
+    </div>
+  </form>
+</div>
