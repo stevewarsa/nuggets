@@ -15,8 +15,6 @@ export class ReadingPlanComponent implements OnInit {
   booksByDay = {};
   maxChapterByBook = [];
   days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-  dayBookIndex = {};
-  dayChapterIndex = {};
   lastChapterReadForDay: any = {
     bookId: 32,
     bookName: 'jonah',
@@ -24,12 +22,7 @@ export class ReadingPlanComponent implements OnInit {
     dateRead: '4/19/2019'
   };
 
-  chapterToRead: any = {
-    bookId: 33,
-    bookName: 'micah',
-    chapter: 1,
-    dateRead: '4/26/2019'
-  };
+  chapterToRead: any = null;
   chapterToReadString = "Retrieving...";
   translation: string = null;
   currentUser: string = null;
@@ -43,22 +36,6 @@ export class ReadingPlanComponent implements OnInit {
     this.booksByDay["Thursday"] = ["job", "proverbs", "ecclesiastes", "song-of-solomon"];
     this.booksByDay["Friday"] = ["isaiah", "jeremiah", "lamentations", "ezekiel", "daniel", "hosea", "joel", "amos", "obadiah", "jonah", "micah", "nahum", "habakkuk", "zephaniah", "haggai", "zechariah", "malachi", "revelation"];
     this.booksByDay["Saturday"] = ["matthew", "mark", "luke", "john", "acts"];
-  
-    this.dayBookIndex["Sunday"] = 0;
-    this.dayBookIndex["Monday"] = 0;
-    this.dayBookIndex["Tuesday"] = 0;
-    this.dayBookIndex["Wednesday"] = 0;
-    this.dayBookIndex["Thursday"] = 0;
-    this.dayBookIndex["Friday"] = 0;
-    this.dayBookIndex["Saturday"] = 0;
-
-    this.dayChapterIndex["Sunday"] = 1;
-    this.dayChapterIndex["Monday"] = 1;
-    this.dayChapterIndex["Tuesday"] = 1;
-    this.dayChapterIndex["Wednesday"] = 1;
-    this.dayChapterIndex["Thursday"] = 1;
-    this.dayChapterIndex["Friday"] = 1;
-    this.dayChapterIndex["Saturday"] = 1;
   }
 
   ngOnInit() {
@@ -76,6 +53,18 @@ export class ReadingPlanComponent implements OnInit {
       this.maxChapterByBook = response[0];
       if (response[1]) {
         this.lastChapterReadForDay = response[1];
+      } else {
+        // this may be the first time the user is using this, so default
+        let booksForDay: string[] = this.booksByDay[this.currentDayOfWeek];
+        let lastBookInGroup: string = booksForDay[booksForDay.length - 1];
+        let maxChapter: number = this.maxChapterByBook.filter(bookChap => bookChap.bookName === lastBookInGroup)[0].maxChapter;
+        let bookId: number = PassageUtils.getBookId(lastBookInGroup);
+        this.lastChapterReadForDay = {
+          bookId: bookId,
+          bookName: lastBookInGroup,
+          chapter: maxChapter,
+          dateRead: '4/19/2019'
+        };
       }
       this.translation = PassageUtils.getPreferredTranslationFromPrefs(response[2], 'niv');
       let lastChapterForLastReadBook = -1;
