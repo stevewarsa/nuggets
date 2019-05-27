@@ -1,18 +1,19 @@
 import { Component, OnInit } from '@angular/core';
-import { MemoryService } from 'src/app/memory.service';
+import { MemoryService } from '../memory.service';
 import { Router } from '@angular/router';
-import { PassageUtils } from 'src/app/passage-utils';
-import { ModalHelperService } from 'src/app/modal-helper.service';
-import { Constants } from 'src/app/constants';
 import { ClipboardService } from 'ngx-clipboard';
 import { ToastrService } from 'ngx-toastr';
+import { ModalHelperService } from '../modal-helper.service';
+import { Constants } from '../constants';
+import { PassageUtils } from '../passage-utils';
 
 @Component({
-  templateUrl: './search-facts-and-quotes.component.html'
+  selector: 'mem-list-facts-and-quotes',
+  templateUrl: './list-facts-and-quotes.component.html',
+  styleUrls: ['./list-facts-and-quotes.component.css']
 })
-export class SearchFactsAndQuotesComponent implements OnInit {
+export class ListFactsAndQuotesComponent implements OnInit {
   searchCategory: string = 'quote';
-  searchPhrase: string = null;
   searching: boolean = false;
   searchingMessage: string = null;
   searchResults: any[] = [];
@@ -32,6 +33,14 @@ export class SearchFactsAndQuotesComponent implements OnInit {
       this.route.navigate(['']);
       return;
     }
+    this.searching = true;
+    this.searchingMessage = "Retrieving all quotes...";
+    this.memoryService.getQuoteList().subscribe((results: any[]) => {
+      console.log(results);
+      this.searchResults = results;
+      this.searching = false;
+      this.searchingMessage = null;
+    });
   }
 
   showActions(searchResult: any) {
@@ -46,24 +55,7 @@ export class SearchFactsAndQuotesComponent implements OnInit {
   }
 
   getSearchResultText(searchResult: any): string {
-    let text: string = this.searchCategory === 'fact' ? searchResult.prompt + ' <br> ' + searchResult.answer : searchResult.answer;
-    text = PassageUtils.updateAllMatches(this.searchPhrase, text);
+    let text: string = searchResult.answer;
     return PassageUtils.updateLineFeedsWithBr(text);
-  }
-
-  doSearch() {
-    let searchParam = {
-      category: this.searchCategory,
-      searchPhrase: this.searchPhrase,
-      user: this.currentUser
-    };
-    this.searching = true;
-    this.searchingMessage = "Searching for '" + this.searchPhrase + "' in " + this.searchCategory + "...";
-    this.memoryService.searchFactOrQuote(searchParam).subscribe((results: any[]) => {
-      console.log(results);
-      this.searchResults = results;
-      this.searching = false;
-      this.searchingMessage = null;
-    });
   }
 }

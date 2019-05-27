@@ -38,6 +38,7 @@
           <li (click)="goTo('/browsequotes')" class="list-group-item text-white main-menu-item"><a [routerLink]="['/browsequotes']" class="btn btn-link no-padding-top-bottom" title="Browse Quotes">Browse Quotes</a></li>
           <li *ngIf="currUser !== memoryService.GUEST_USER" (click)="goTo('/addQuote')" class="list-group-item text-white main-menu-item"><a [routerLink]="['/addQuote']" class="btn btn-link no-padding-top-bottom" title="Add Quote">Add Quote</a></li>
           <li (click)="goTo('/searchFactsAndQuotes')" class="list-group-item text-white main-menu-item"><a [routerLink]="['/searchFactsAndQuotes']" class="btn btn-link no-padding-top-bottom" title="Search Facts and Quotes">Search Facts and Quotes</a></li>
+          <li (click)="goTo('/listFactsAndQuotes')" class="list-group-item text-white main-menu-item"><a [routerLink]="['/listFactsAndQuotes']" class="btn btn-link no-padding-top-bottom" title="List Facts and Quotes">List Facts and Quotes</a></li>
           <li *ngIf="currUser !== memoryService.GUEST_USER" (click)="goTo('/selectQuotes')" class="list-group-item text-white main-menu-item"><a [routerLink]="['/selectQuotes']" class="btn btn-link no-padding-top-bottom" title="Select Quotes to Add">Select Quotes to Add</a></li>
         </ul>
       </ng-template>

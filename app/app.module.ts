@@ -44,6 +44,7 @@ import { QuotesNoLoginComponent } from './quotes-no-login/quotes-no-login.compon
 import { QuoteSearchResultActionsComponent } from './quote-search-result-actions/quote-search-result-actions.component';
 import { ManageEmailsComponent } from './manage-emails/manage-emails.component';
 import { ReadingPlanComponent } from './reading-plan/reading-plan.component';
+import { ListFactsAndQuotesComponent } from './list-facts-and-quotes/list-facts-and-quotes.component';
 
 export class MyHammerConfig extends HammerGestureConfig {
   overrides = <any>{
@@ -93,7 +94,8 @@ export class MyHammerConfig extends HammerGestureConfig {
     QuotesNoLoginComponent,
     QuoteSearchResultActionsComponent,
     ManageEmailsComponent,
-    ReadingPlanComponent
+    ReadingPlanComponent,
+    ListFactsAndQuotesComponent
   ],
   imports: [
     BrowserModule,

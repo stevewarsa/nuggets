@@ -25,6 +25,7 @@ import { SelectQuotesComponent } from 'src/app/select-quotes/select-quotes.compo
 import { QuotesNoLoginComponent } from 'src/app/quotes-no-login/quotes-no-login.component';
 import { ManageEmailsComponent } from 'src/app/manage-emails/manage-emails.component';
 import { ReadingPlanComponent } from 'src/app/reading-plan/reading-plan.component';
+import { ListFactsAndQuotesComponent } from './list-facts-and-quotes/list-facts-and-quotes.component';
 
 const routes: Routes = [
   {path: '', component: LoginComponent},
@@ -35,6 +36,7 @@ const routes: Routes = [
   {path: 'addQuote', component: AddNonbibleQuoteComponent},
   {path: 'practiceFacts', component: PracticeNonbibleMemoryFactsComponent},
   {path: 'searchFactsAndQuotes', component: SearchFactsAndQuotesComponent},
+  {path: 'listFactsAndQuotes', component: ListFactsAndQuotesComponent},
   {path: 'selectQuotes', component: SelectQuotesComponent},
   {path: 'search', component: SearchComponent},
   {path: 'bibleSearch', component: BibleSearchComponent},

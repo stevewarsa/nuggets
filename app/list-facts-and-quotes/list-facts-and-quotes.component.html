@@ -1,0 +1,35 @@
+<div class="container">
+  <div class="row justify-content-center">
+    <div class="col-md col-sm">
+      <h2 style="text-align: center;padding-top: 15px;">List of Quotes</h2>
+    </div>
+    <hr style="background: white; width: 90%;" />
+  </div>
+  <div class="row justify-content-center" *ngIf="searching">
+    <div class="col-md col-sm">
+      <div style="text-align: center;">
+        <p class="lead">{{searchingMessage}}</p><img src="assets/ajax-loader.gif" />
+      </div>
+    </div>
+  </div>
+  <div class="row justify-content-center" *ngIf="!searching && searchResults && searchResults.length > 0">
+    <div class="col-md col-sm">
+      <h4>Found {{searchResults.length}} quotes</h4>
+      <table class="table table-bordered" style="font-size: 18px !important; margin: 5px;">
+        <tbody>
+            <tr>
+              <th><i class="fa fa-asterisk" style="font-size: 16px !important;"></i></th>
+              <th [innerHTML]="searchCategory === 'fact' ? 'Fact Text' : 'Quote Text'"></th>
+              <th>Appr?</th>
+            </tr>
+            <tr *ngFor="let searchResult of searchResults">
+              <td><a (click)="showActions(searchResult)" style="text-decoration: underline; color: #00FFFF !important;">Go</a></td>
+              <td [innerHTML]="getSearchResultText(searchResult)"></td>
+              <td>{{searchResult.approved ? searchResult.approved : 'Y'}}</td>
+            </tr>
+        </tbody>
+      </table>
+      <h4 *ngIf="searchResults.length > 10">Found {{searchResults.length}}</h4>
+    </div>
+  </div>
+</div>
