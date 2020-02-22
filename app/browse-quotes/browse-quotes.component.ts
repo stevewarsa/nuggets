@@ -38,7 +38,7 @@ export class BrowseQuotesComponent implements OnInit {
   currUser: string = null;
 
   constructor(
-    private memoryService: MemoryService, 
+    public memoryService: MemoryService, 
     private route: Router, 
     public toastr: ToastrService, 
     private modalService: NgbModal, 
@@ -53,31 +53,40 @@ export class BrowseQuotesComponent implements OnInit {
       this.route.navigate(['']);
       return;
     }
-    let quoteId: string = this.activeRoute.snapshot.params['quoteId'];
-    if (quoteId) {
-      this.startingId = parseInt(quoteId);
-    }
-    this.searching = true;
-    this.searchingMessage = 'Retrieving quote list...';
-    this.memoryService.getQuoteList().subscribe((quotes: any[]) => {
-      if (!quotes || quotes.length === 0) {
-        this.searching = false;
-        this.searchingMessage = null;
-        return;
-      }
-      quotes = this.filterOutNonApprovedQuotes(quotes);
-      if (!quotes || quotes.length === 0) {
-        this.searching = false;
-        this.searchingMessage = null;
-        return;
-      }
+    if (this.memoryService.searchQuotesResult) {
+      let quotes = this.filterOutNonApprovedQuotes(this.memoryService.searchQuotesResult);
       PassageUtils.shuffleArray(quotes);
       this.allQuotes = quotes;
       this.currentIndex = this.findStartingQuote();
       this.displayQuote();
-      this.searching = false;
-      this.searchingMessage = null;
-    });
+      this.memoryService.searchQuotesResult = null;
+    } else {
+      let quoteId: string = this.activeRoute.snapshot.params['quoteId'];
+      if (quoteId) {
+        this.startingId = parseInt(quoteId);
+      }
+      this.searching = true;
+      this.searchingMessage = 'Retrieving quote list...';
+      this.memoryService.getQuoteList().subscribe((quotes: any[]) => {
+        if (!quotes || quotes.length === 0) {
+          this.searching = false;
+          this.searchingMessage = null;
+          return;
+        }
+        quotes = this.filterOutNonApprovedQuotes(quotes);
+        if (!quotes || quotes.length === 0) {
+          this.searching = false;
+          this.searchingMessage = null;
+          return;
+        }
+        PassageUtils.shuffleArray(quotes);
+        this.allQuotes = quotes;
+        this.currentIndex = this.findStartingQuote();
+        this.displayQuote();
+        this.searching = false;
+        this.searchingMessage = null;
+      });
+    }
   }
 
   private filterOutNonApprovedQuotes(quotes: any[]): any[] {

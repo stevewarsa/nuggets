@@ -17,6 +17,7 @@ export class SearchFactsAndQuotesComponent implements OnInit {
   searchingMessage: string = null;
   searchResults: any[] = [];
   currentUser: string = null;
+  resultStyle: string = "list";
 
   constructor(
     private memoryService: MemoryService, 
@@ -61,9 +62,14 @@ export class SearchFactsAndQuotesComponent implements OnInit {
     this.searchingMessage = "Searching for '" + this.searchPhrase + "' in " + this.searchCategory + "...";
     this.memoryService.searchFactOrQuote(searchParam).subscribe((results: any[]) => {
       console.log(results);
-      this.searchResults = results;
-      this.searching = false;
-      this.searchingMessage = null;
+      if (this.resultStyle === "list") {
+        this.searchResults = results;
+        this.searching = false;
+        this.searchingMessage = null;
+      } else {
+        this.memoryService.searchQuotesResult = results;
+        this.route.navigate(['browsequotes']);
+      }
     });
   }
 }

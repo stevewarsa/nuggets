@@ -13,12 +13,12 @@ import { HttpClient } from '@angular/common/http';
 export class MemoryService {
   private currentPassage: Passage = null;
   private currentUser: string = null;
-  //private _url:string = "http://ps11911.com/nuggets/server/";
   private _url:string = "/nuggets/server/";
   private cachedPassages: Passage[];
   private passageTextOverrides: Passage[] = null;
   private topicList: any[] = [];
   public GUEST_USER: string = 'Guest';
+  public searchQuotesResult: any[] = null;
   currentPassageChangeEvent: Subject<Passage> = new Subject<Passage>();
 
   constructor(private httpService:HttpClient) { }
