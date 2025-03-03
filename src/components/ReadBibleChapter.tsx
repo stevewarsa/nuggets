@@ -6,9 +6,14 @@ import Toolbar from './Toolbar';
 import { Passage } from '../models/passage';
 import { bibleService } from '../services/bible-service';
 import { booksByNum, USER, GUEST_USER } from '../models/constants';
-import { getUnformattedPassageTextNoVerseNumbers, getNextBook, getDisplayBookName } from '../models/passage-utils';
+import {
+  getUnformattedPassageTextNoVerseNumbers,
+  getNextBook,
+  getDisplayBookName,
+  openBibleHubLink
+} from '../models/passage-utils';
 import SwipeContainer from './SwipeContainer';
-import { faListOl, faCopy } from '@fortawesome/free-solid-svg-icons';
+import {faListOl, faCopy, faExternalLink} from '@fortawesome/free-solid-svg-icons';
 import copy from 'clipboard-copy';
 import { useAppSelector } from '../store/hooks';
 
@@ -19,7 +24,9 @@ const ReadBibleChapter = () => {
   const [currentTranslation, setCurrentTranslation] = useState(translation || 'niv');
   const [maxChapters, setMaxChapters] = useState<{ [key: string]: number }>({});
   const [showVerseModal, setShowVerseModal] = useState(false);
+  const [addToMemoryMode, setAddToMemoryMode] = useState(false);
   const [copyMode, setCopyMode] = useState(false);
+  const [bibleHubMode, setBibleHubMode] = useState(false);
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [toastBg, setToastBg] = useState('#28a745');
@@ -134,7 +141,15 @@ const ReadBibleChapter = () => {
     if (copyMode) {
       handleCopyVerseRange(startVerse, endVerse);
       setCopyMode(false);
-    } else {
+    } if (bibleHubMode) {
+      const bibleHubPassage = {...passage,
+        startVerse,
+        endVerse
+      };
+      openBibleHubLink(bibleHubPassage);
+      setBibleHubMode(false);
+    } else if (addToMemoryMode) {
+      setAddToMemoryMode(false);
       // Don't allow guest users to add memory passages
       if (isGuestUser) {
         setToastMessage('Guest users cannot add memory passages');
@@ -210,6 +225,7 @@ const ReadBibleChapter = () => {
         itemLabel: "Add to Memory Verses...",
         icon: faListOl,
         callbackFunction: () => {
+          setAddToMemoryMode(true);
           setCopyMode(false);
           setShowVerseModal(true);
         }
@@ -225,7 +241,14 @@ const ReadBibleChapter = () => {
         setShowVerseModal(true);
       }
     });
-    
+    menus.push({
+      itemLabel: "Open in Bible Hub...",
+      icon: faExternalLink,
+      callbackFunction: () => {
+        setBibleHubMode(true);
+        setShowVerseModal(true);
+      }
+    });
     return menus;
   };
 

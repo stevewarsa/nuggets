@@ -5,7 +5,7 @@ import react from '@vitejs/plugin-react'
 export default defineConfig(({ mode }) => {
   // Determine if we're in production mode
   const isProd = mode === 'production';
-  
+
   return {
     plugins: [react()],
     base: isProd ? '/nuggets/' : '/',
@@ -13,6 +13,17 @@ export default defineConfig(({ mode }) => {
       outDir: 'dist',
       assetsDir: 'assets',
       emptyOutDir: true
+    },
+    server: {
+      proxy: {
+        '/bible': {
+          target: 'http://127.0.0.1:8080',
+          changeOrigin: true,
+          secure: false,
+          ws: true, // If using WebSockets
+          rewrite: (path) => path.replace(/^\/bible/, '/bible'), // Optional path rewrite
+        }
+      }
     }
   }
 })

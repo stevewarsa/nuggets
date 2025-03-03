@@ -56,7 +56,8 @@ interface Link {
 }
 
 export class BibleService {
-  private static readonly BASE_URL = 'https://ps11911.com/bible/api/';
+  //private static readonly BASE_URL = 'https://ps11911.com/bible/api/';
+  private static readonly BASE_URL = '/bible/api/';
 
   private handleError(error: unknown, operation: string): never {
     if (axios.isAxiosError(error)) {

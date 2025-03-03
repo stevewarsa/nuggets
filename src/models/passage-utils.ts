@@ -226,3 +226,30 @@ export const getUnformattedPassageTextNoVerseNumbers = (
   }
   return verseText;
 };
+
+export const openBibleHubLink = (passage: Passage) => {
+  // https://biblehub.com/genesis/1-1.htm
+  const replacements: {} = {
+    "1-kings": "1_kings",
+    "2-kings": "2_kings",
+    "1-samuel": "1_samuel",
+    "2-samuel": "2_samuel",
+    "1-chronicles": "1_chronicles",
+    "2-chronicles": "2_chronicles",
+    "1-peter": "1_peter",
+    "2-peter": "2_peter",
+    "1-john": "1_john",
+    "2-john": "2_john",
+    "3-john": "3_john",
+    "song-of-solomon": "songs",
+    "1-timothy": "1_timothy",
+    "2-timothy": "2_timothy",
+    "1-thessalonians": "1_thessalonians",
+    "2-thessalonians": "2_thessalonians",
+    "1-corinthians": "1_corinthians",
+    "2-corinthians": "2_corinthians",
+  };
+  const bibleHubBookName: string = replacements.hasOwnProperty(passage.bookName) ? replacements[passage.bookName] : passage.bookName;
+  let urlQuery: string = bibleHubBookName + "/" + passage.chapter + "-" + passage.startVerse + ".htm";
+  window.open("https://biblehub.com/" + urlQuery, '_blank');
+}
