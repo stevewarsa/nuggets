@@ -10,10 +10,9 @@ import {
   getUnformattedPassageTextNoVerseNumbers,
   getNextBook,
   getDisplayBookName,
-  openBibleHubLink
+  openBibleHubLink, COPY_VERSE_RANGE, OPEN_IN_BIBLEHUB, ADD_TO_MEMORY_VERSES, OPEN_INTERLINEAR, openInterlinearLink
 } from '../models/passage-utils';
 import SwipeContainer from './SwipeContainer';
-import {faListOl, faCopy, faExternalLink} from '@fortawesome/free-solid-svg-icons';
 import copy from 'clipboard-copy';
 import { useAppSelector } from '../store/hooks';
 
@@ -27,6 +26,7 @@ const ReadBibleChapter = () => {
   const [addToMemoryMode, setAddToMemoryMode] = useState(false);
   const [copyMode, setCopyMode] = useState(false);
   const [bibleHubMode, setBibleHubMode] = useState(false);
+  const [interLinearMode, setInterLinearMode] = useState(false);
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [toastBg, setToastBg] = useState('#28a745');
@@ -148,6 +148,13 @@ const ReadBibleChapter = () => {
       };
       openBibleHubLink(bibleHubPassage);
       setBibleHubMode(false);
+    } if (interLinearMode) {
+      const interlinearPassage = {...passage,
+        startVerse,
+        endVerse
+      };
+      openInterlinearLink(interlinearPassage);
+      setInterLinearMode(false);
     } else if (addToMemoryMode) {
       setAddToMemoryMode(false);
       // Don't allow guest users to add memory passages
@@ -217,13 +224,15 @@ const ReadBibleChapter = () => {
 
   // Create additional menus based on user status
   const getAdditionalMenus = () => {
-    const menus = [];
+    const menus = [
+      {...COPY_VERSE_RANGE, callbackFunction: () => {setCopyMode(true);setShowVerseModal(true);}},
+      {...OPEN_IN_BIBLEHUB, callbackFunction: () => {setCopyMode(false);setBibleHubMode(true);setShowVerseModal(true);}},
+      {...OPEN_INTERLINEAR, callbackFunction: () => {setCopyMode(false);setInterLinearMode(true);setShowVerseModal(true);}},
+    ];
     
     // Only add "Add to Memory Verses" for non-guest users
     if (!isGuestUser) {
-      menus.push({
-        itemLabel: "Add to Memory Verses...",
-        icon: faListOl,
+      menus.push({...ADD_TO_MEMORY_VERSES,
         callbackFunction: () => {
           setAddToMemoryMode(true);
           setCopyMode(false);
@@ -231,24 +240,6 @@ const ReadBibleChapter = () => {
         }
       });
     }
-    
-    // Copy functionality is available to all users
-    menus.push({
-      itemLabel: "Copy Verse Range...",
-      icon: faCopy,
-      callbackFunction: () => {
-        setCopyMode(true);
-        setShowVerseModal(true);
-      }
-    });
-    menus.push({
-      itemLabel: "Open in Bible Hub...",
-      icon: faExternalLink,
-      callbackFunction: () => {
-        setBibleHubMode(true);
-        setShowVerseModal(true);
-      }
-    });
     return menus;
   };
 
@@ -280,7 +271,13 @@ const ReadBibleChapter = () => {
         translation={currentTranslation}
         onVerseSelection={handleVerseSelection}
         showVerseModal={showVerseModal}
-        onVerseModalClose={() => setShowVerseModal(false)}
+        onVerseModalClose={() => {
+          setAddToMemoryMode(false);
+          setCopyMode(false);
+          setBibleHubMode(false);
+          setInterLinearMode(false);
+          setShowVerseModal(false);
+        }}
       />
 
       <Toast
