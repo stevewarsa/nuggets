@@ -17,6 +17,10 @@ export const BY_LAST_PRACTICED: string = 'by_last_practiced_time';
 export const BY_REF: string = 'by_ref';
 export const BY_PSG_TXT: string = 'by_psgtxt';
 
+export const EDIT_MEM_PASSAGE = {
+    itemLabel: "Edit Mem Passage...",
+    icon: faPencilAlt
+};
 export const ADD_TO_MEMORY_VERSES = {
     itemLabel: "Add to Memory Verses...",
     icon: faListOl

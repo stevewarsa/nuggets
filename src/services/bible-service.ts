@@ -9,7 +9,7 @@ interface ChapterInfo {
   maxChapter: number;
 }
 
-interface MaxVerseResponse {
+export interface MaxVerseResponse {
   [key: string]: [number, number][];
 }
 

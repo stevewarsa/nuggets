@@ -12,9 +12,15 @@ import {
     getUnformattedPassageTextNoVerseNumbers,
     BY_PSG_TXT,
     BY_REF,
-    sortAccordingToPracticeConfig, OPEN_IN_BIBLEHUB, openBibleHubLink, OPEN_INTERLINEAR, openInterlinearLink,
+    sortAccordingToPracticeConfig,
+    OPEN_IN_BIBLEHUB,
+    openBibleHubLink,
+    OPEN_INTERLINEAR,
+    openInterlinearLink,
+    EDIT_MEM_PASSAGE,
 } from '../models/passage-utils';
 import {useAppSelector} from '../store/hooks';
+import EditPassage from "./EditPassage.tsx";
 
 const Practice = () => {
     const {mode, order} = useParams();
@@ -39,6 +45,7 @@ const Practice = () => {
         direction: string,
         newFrequency: number
     } | null>(null);
+    const [showEditModal, setShowEditModal] = useState(false);
 
     const currentUser = useAppSelector(state => state.user.currentUser);
     const user = currentUser || USER;
@@ -114,6 +121,51 @@ const Practice = () => {
         const lastViewedNum = now.getTime();
 
         bibleService.updateLastViewed(user, passageId, lastViewedNum, lastViewedStr);
+    };
+    
+    const handleEditingComplete = (updatedPassage: Passage | null, overrideText: string | null) => {
+        setShowEditModal(false);
+
+        if (updatedPassage) {
+            // Update the passage in memPsgList
+            const updatedList = memPsgList.map(passage =>
+                passage.passageId === updatedPassage.passageId ? updatedPassage : passage
+            );
+            setMemPsgList(updatedList);
+
+            // Update the current passage
+            setCurrentPassage(updatedPassage);
+
+            // Update translation if it changed
+            if (updatedPassage.translationName !== translation) {
+                setTranslation(updatedPassage.translationName);
+            }
+
+            // Update overrides if needed
+            if (overrideText !== null) {
+                const newOverride = {
+                    ...updatedPassage,
+                    verses: [{
+                        passageId: updatedPassage.passageId,
+                        verseParts: [{
+                            verseNumber: updatedPassage.startVerse,
+                            versePartId: 1,
+                            verseText: overrideText,
+                            wordsOfChrist: false
+                        }]
+                    }]
+                };
+
+                const updatedOverrides = overrides.filter(o => o.passageId !== updatedPassage.passageId);
+                updatedOverrides.push(newOverride);
+                setOverrides(updatedOverrides);
+            }
+
+            // Show success message
+            setToastMessage('Passage updated successfully');
+            setToastBg('#28a745');
+            setShowToast(true);
+        }
     };
 
     const resetToInitialMode = () => {
@@ -344,6 +396,7 @@ const Practice = () => {
                 additionalMenus={[
                     {...OPEN_IN_BIBLEHUB, callbackFunction: () => openBibleHubLink(currentPassage)},
                     {...OPEN_INTERLINEAR, callbackFunction: () => openInterlinearLink(currentPassage)},
+                    {...EDIT_MEM_PASSAGE, callbackFunction: () => setShowEditModal(true)},
                 ]}
             />
 
@@ -424,6 +477,22 @@ const Practice = () => {
                     </Button>
                 </Modal.Footer>
             </Modal>
+            {/* Edit Passage Modal */}
+            {currentPassage && (
+                <EditPassage
+                    props={
+                    {
+                        passage: currentPassage,
+                        overrides: overrides,
+                        visible: showEditModal,
+                        setVisibleFunction: (closedNoChange: boolean) =>
+                            closedNoChange ?
+                                setShowEditModal(false) :
+                                handleEditingComplete(currentPassage, null)
+                    }
+                }
+                />
+            )}
         </SwipeContainer>
     );
 };
