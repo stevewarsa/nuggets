@@ -124,6 +124,7 @@ const Practice = () => {
     };
     
     const handleEditingComplete = (updatedPassage: Passage | null, overrideText: string | null) => {
+        console.log("Practice.handleEditingComplete - overrideText=" + overrideText + " - updated passage:", updatedPassage);
         setShowEditModal(false);
 
         if (updatedPassage) {
@@ -132,9 +133,6 @@ const Practice = () => {
                 passage.passageId === updatedPassage.passageId ? updatedPassage : passage
             );
             setMemPsgList(updatedList);
-
-            // Update the current passage
-            setCurrentPassage(updatedPassage);
 
             // Update translation if it changed
             if (updatedPassage.translationName !== translation) {
@@ -159,6 +157,11 @@ const Practice = () => {
                 const updatedOverrides = overrides.filter(o => o.passageId !== updatedPassage.passageId);
                 updatedOverrides.push(newOverride);
                 setOverrides(updatedOverrides);
+
+                // Update the current passage
+                setCurrentPassage({...updatedPassage, verses: newOverride.verses});
+            } else {
+                setCurrentPassage(updatedPassage)
             }
 
             // Show success message
@@ -485,10 +488,10 @@ const Practice = () => {
                         passage: currentPassage,
                         overrides: overrides,
                         visible: showEditModal,
-                        setVisibleFunction: (closedNoChange: boolean) =>
+                        setVisibleFunction: (updatedPassage: Passage, newText: string, closedNoChange: boolean) =>
                             closedNoChange ?
                                 setShowEditModal(false) :
-                                handleEditingComplete(currentPassage, null)
+                                handleEditingComplete(updatedPassage, newText)
                     }
                 }
                 />

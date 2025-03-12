@@ -59,9 +59,18 @@ const EditPassage = ({props}: { props: EditPassageProps }) => {
             // no update necessary, just return
             return;
         }
+        console.log("EditPassage - startVerse or endVerse has changed: startVerse=" + startVerse + ", endVerse=" + endVerse);
         props.passage = {...props.passage, startVerse: startVerse, endVerse: endVerse};
         populateVerses(props.passage, updateStateFromPassage)
     }, [startVerse, endVerse]);
+
+    useEffect(() => {
+        console.log("EditPassage - currPassageText changed: ", currPassageText);
+    }, [currPassageText]);
+
+    useEffect(() => {
+        console.log("EditPassage - appendLetter changed: " + appendLetter);
+    }, [appendLetter]);
 
     const updateStateFromPassage = (psg: Passage) => {
         const locMaxVerseByBookChapter = maxVerseByBookChapterMap[translation];
@@ -71,7 +80,7 @@ const EditPassage = ({props}: { props: EditPassageProps }) => {
         setStartVerse(psg.startVerse);
         setEndVerse(psg.endVerse);
         setFrequency(psg.frequencyDays);
-        setAppendLetter(psg.passageRefAppendLetter);
+        setAppendLetter(psg.passageRefAppendLetter ? psg.passageRefAppendLetter : undefined);
         populateCurrentPassageTextFromPassage(psg);
     }
 
@@ -127,13 +136,17 @@ const EditPassage = ({props}: { props: EditPassageProps }) => {
     }
 
     const changePassageText = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-        setPsgTextChanged(currPassageText !== e.target.value);
-        setCurrPassageText(e.target.value);
-        if (!StringUtils.isEmpty(e.target.value) && StringUtils.isEmpty(appendLetter)) {
-            setAppendLetter("a");
+        const updatedPsgText = e.target.value ? e.target.value.trim() : null;
+        const userHasChangedText = currPassageText !== updatedPsgText;
+        setPsgTextChanged(userHasChangedText);
+        setCurrPassageText(updatedPsgText);
+        if (userHasChangedText) {
+            if (!StringUtils.isEmpty(updatedPsgText) && StringUtils.isEmpty(appendLetter)) {
+                setAppendLetter("a");
+            }
         }
 
-        if (StringUtils.isEmpty(e.target.value)) {
+        if (StringUtils.isEmpty(updatedPsgText)) {
             setAppendLetter(undefined);
         }
     };
@@ -156,21 +169,15 @@ const EditPassage = ({props}: { props: EditPassageProps }) => {
     };
 
     const changeStartVerse = (value) => {
-        if (parseInt(value) !== startVerse) {
-            setStartVerse(parseInt(value));
-        }
+        setStartVerse(parseInt(value));
     };
 
     const changeEndVerse = (value) => {
-        if (parseInt(value) !== endVerse) {
-            setEndVerse(parseInt(value));
-        }
+        setEndVerse(parseInt(value));
     };
 
     const changPassageAppendLetter = (value) => {
-        if (value !== appendLetter) {
-            setAppendLetter(value);
-        }
+        setAppendLetter(value);
     };
 
     const changeFrequency = (value) => {
@@ -197,7 +204,10 @@ const EditPassage = ({props}: { props: EditPassageProps }) => {
             if (resp === "success") {
                 console.log("Passage has been updated!");
                 setEditPassageVisible(false);
-                props.setVisibleFunction(false);
+                props.setVisibleFunction(
+                    {...updateParam.passage, passageRefAppendLetter: appendLetter},
+                    updateParam.newText,
+                    false);
             } else {
                 console.log("Error updating passage: " + resp);
             }
@@ -216,7 +226,7 @@ const EditPassage = ({props}: { props: EditPassageProps }) => {
         return (
             <Modal show={editPassageVisible} onHide={() => {
                 setEditPassageVisible(false);
-                props.setVisibleFunction(true);
+                props.setVisibleFunction(null, null, true);
             }}>
                 <Modal.Header closeButton className="bg-dark text-white">
                     <Modal.Title>Edit Passage</Modal.Title>
