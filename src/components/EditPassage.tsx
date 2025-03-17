@@ -280,9 +280,9 @@ const EditPassage = ({props}: { props: EditPassageProps }) => {
                                     </Form.Select>
                                 </Form.Group>
                             </div>
-                            <div className="col">
+                            <div className="col-3">
                                 <Form.Group>
-                                    <Form.Label>Append Ltr</Form.Label>
+                                    <Form.Label>Append</Form.Label>
                                     <Form.Select
                                         value={appendLetter}
                                         onChange={(e) => changPassageAppendLetter(e.target.value || null)}

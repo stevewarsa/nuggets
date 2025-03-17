@@ -34,23 +34,23 @@ const AppContent = () => {
             <div className="flex-grow-1 mb-5">
                 <Routes>
                     <Route path="/" element={<Login/>}/>
-                    <Route path="/browseBible" element={<BrowseBiblePassages/>}/>
-                    <Route path="/login" element={<Login/>}/>
-                    <Route path="/viewChapter" element={<ViewChapter/>}/>
                     <Route path="/practiceSetup" element={<PracticeSetup/>}/>
-                    <Route path="/practice/:mode/:order" element={<Practice/>}/>
-                    <Route path="/readBibleChapter/:translation/:book/:chapter" element={<ReadBibleChapter/>}/>
+                    <Route path="/readingPlan" element={<BibleReadingPlan/>}/>
                     <Route path="/viewQuotes" element={<ViewQuotes/>}/>
-                    <Route path="/viewQuotes/:quoteId" element={<ViewQuotes/>}/>
-                    <Route path="/searchQuotes" element={<SearchQuotes/>}/>
                     <Route
                         path="/addQuote"
                         element={isGuestUser ? <Navigate to="/browseBible" replace/> : <AddQuote/>}
                     />
-                    <Route path="/search" element={<BibleSearch/>}/>
-                    <Route path="/readingPlan" element={<BibleReadingPlan/>}/>
-                    <Route path="/memoryStats" element={<MemoryStats/>}/>
                     <Route path="/links" element={<Links/>}/>
+                    <Route path="/viewChapter" element={<ViewChapter/>}/>
+                    <Route path="/search" element={<BibleSearch/>}/>
+                    <Route path="/browseBible" element={<BrowseBiblePassages/>}/>
+                    <Route path="/login" element={<Login/>}/>
+                    <Route path="/practice/:mode/:order" element={<Practice/>}/>
+                    <Route path="/readBibleChapter/:translation/:book/:chapter" element={<ReadBibleChapter/>}/>
+                    <Route path="/viewQuotes/:quoteId" element={<ViewQuotes/>}/>
+                    <Route path="/searchQuotes" element={<SearchQuotes/>}/>
+                    <Route path="/memoryStats" element={<MemoryStats/>}/>
                 </Routes>
             </div>
             {!isLoginPage && (
