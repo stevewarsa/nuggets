@@ -3,6 +3,7 @@ import { Passage } from '../models/passage';
 import { Quote } from '../models/quote';
 import { ReadingHistoryEntry } from '../models/reading-history-entry';
 import { Topic } from '../models/topic';
+import {MemoryPracticeHistoryEntry} from "../models/memory-practice-history.ts";
 
 interface ChapterInfo {
   bookName: string;
@@ -448,6 +449,17 @@ export class BibleService {
       return response.data;
     } catch (error) {
       return this.handleError(error, 'fetching max verses');
+    }
+  }
+
+  async getMemoryPracticeHistory(user: string): Promise<MemoryPracticeHistoryEntry[]> {
+    try {
+      const response = await axios.get(`${BibleService.BASE_URL}get_mem_practice_history.php`, {
+        params: { user }
+      });
+      return response.data;
+    } catch (error) {
+      return this.handleError(error, 'fetching memory practice history');
     }
   }
 }

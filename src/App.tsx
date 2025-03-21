@@ -16,6 +16,7 @@ import TopNav from './components/TopNav';
 import {useAppSelector} from './store/hooks';
 import {USER, GUEST_USER} from './models/constants';
 import './App.css';
+import ViewMemoryPracticeHistory from "./components/ViewMemoryPracticeHistory.tsx";
 
 // Create a wrapper component to access location
 const AppContent = () => {
@@ -50,6 +51,7 @@ const AppContent = () => {
                     <Route path="/readBibleChapter/:translation/:book/:chapter" element={<ReadBibleChapter/>}/>
                     <Route path="/viewQuotes/:quoteId" element={<ViewQuotes/>}/>
                     <Route path="/searchQuotes" element={<SearchQuotes/>}/>
+                    <Route path="/memoryPracticeHistory" element={<ViewMemoryPracticeHistory />} />
                     <Route path="/memoryStats" element={<MemoryStats/>}/>
                 </Routes>
             </div>
