@@ -17,7 +17,7 @@ import copy from 'clipboard-copy';
 import { useAppSelector } from '../store/hooks';
 
 const ReadBibleChapter = () => {
-  const { translation, book, chapter } = useParams();
+  const { translation, book, chapter, scrollToVerse } = useParams();
   const navigate = useNavigate();
   const [passage, setPassage] = useState<Passage | null>(null);
   const [currentTranslation, setCurrentTranslation] = useState(translation || 'niv');
@@ -36,6 +36,7 @@ const ReadBibleChapter = () => {
   const isGuestUser = currentUser === GUEST_USER;
 
   useEffect(() => {
+    console.log("ReadBibleChapter.useEffect[] - scrollToVerse=" + scrollToVerse);
     const fetchMaxChapters = async () => {
       try {
         const chapters = await bibleService.getMaxChaptersByBook();
@@ -271,6 +272,7 @@ const ReadBibleChapter = () => {
         translation={currentTranslation}
         onVerseSelection={handleVerseSelection}
         showVerseModal={showVerseModal}
+        scrollToVerse={scrollToVerse ? parseInt(scrollToVerse) : -1}
         onVerseModalClose={() => {
           setAddToMemoryMode(false);
           setCopyMode(false);

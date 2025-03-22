@@ -5,7 +5,7 @@ import { ReadingHistoryEntry } from '../models/reading-history-entry';
 import { Topic } from '../models/topic';
 import {MemoryPracticeHistoryEntry} from "../models/memory-practice-history.ts";
 
-interface ChapterInfo {
+export interface ChapterInfo {
   bookName: string;
   maxChapter: number;
 }

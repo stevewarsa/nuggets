@@ -81,6 +81,9 @@ const TopNav = () => {
                             {location.pathname !== "/search" && (
                                 <Nav.Link onClick={() => handleNavigation("/search")}>Bible Search</Nav.Link>
                             )}
+                            {location.pathname !== "/goToPassageByRef" && (
+                                <Nav.Link onClick={() => handleNavigation("/goToPassageByRef")}>Go To Passage</Nav.Link>
+                            )}
                             {isMainUser && (
                                 <Nav.Link onClick={handleCopyToGuest}>Copy This DB to Guest</Nav.Link>
                             )}

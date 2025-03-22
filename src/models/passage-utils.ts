@@ -17,6 +17,10 @@ export const BY_LAST_PRACTICED: string = 'by_last_practiced_time';
 export const BY_REF: string = 'by_ref';
 export const BY_PSG_TXT: string = 'by_psgtxt';
 
+const EXACT_BOOK_MATCH = 1;
+const PARTIAL_BOOK_MATCH = 2;
+const BOOK_MATCH_PLUS = 3;
+
 export const EDIT_MEM_PASSAGE = {
     itemLabel: "Edit Mem Passage...",
     icon: faPencilAlt
@@ -307,4 +311,93 @@ export const openBibleHubLink = (passage: Passage) => {
     const bibleHubBookName: string = replacements.hasOwnProperty(passage.bookName) ? replacements[passage.bookName] : passage.bookName;
     let urlQuery: string = bibleHubBookName + "/" + passage.chapter + "-" + passage.startVerse + ".htm";
     window.open("https://biblehub.com/" + urlQuery, '_blank');
-}
+};
+
+export const getPassageFromPassageRef = (passageRef: string): Passage[] => {
+    passageRef = passageRef.trim().toLowerCase();
+    const matchingPassages: Passage[] = [];
+    for (let bookNm in bookAbbrev) {
+        const fullBookNm: string = bookAbbrev[bookNm][1];
+
+        // Exactly equal
+        if (passageRef === fullBookNm.toLowerCase()) {
+            matchingPassages.push(handleMatch(bookNm, EXACT_BOOK_MATCH, passageRef, fullBookNm));
+            continue;
+        }
+        // Passage reference contains one of the book names
+        if (passageRef.startsWith(fullBookNm.toLowerCase())) {
+            matchingPassages.push(handleMatch(bookNm, BOOK_MATCH_PLUS, passageRef, fullBookNm));
+            continue;
+        }
+        // the Passage reference passed in is a partial match to one of the book names
+        if (fullBookNm.toLowerCase().includes(passageRef)) {
+            matchingPassages.push(handleMatch(bookNm, PARTIAL_BOOK_MATCH, passageRef, fullBookNm));
+            // implicit continue
+        }
+    }
+    return matchingPassages;
+};
+
+const handleMatch = (bookNm: string, matchType: number, passageRef: string, fullBookNm: string): Passage => {
+    let passage = {} as Passage;
+    passage.chapter = 1;
+    passage.startVerse = 1;
+    passage.endVerse = 1;
+    passage.bookName = bookNm;
+    passage.bookId = getBookId(bookNm);
+    if (matchType === BOOK_MATCH_PLUS) {
+        handleBookMatchPlus(passageRef, fullBookNm, passage);
+    }
+    return passage;
+};
+
+export const getBookId = (bookKey: string): number => {
+    let keys: any[] = Object.keys(booksByNum);
+    for (let key of keys) {
+        const iKey = parseInt(key);
+        let book: string = booksByNum[iKey];
+        if (bookKey === book) {
+            return iKey;
+        }
+    }
+    return -1;
+};
+
+export const handleBookMatchPlus = (passageRef: string, fullBookNm: string, passage: Passage) => {
+    // assume that what is after the book is a chapter and possibly more
+    let chapter = passageRef.substring(fullBookNm.length + 1, passageRef.length);
+    if (chapter.includes(":")) {
+        // assume that they're trying to specify a verse or a verse range
+        let chapterParts = chapter.split(":");
+        if (!isNaN(Number(chapterParts[0]))) {
+            // assume that what is after the book name is a chapter
+            passage.chapter = parseInt(chapterParts[0]);
+        }
+        if (chapter.includes("-")) {
+            // this is a verse range
+            let verseRange = chapterParts[1].split("-");
+            if (!isNaN(Number(verseRange[0]))) {
+                passage.startVerse = parseInt(verseRange[0]);
+            }
+            if (!isNaN(Number(verseRange[1])) && verseRange[1] !== "") {
+                passage.endVerse = parseInt(verseRange[1]);
+            } else {
+                passage.endVerse = passage.startVerse;
+            }
+        } else {
+            // this is only 1 verse
+            if (!isNaN(Number(chapterParts[1])) && chapterParts[1] !== "") {
+                passage.startVerse = parseInt(chapterParts[1]);
+                passage.endVerse = passage.startVerse;
+            } else {
+                passage.startVerse = 1;
+                passage.endVerse = 1;
+            }
+        }
+    } else {
+        if (!isNaN(Number(chapter))) {
+            // assume that what is after the book name is a chapter
+            passage.chapter = parseInt(chapter);
+        }
+    }
+};
