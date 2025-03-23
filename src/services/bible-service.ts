@@ -22,6 +22,20 @@ interface BibleSearchPayload {
   user: string;
 }
 
+type SearchResultTuple = [string, string];
+
+interface EmailSearchResultsPayload {
+  emailTo: string;
+  searchResults: SearchResultTuple[];
+  searchParam: {
+    book: string;
+    translation: string;
+    testament: string;
+    searchPhrase: string;
+    user: string;
+  };
+}
+
 interface User {
   fileName: string;
   userName: string;
@@ -449,6 +463,18 @@ export class BibleService {
       return response.data;
     } catch (error) {
       return this.handleError(error, 'fetching max verses');
+    }
+  }
+
+  async sendSearchResults(payload: EmailSearchResultsPayload): Promise<string> {
+    try {
+      const response = await axios.post(
+          `${BibleService.BASE_URL}send_search_results.php`,
+          payload
+      );
+      return response.data;
+    } catch (error) {
+      return this.handleError(error, 'sending search results');
     }
   }
 

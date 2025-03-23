@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Container, Form, Button, Row, Col, Toast } from 'react-bootstrap';
+import { Container, Form, Button, Row, Col, Toast, Modal } from 'react-bootstrap';
 import { bookAbbrev, translations, USER } from '../models/constants';
 import { Passage } from '../models/passage';
 import { bibleService } from '../services/bible-service';
@@ -17,7 +17,10 @@ const BibleSearch: React.FC = () => {
   const [showToast, setShowToast] = useState<boolean>(false);
   const [toastMessage, setToastMessage] = useState<string>('');
   const [toastBg, setToastBg] = useState<string>('#28a745');
-  
+  const [showEmailModal, setShowEmailModal] = useState<boolean>(false);
+  const [emailAddress, setEmailAddress] = useState<string>('');
+  const [isSendingEmail, setIsSendingEmail] = useState<boolean>(false);
+
   const currentUser = useAppSelector(state => state.user.currentUser);
   const user = currentUser || USER;
 
@@ -91,6 +94,70 @@ const BibleSearch: React.FC = () => {
       console.error('Failed to copy text:', err);
       setToastMessage('Failed to copy text');
       setToastBg('#dc3545');
+      setShowToast(true);
+    }
+  };
+
+  const handleSendEmail = async () => {
+    if (!emailAddress || !searchResults.length) return;
+
+    setIsSendingEmail(true);
+    try {
+      // Format search results for email
+      const formattedResults: [string, string][] = searchResults.map(passage => {
+        const reference = `${getDisplayBookName(passage.bookId)} ${passage.chapter}:${passage.startVerse}${passage.endVerse !== passage.startVerse ? `-${passage.endVerse}` : ''} (${passage.translationId.toUpperCase()})`;
+
+        let verseText = '';
+        passage.verses.forEach(verse => {
+          verse.verseParts.forEach(part => {
+            const text = part.verseText;
+            // Add words of Christ class if needed
+            const formattedText = part.wordsOfChrist
+                ? `<span class='wordsOfChrist'>${text}</span>`
+                : text;
+            verseText += formattedText + ' ';
+          });
+        });
+
+        // Highlight search terms
+        const searchTerms = searchPhrase
+            .replace(/\*/g, '\\w*')
+            .split(' ')
+            .filter(term => term.length > 0);
+
+        const regex = new RegExp(`(${searchTerms.join('|')})`, 'gi');
+        verseText = verseText.replace(regex, '<span class=\'search_result\'>$1</span>');
+
+        return [reference, verseText.trim()];
+      });
+
+      const result = await bibleService.sendSearchResults({
+        emailTo: emailAddress,
+        searchResults: formattedResults,
+        searchParam: {
+          book: selectedBook,
+          translation: selectedTranslation,
+          testament: testament,
+          searchPhrase: searchPhrase,
+          user: user
+        }
+      });
+
+      if (result === 'success') {
+        setToastMessage('Search results sent successfully!');
+        setToastBg('#28a745');
+        setShowEmailModal(false);
+        setEmailAddress('');
+      } else {
+        setToastMessage(`Failed to send email: ${result}`);
+        setToastBg('#dc3545');
+      }
+    } catch (error) {
+      console.error('Error sending email:', error);
+      setToastMessage('Error sending email');
+      setToastBg('#dc3545');
+    } finally {
+      setIsSendingEmail(false);
       setShowToast(true);
     }
   };
@@ -230,15 +297,60 @@ const BibleSearch: React.FC = () => {
 
       {/* Search Results */}
       {searchResults.length > 0 && (
-        <div className="mt-4">
-          <h2 className="text-white mb-3">Search Results ({searchResults.length})</h2>
-          {searchResults.map((passage, index) => (
-            <div key={`${passage.passageId}-${index}`}>
-              {renderPassage(passage)}
+          <div className="mt-4">
+            <div className="d-flex justify-content-between align-items-center mb-3">
+              <h2 className="text-white mb-0">Search Results ({searchResults.length})</h2>
+              <Button
+                  variant="outline-light"
+                  onClick={() => setShowEmailModal(true)}
+              >
+                Email Results
+              </Button>
             </div>
-          ))}
-        </div>
+            {searchResults.map((passage, index) => (
+                <div key={`${passage.passageId}-${index}`}>
+                  {renderPassage(passage)}
+                </div>
+            ))}
+          </div>
       )}
+
+      {/* Email Modal */}
+      <Modal
+          show={showEmailModal}
+          onHide={() => setShowEmailModal(false)}
+          centered
+      >
+        <Modal.Header closeButton className="bg-dark text-white">
+          <Modal.Title>Email Search Results</Modal.Title>
+        </Modal.Header>
+        <Modal.Body className="bg-dark text-white">
+          <Form>
+            <Form.Group>
+              <Form.Label>Email Address</Form.Label>
+              <Form.Control
+                  type="email"
+                  value={emailAddress}
+                  onChange={(e) => setEmailAddress(e.target.value)}
+                  placeholder="Enter email address..."
+                  className="bg-dark text-white"
+              />
+            </Form.Group>
+          </Form>
+        </Modal.Body>
+        <Modal.Footer className="bg-dark text-white">
+          <Button variant="secondary" onClick={() => setShowEmailModal(false)}>
+            Cancel
+          </Button>
+          <Button
+              variant="primary"
+              onClick={handleSendEmail}
+              disabled={isSendingEmail || !emailAddress.trim()}
+          >
+            {isSendingEmail ? 'Sending...' : 'Send'}
+          </Button>
+        </Modal.Footer>
+      </Modal>
 
       {/* Toast notification for copy success/failure */}
       <Toast
