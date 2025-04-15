@@ -17,10 +17,11 @@ import {
     openBibleHubLink,
     OPEN_INTERLINEAR,
     openInterlinearLink,
-    EDIT_MEM_PASSAGE,
+    EDIT_MEM_PASSAGE, getPassageReference,
 } from '../models/passage-utils';
 import {useAppSelector} from '../store/hooks';
 import EditPassage from "./EditPassage.tsx";
+import copy from "clipboard-copy";
 
 const Practice = () => {
     const {mode, order} = useParams();
@@ -122,7 +123,7 @@ const Practice = () => {
 
         bibleService.updateLastViewed(user, passageId, lastViewedNum, lastViewedStr);
     };
-    
+
     const handleEditingComplete = (updatedPassage: Passage | null, overrideText: string | null) => {
         console.log("Practice.handleEditingComplete - overrideText=" + overrideText + " - updated passage:", updatedPassage);
         setShowEditModal(false);
@@ -328,6 +329,69 @@ const Practice = () => {
         setCurrentMode(BY_PSG_TXT);
     };
 
+    const handleCopy = async () => {
+        if (!currentPassage) return;
+
+        // If verses aren't loaded, load them first
+        if (!currentPassage.verses || currentPassage.verses.length === 0) {
+            try {
+                const passageWithVerses = await bibleService.getPassageText(
+                    user,
+                    translation,
+                    currentPassage.bookName,
+                    currentPassage.chapter,
+                    currentPassage.startVerse,
+                    currentPassage.endVerse
+                );
+
+                // Update the current passage with the loaded verses
+                setCurrentPassage({
+                    ...currentPassage,
+                    verses: passageWithVerses.verses
+                });
+
+                // Now copy the text with the newly loaded verses
+                const passageRef = getPassageReference(currentPassage);
+                const verseText = getUnformattedPassageTextNoVerseNumbers(passageWithVerses);
+                const textToCopy = `${passageRef}\n\n${verseText}`;
+
+                try {
+                    await copy(textToCopy);
+                    setToastMessage('Passage copied to clipboard!');
+                    setToastBg('#28a745');
+                    setShowToast(true);
+                } catch (err) {
+                    console.error('Failed to copy text:', err);
+                    setToastMessage('Failed to copy text');
+                    setToastBg('#dc3545');
+                    setShowToast(true);
+                }
+            } catch (error) {
+                console.error('Error loading verses:', error);
+                setToastMessage('Error loading verses');
+                setToastBg('#dc3545');
+                setShowToast(true);
+            }
+        } else {
+            // Verses are already loaded, just copy the text
+            const passageRef = getPassageReference(currentPassage);
+            const verseText = getUnformattedPassageTextNoVerseNumbers(currentPassage);
+            const textToCopy = `${passageRef}\n\n${verseText}`;
+
+            try {
+                await copy(textToCopy);
+                setToastMessage('Passage copied to clipboard!');
+                setToastBg('#28a745');
+                setShowToast(true);
+            } catch (err) {
+                console.error('Failed to copy text:', err);
+                setToastMessage('Failed to copy text');
+                setToastBg('#dc3545');
+                setShowToast(true);
+            }
+        }
+    };
+
     const getModeDisplayText = (mode: string | undefined) => {
         switch (mode) {
             case BY_PSG_TXT:
@@ -396,6 +460,7 @@ const Practice = () => {
                 downEnabled={downEnabled}
                 onQuestionClick={handleQuestionClick}
                 onLightbulbClick={handleLightbulbClick}
+                onCopy={handleCopy}
                 additionalMenus={[
                     {...OPEN_IN_BIBLEHUB, callbackFunction: () => openBibleHubLink(currentPassage)},
                     {...OPEN_INTERLINEAR, callbackFunction: () => openInterlinearLink(currentPassage)},
@@ -484,16 +549,16 @@ const Practice = () => {
             {currentPassage && (
                 <EditPassage
                     props={
-                    {
-                        passage: currentPassage,
-                        overrides: overrides,
-                        visible: showEditModal,
-                        setVisibleFunction: (updatedPassage: Passage, newText: string, closedNoChange: boolean) =>
-                            closedNoChange ?
-                                setShowEditModal(false) :
-                                handleEditingComplete(updatedPassage, newText)
+                        {
+                            passage: currentPassage,
+                            overrides: overrides,
+                            visible: showEditModal,
+                            setVisibleFunction: (updatedPassage: Passage, newText: string, closedNoChange: boolean) =>
+                                closedNoChange ?
+                                    setShowEditModal(false) :
+                                    handleEditingComplete(updatedPassage, newText)
+                        }
                     }
-                }
                 />
             )}
         </SwipeContainer>

@@ -14,7 +14,7 @@ import {
 import { translationsShortNms } from '../models/constants';
 import { useState } from 'react';
 import copy from 'clipboard-copy';
-import { getDisplayBookName } from '../models/passage-utils';
+import {getPassageReference} from '../models/passage-utils';
 
 interface MenuItem {
   itemLabel: string;
@@ -65,18 +65,6 @@ const Toolbar: React.FC<ToolbarProps> = ({
   const [toastMessage, setToastMessage] = useState('');
   const [toastBg, setToastBg] = useState('#28a745');
 
-  const getPassageReference = () => {
-    if (!currentPassage) return '';
-    const bookName = getDisplayBookName(currentPassage.bookId);
-    const baseRef = `${bookName} ${currentPassage.chapter}:${currentPassage.startVerse}`;
-    if (currentPassage.endVerse !== currentPassage.startVerse) {
-      return `${baseRef}-${currentPassage.endVerse}${
-        currentPassage.passageRefAppendLetter || ''
-      }`;
-    }
-    return `${baseRef}${currentPassage.passageRefAppendLetter || ''}`;
-  };
-
   const handleCopy = async () => {
     if (onCopy) {
       onCopy();
@@ -91,7 +79,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
         return;
       }
 
-      const passageRef = getPassageReference();
+      const passageRef = getPassageReference(currentPassage);
       const verseText = getUnformattedText(currentPassage);
       const textToCopy = `${passageRef}\n\n${verseText}`;
 

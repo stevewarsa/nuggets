@@ -221,6 +221,18 @@ export const getFrequencyGroups = (
     return frequencyGroups;
 };
 
+export const getPassageReference = (currentPassage: Passage) => {
+    if (!currentPassage) return '';
+    const bookName = getDisplayBookName(currentPassage.bookId);
+    const baseRef = `${bookName} ${currentPassage.chapter}:${currentPassage.startVerse}`;
+    if (currentPassage.endVerse !== currentPassage.startVerse) {
+        return `${baseRef}-${currentPassage.endVerse}${
+            currentPassage.passageRefAppendLetter || ''
+        }`;
+    }
+    return `${baseRef}${currentPassage.passageRefAppendLetter || ''}`;
+};
+
 export const getBookName = (bookId: number) => {
     const matchingRec = Object.keys(booksByNum).filter((bookNum) => {
         return parseInt(bookNum) === bookId;
