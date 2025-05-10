@@ -1,6 +1,15 @@
-import {Container, Spinner, Button, Collapse, Toast, Modal} from 'react-bootstrap';
+import {
+    Container,
+    Spinner,
+    Button,
+    Collapse,
+    Toast,
+    Modal,
+    Form,
+    InputGroup,
+} from 'react-bootstrap';
 import {useParams} from 'react-router-dom';
-import {useState, useEffect} from 'react';
+import {useState, useEffect, useRef} from 'react';
 import {Passage} from '../models/passage';
 import {bibleService} from '../services/bible-service';
 import {USER, GUEST_USER} from '../models/constants';
@@ -17,11 +26,14 @@ import {
     openBibleHubLink,
     OPEN_INTERLINEAR,
     openInterlinearLink,
-    EDIT_MEM_PASSAGE, getPassageReference,
+    EDIT_MEM_PASSAGE,
+    getPassageReference,
 } from '../models/passage-utils';
 import {useAppSelector} from '../store/hooks';
-import EditPassage from "./EditPassage.tsx";
-import copy from "clipboard-copy";
+import EditPassage from './EditPassage.tsx';
+import copy from 'clipboard-copy';
+import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
+import {faSearch} from '@fortawesome/free-solid-svg-icons';
 
 const Practice = () => {
     const {mode, order} = useParams();
@@ -43,14 +55,25 @@ const Practice = () => {
     const [isUpdating, setIsUpdating] = useState(false);
     const [showConfirmModal, setShowConfirmModal] = useState(false);
     const [pendingFrequencyChange, setPendingFrequencyChange] = useState<{
-        direction: string,
-        newFrequency: number
+        direction: string;
+        newFrequency: number;
     } | null>(null);
     const [showEditModal, setShowEditModal] = useState(false);
+    const [showGoToModal, setShowGoToModal] = useState(false);
+    const [searchTerm, setSearchTerm] = useState('');
 
-    const currentUser = useAppSelector(state => state.user.currentUser);
+    const searchInputRef = useRef<HTMLInputElement>(null);
+
+    const currentUser = useAppSelector((state) => state.user.currentUser);
     const user = currentUser || USER;
     const isGuestUser = currentUser === GUEST_USER;
+
+    // Focus search input when modal opens
+    useEffect(() => {
+        if (showGoToModal && searchInputRef.current) {
+            searchInputRef.current.focus();
+        }
+    }, [showGoToModal]);
 
     useEffect(() => {
         const fetchMemoryPassages = async () => {
@@ -118,19 +141,27 @@ const Practice = () => {
         if (isGuestUser) return;
 
         const now = new Date();
-        const lastViewedStr = DateUtils.formatDateTime(now, "MM-dd-yy KK:mm:ss");
+        const lastViewedStr = DateUtils.formatDateTime(now, 'MM-dd-yy KK:mm:ss');
         const lastViewedNum = now.getTime();
 
         bibleService.updateLastViewed(user, passageId, lastViewedNum, lastViewedStr);
     };
 
-    const handleEditingComplete = (updatedPassage: Passage | null, overrideText: string | null) => {
-        console.log("Practice.handleEditingComplete - overrideText=" + overrideText + " - updated passage:", updatedPassage);
+    const handleEditingComplete = (
+        updatedPassage: Passage | null,
+        overrideText: string | null
+    ) => {
+        console.log(
+            'Practice.handleEditingComplete - overrideText=' +
+            overrideText +
+            ' - updated passage:',
+            updatedPassage
+        );
         setShowEditModal(false);
 
         if (updatedPassage) {
             // Update the passage in memPsgList
-            const updatedList = memPsgList.map(passage =>
+            const updatedList = memPsgList.map((passage) =>
                 passage.passageId === updatedPassage.passageId ? updatedPassage : passage
             );
             setMemPsgList(updatedList);
@@ -144,25 +175,31 @@ const Practice = () => {
             if (overrideText !== null) {
                 const newOverride = {
                     ...updatedPassage,
-                    verses: [{
-                        passageId: updatedPassage.passageId,
-                        verseParts: [{
-                            verseNumber: updatedPassage.startVerse,
-                            versePartId: 1,
-                            verseText: overrideText,
-                            wordsOfChrist: false
-                        }]
-                    }]
+                    verses: [
+                        {
+                            passageId: updatedPassage.passageId,
+                            verseParts: [
+                                {
+                                    verseNumber: updatedPassage.startVerse,
+                                    versePartId: 1,
+                                    verseText: overrideText,
+                                    wordsOfChrist: false,
+                                },
+                            ],
+                        },
+                    ],
                 };
 
-                const updatedOverrides = overrides.filter(o => o.passageId !== updatedPassage.passageId);
+                const updatedOverrides = overrides.filter(
+                    (o) => o.passageId !== updatedPassage.passageId
+                );
                 updatedOverrides.push(newOverride);
                 setOverrides(updatedOverrides);
 
                 // Update the current passage
                 setCurrentPassage({...updatedPassage, verses: newOverride.verses});
             } else {
-                setCurrentPassage(updatedPassage)
+                setCurrentPassage(updatedPassage);
             }
 
             // Show success message
@@ -254,22 +291,19 @@ const Practice = () => {
         // Create a copy of the current passage with updated frequency
         const updatedPassage = {
             ...currentPassage,
-            frequencyDays: newFrequency
+            frequencyDays: newFrequency,
         };
 
         try {
             // Call the API to update the passage
-            const result = await bibleService.updatePassage(
-                user,
-                updatedPassage
-            );
+            const result = await bibleService.updatePassage(user, updatedPassage);
 
-            if (result === "success") {
+            if (result === 'success') {
                 // Update the current passage in state
                 setCurrentPassage(updatedPassage);
 
                 // Update the passage in the memPsgList
-                const updatedList = memPsgList.map(passage =>
+                const updatedList = memPsgList.map((passage) =>
                     passage.passageId === currentPassage.passageId
                         ? {...passage, frequencyDays: newFrequency}
                         : passage
@@ -347,12 +381,14 @@ const Practice = () => {
                 // Update the current passage with the loaded verses
                 setCurrentPassage({
                     ...currentPassage,
-                    verses: passageWithVerses.verses
+                    verses: passageWithVerses.verses,
                 });
 
                 // Now copy the text with the newly loaded verses
                 const passageRef = getPassageReference(currentPassage);
-                const verseText = getUnformattedPassageTextNoVerseNumbers(passageWithVerses);
+                const verseText = getUnformattedPassageTextNoVerseNumbers(
+                    passageWithVerses
+                );
                 const textToCopy = `${passageRef}\n\n${verseText}`;
 
                 try {
@@ -418,6 +454,32 @@ const Practice = () => {
         }
     };
 
+    const handleGoToPassage = (index: number) => {
+        setCurrentIndex(index);
+        setCurrentPassage(memPsgList[index]);
+        setShowGoToModal(false);
+        setSearchTerm(''); // Clear search term when modal is closed
+        setTranslation(memPsgList[index].translationName);
+    };
+
+    // Filter passages based on search term
+    const filteredPassages = memPsgList.filter((passage) => {
+        if (!searchTerm) return true;
+        const reference = getPassageReference(passage, false).toLowerCase();
+        return reference.includes(searchTerm.toLowerCase());
+    });
+
+    // Sort passages by book, chapter, and start verse
+    const sortedPassages = [...filteredPassages].sort((a, b) => {
+        if (a.bookId !== b.bookId) {
+            return a.bookId - b.bookId;
+        }
+        if (a.chapter !== b.chapter) {
+            return a.chapter - b.chapter;
+        }
+        return a.startVerse - b.startVerse;
+    });
+
     if (isInitializing) {
         return (
             <Container className="p-4 text-white text-center">
@@ -438,6 +500,18 @@ const Practice = () => {
     // For guest users, disable up/down buttons regardless of frequency
     const upEnabled = !isGuestUser && currentPassage.frequencyDays > 1;
     const downEnabled = !isGuestUser && currentPassage.frequencyDays < 3;
+
+    // Create additional menus for the toolbar
+    const additionalMenus = [
+        {
+            itemLabel: 'Go to Passage...',
+            icon: faSearch,
+            callbackFunction: () => setShowGoToModal(true),
+        },
+        {...OPEN_IN_BIBLEHUB, callbackFunction: () => openBibleHubLink(currentPassage)},
+        {...OPEN_INTERLINEAR, callbackFunction: () => openInterlinearLink(currentPassage)},
+        {...EDIT_MEM_PASSAGE, callbackFunction: () => setShowEditModal(true)},
+    ];
 
     return (
         <SwipeContainer
@@ -461,11 +535,7 @@ const Practice = () => {
                 onQuestionClick={handleQuestionClick}
                 onLightbulbClick={handleLightbulbClick}
                 onCopy={handleCopy}
-                additionalMenus={[
-                    {...OPEN_IN_BIBLEHUB, callbackFunction: () => openBibleHubLink(currentPassage)},
-                    {...OPEN_INTERLINEAR, callbackFunction: () => openInterlinearLink(currentPassage)},
-                    {...EDIT_MEM_PASSAGE, callbackFunction: () => setShowEditModal(true)},
-                ]}
+                additionalMenus={additionalMenus}
             />
 
             <div className="text-center mb-3">
@@ -476,13 +546,14 @@ const Practice = () => {
                     aria-controls="info-collapse"
                     aria-expanded={showInfo}
                 >
-                    {showInfo ? '▼ Hide Info' : '▶ Info (Box: ' + currentPassage.frequencyDays + ')'}
+                    {showInfo
+                        ? '▼ Hide Info'
+                        : '▶ Info (Box: ' + currentPassage.frequencyDays + ')'}
                 </Button>
                 <Collapse in={showInfo}>
                     <div id="info-collapse">
                         <div className="text-white-50 mb-2">
-                            Mode: {getModeDisplayText(mode)} | Order:{' '}
-                            {getOrderDisplayText(order)}
+                            Mode: {getModeDisplayText(mode)} | Order: {getOrderDisplayText(order)}
                         </div>
                         <div className="text-white-50">
                             Box: {currentPassage.frequencyDays} | Last Practiced:{' '}
@@ -531,9 +602,7 @@ const Practice = () => {
                 </Modal.Header>
                 <Modal.Body className="bg-dark text-white">
                     {pendingFrequencyChange && (
-                        <p>
-                            Change frequency to Box {pendingFrequencyChange.newFrequency}?
-                        </p>
+                        <p>Change frequency to Box {pendingFrequencyChange.newFrequency}?</p>
                     )}
                 </Modal.Body>
                 <Modal.Footer className="bg-dark text-white">
@@ -545,22 +614,83 @@ const Practice = () => {
                     </Button>
                 </Modal.Footer>
             </Modal>
+
             {/* Edit Passage Modal */}
             {currentPassage && (
                 <EditPassage
-                    props={
-                        {
-                            passage: currentPassage,
-                            overrides: overrides,
-                            visible: showEditModal,
-                            setVisibleFunction: (updatedPassage: Passage, newText: string, closedNoChange: boolean) =>
-                                closedNoChange ?
-                                    setShowEditModal(false) :
-                                    handleEditingComplete(updatedPassage, newText)
-                        }
-                    }
+                    props={{
+                        passage: currentPassage,
+                        overrides: overrides,
+                        visible: showEditModal,
+                        setVisibleFunction: (
+                            updatedPassage: Passage,
+                            newText: string,
+                            closedNoChange: boolean
+                        ) =>
+                            closedNoChange
+                                ? setShowEditModal(false)
+                                : handleEditingComplete(updatedPassage, newText),
+                    }}
                 />
             )}
+
+            {/* Go to Passage Modal */}
+            <Modal
+                show={showGoToModal}
+                onHide={() => {
+                    setShowGoToModal(false);
+                    setSearchTerm(''); // Clear search term when modal is closed
+                }}
+                centered
+                size="lg"
+            >
+                <Modal.Header closeButton className="bg-dark text-white">
+                    <Modal.Title>Go to Passage</Modal.Title>
+                </Modal.Header>
+                <Modal.Body className="bg-dark text-white">
+                    <InputGroup className="mb-3">
+                        <InputGroup.Text className="bg-dark text-white border-secondary">
+                            <FontAwesomeIcon icon={faSearch}/>
+                        </InputGroup.Text>
+                        <Form.Control
+                            ref={searchInputRef}
+                            placeholder="Search passages..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="bg-dark text-white border-secondary"
+                        />
+                        {searchTerm && (
+                            <Button variant="outline-secondary" onClick={() => setSearchTerm('')}>
+                                Clear
+                            </Button>
+                        )}
+                    </InputGroup>
+
+                    <div style={{maxHeight: '60vh', overflowY: 'auto'}}>
+                        {sortedPassages.map((passage) => (
+                            <div key={passage.passageId} className="mb-2">
+                                <Button
+                                    variant="link"
+                                    className="text-white text-decoration-none text-start w-100"
+                                    onClick={() =>
+                                        handleGoToPassage(
+                                            memPsgList.findIndex((p) => p.passageId === passage.passageId)
+                                        )
+                                    }
+                                >
+                                    {getPassageReference(passage, false)}
+                                </Button>
+                            </div>
+                        ))}
+                    </div>
+
+                    {sortedPassages.length === 0 && (
+                        <p className="text-center text-muted">
+                            No passages match your search.
+                        </p>
+                    )}
+                </Modal.Body>
+            </Modal>
         </SwipeContainer>
     );
 };

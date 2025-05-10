@@ -221,9 +221,9 @@ export const getFrequencyGroups = (
     return frequencyGroups;
 };
 
-export const getPassageReference = (currentPassage: Passage) => {
+export const getPassageReference = (currentPassage: Passage, shortBook: boolean = true) => {
     if (!currentPassage) return '';
-    const bookName = getDisplayBookName(currentPassage.bookId);
+    const bookName = getDisplayBookName(currentPassage.bookId, shortBook);
     const baseRef = `${bookName} ${currentPassage.chapter}:${currentPassage.startVerse}`;
     if (currentPassage.endVerse !== currentPassage.startVerse) {
         return `${baseRef}-${currentPassage.endVerse}${
@@ -240,9 +240,9 @@ export const getBookName = (bookId: number) => {
     return matchingRec.map((bookNum: any) => booksByNum[bookNum])[0];
 };
 
-export const getDisplayBookName = (bookId: number): string => {
+export const getDisplayBookName = (bookId: number, shortBook: boolean = true): string => {
     const basicName: string = getBookName(bookId);
-    return basicName ? bookAbbrev[basicName][0] : 'Unknown Book';
+    return basicName ? bookAbbrev[basicName][shortBook ? 0 : 1] : 'Unknown Book';
 };
 
 export const shuffleArray = (arr: any[]) => {
