@@ -194,7 +194,7 @@ const EditPassage = ({ props }: { props: EditPassageProps }) => {
             (async () => {
                 const resp = await bibleService.getPassageText(
                     user,
-                    translation,
+                    locPassage.translationId,
                     locPassage.bookName,
                     locPassage.chapter,
                     startVerse,
