@@ -9,11 +9,14 @@ import { booksByNum, USER, GUEST_USER } from '../models/constants';
 import {
   getUnformattedPassageTextNoVerseNumbers,
   getNextBook,
-  getDisplayBookName,
-  openBibleHubLink, COPY_VERSE_RANGE, OPEN_IN_BIBLEHUB, ADD_TO_MEMORY_VERSES, OPEN_INTERLINEAR, openInterlinearLink
+  openBibleHubLink,
+  COPY_VERSE_RANGE,
+  OPEN_IN_BIBLEHUB,
+  ADD_TO_MEMORY_VERSES,
+  OPEN_INTERLINEAR,
+  openInterlinearLink, handleCopyVerseRange
 } from '../models/passage-utils';
 import SwipeContainer from './SwipeContainer';
-import copy from 'clipboard-copy';
 import { useAppSelector } from '../store/hooks';
 
 const ReadBibleChapter = () => {
@@ -140,7 +143,16 @@ const ReadBibleChapter = () => {
     if (!passage || !book) return;
 
     if (copyMode) {
-      handleCopyVerseRange(startVerse, endVerse);
+      const success = handleCopyVerseRange(startVerse, endVerse, passage);
+      if (success) {
+        setToastMessage('Passage copied to clipboard!');
+        setToastBg('#28a745');
+        setShowToast(true);
+      } else {
+        setToastMessage('Failed to copy text');
+        setToastBg('#dc3545');
+        setShowToast(true);
+      }
       setCopyMode(false);
     } if (bibleHubMode) {
       const bibleHubPassage = {...passage,
@@ -184,42 +196,6 @@ const ReadBibleChapter = () => {
       } catch (error) {
         console.error('Error adding memory passage:', error);
       }
-    }
-  };
-
-  const handleCopyVerseRange = async (startVerse: number, endVerse: number) => {
-    if (!passage || !passage.verses) return;
-
-    const selectedVerses = passage.verses.filter(
-      verse => {
-        const verseNum = verse.verseParts[0].verseNumber;
-        return verseNum >= startVerse && verseNum <= endVerse;
-      }
-    );
-
-    if (selectedVerses.length === 0) return;
-
-    const reference = `${getDisplayBookName(passage.bookId)} ${passage.chapter}:${startVerse}${endVerse !== startVerse ? `-${endVerse}` : ''}`;
-    
-    let verseText = '';
-    selectedVerses.forEach(verse => {
-      verse.verseParts.forEach(part => {
-        verseText += part.verseText + ' ';
-      });
-    });
-
-    const textToCopy = `${reference}\n\n${verseText.trim()}`;
-    
-    try {
-      await copy(textToCopy);
-      setToastMessage('Passage copied to clipboard!');
-      setToastBg('#28a745');
-      setShowToast(true);
-    } catch (err) {
-      console.error('Failed to copy text:', err);
-      setToastMessage('Failed to copy text');
-      setToastBg('#dc3545');
-      setShowToast(true);
     }
   };
 

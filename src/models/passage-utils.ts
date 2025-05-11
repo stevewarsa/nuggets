@@ -9,6 +9,7 @@ import {
     faSearch,
     faTags
 } from "@fortawesome/free-solid-svg-icons";
+import copy from "clipboard-copy";
 
 export const RAND: string = 'rand';
 export const BY_FREQ: string = 'by_freq';
@@ -219,6 +220,37 @@ export const getFrequencyGroups = (
     }
 
     return frequencyGroups;
+};
+
+export const handleCopyVerseRange = async (startVerse: number, endVerse: number, psg: Passage) => {
+    if (!psg || !psg.verses) return;
+
+    const selectedVerses = psg.verses.filter(
+        verse => {
+            const verseNum = verse.verseParts[0].verseNumber;
+            return verseNum >= startVerse && verseNum <= endVerse;
+        }
+    );
+
+    if (selectedVerses.length === 0) return;
+
+    const reference = `${getDisplayBookName(psg.bookId)} ${psg.chapter}:${startVerse}${endVerse !== startVerse ? `-${endVerse}` : ''}`;
+
+    let verseText = '';
+    selectedVerses.forEach(verse => {
+        verse.verseParts.forEach(part => {
+            verseText += part.verseText + ' ';
+        });
+    });
+
+    const textToCopy = `${reference}\n\n${verseText.trim()}`;
+    try {
+        await copy(textToCopy);
+        return true;
+    } catch (err) {
+        console.error('Failed to copy text:', err);
+        return false;
+    }
 };
 
 export const getPassageReference = (currentPassage: Passage, shortBook: boolean = true) => {

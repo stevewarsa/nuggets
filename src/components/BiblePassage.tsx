@@ -1,10 +1,12 @@
 import React, {useEffect, useState} from 'react';
-import {Container, Spinner, Modal, Form, Button} from 'react-bootstrap';
+import {Container, Spinner, Modal, Form, Button, Toast} from 'react-bootstrap';
 import {Passage} from '../models/passage';
 import {USER, translationsShortNms} from '../models/constants';
 import {bibleService} from '../services/bible-service';
-import {getBookName, getDisplayBookName} from '../models/passage-utils';
+import {getBookName, getDisplayBookName, handleCopyVerseRange} from '../models/passage-utils';
 import {useAppSelector} from '../store/hooks';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faCopy, faArrowUp } from '@fortawesome/free-solid-svg-icons';
 
 interface BiblePassageProps {
     passage: Passage;
@@ -37,9 +39,23 @@ const BiblePassage: React.FC<BiblePassageProps> = ({
     const [busy, setBusy] = useState<boolean>(false);
     const [seconds, setSeconds] = useState<number>(0);
     const [selectedVerses, setSelectedVerses] = useState<number[]>([]);
+    const [showFloatingButtons, setShowFloatingButtons] = useState<boolean>(false);
+    const [showToast, setShowToast] = useState<boolean>(false);
+    const [toastMessage, setToastMessage] = useState<string>('');
+    const [toastBg, setToastBg] = useState<string>('');
+    const [internalVerseModal, setInternalVerseModal] = useState<boolean>(false);
 
     const currentUser = useAppSelector(state => state.user.currentUser);
     const user = currentUser || USER;
+
+    useEffect(() => {
+        const handleScroll = () => {
+            setShowFloatingButtons(window.scrollY > 100);
+        };
+
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
 
     useEffect(() => {
         console.log('BiblePassage.tsx -showVerseText = ' + showVerseText + ', passage passed in changed:', passage);
@@ -114,6 +130,13 @@ const BiblePassage: React.FC<BiblePassageProps> = ({
         }
     }, [localPassage.verses]);
 
+    const scrollToTop = () => {
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
+    };
+
     const translationName = translationsShortNms.find(t => t.code === translation)?.translationName || '';
 
     const handleVerseSelect = (verseNumber: number) => {
@@ -129,18 +152,40 @@ const BiblePassage: React.FC<BiblePassageProps> = ({
     };
 
     const handleSubmitVerseSelection = () => {
-        if (selectedVerses.length > 0 && onVerseSelection) {
-            const startVerse = selectedVerses[0];
-            const endVerse = selectedVerses.length > 1 ? selectedVerses[1] : startVerse;
-            onVerseSelection(startVerse, endVerse);
+        if (selectedVerses.length === 0) {
+            return;
+        }
+        const startVerse = selectedVerses[0];
+        const endVerse = selectedVerses.length > 1 ? selectedVerses[1] : startVerse;
+        if (internalVerseModal) {
+            // this was triggered by clicking on the floating icon to copy verses
+            const success = handleCopyVerseRange(startVerse, endVerse, passage);
+            if (success) {
+                setToastMessage('Passage copied to clipboard!');
+                setToastBg('#28a745');
+                setShowToast(true);
+            } else {
+                setToastMessage('Failed to copy text');
+                setToastBg('#dc3545');
+                setShowToast(true);
+            }
+            setInternalVerseModal(false);
+        } else {
+            if (onVerseSelection) {
+                onVerseSelection(startVerse, endVerse);
+            }
+            onVerseModalClose?.();
         }
         setSelectedVerses([]);
-        onVerseModalClose?.();
     };
 
     const handleCloseModal = () => {
         setSelectedVerses([]);
-        onVerseModalClose?.();
+        if (internalVerseModal) {
+            setInternalVerseModal(false);
+        } else {
+            onVerseModalClose?.();
+        }
     };
 
     const getVerseText = (verse: any) => {
@@ -200,8 +245,51 @@ const BiblePassage: React.FC<BiblePassageProps> = ({
                     </p>
                 )}
             </Container>
-
-            <Modal show={showVerseModal} onHide={handleCloseModal} size="lg">
+            {showFloatingButtons && (
+                <div
+                    style={{
+                        position: 'fixed',
+                        bottom: '20px',
+                        right: '20px',
+                        display: 'flex',
+                        gap: '10px',
+                        zIndex: 1000
+                    }}
+                >
+                    <Button
+                        variant="primary"
+                        size="lg"
+                        onClick={() => setInternalVerseModal(true)}
+                        style={{ borderRadius: '50%', width: '50px', height: '50px' }}
+                    >
+                        <FontAwesomeIcon icon={faCopy} />
+                    </Button>
+                    <Button
+                        variant="secondary"
+                        size="lg"
+                        onClick={scrollToTop}
+                        style={{ borderRadius: '50%', width: '50px', height: '50px' }}
+                    >
+                        <FontAwesomeIcon icon={faArrowUp} />
+                    </Button>
+                </div>
+            )}
+            <Toast
+                onClose={() => setShowToast(false)}
+                show={showToast}
+                delay={3000}
+                autohide
+                style={{
+                    position: 'fixed',
+                    top: 20,
+                    right: 20,
+                    background: toastBg,
+                    color: 'white',
+                }}
+            >
+                <Toast.Body>{toastMessage}</Toast.Body>
+            </Toast>
+            <Modal show={showVerseModal || internalVerseModal} onHide={handleCloseModal} size="lg">
                 <Modal.Header closeButton>
                     <Modal.Title>Select Verses</Modal.Title>
                 </Modal.Header>
