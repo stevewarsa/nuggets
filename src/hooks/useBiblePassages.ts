@@ -1,4 +1,4 @@
-import {useState, useEffect} from 'react';
+import {useState, useEffect, useMemo} from 'react';
 import {Passage} from '../models/passage';
 import {bibleService} from '../services/bible-service';
 import {
@@ -7,16 +7,37 @@ import {
 } from '../models/passage-utils';
 import {USER} from '../models/constants';
 import {useAppSelector} from '../store/hooks';
+import {useTopics} from "./useTopics.ts";
 
 export const useBiblePassages = () => {
+    const {topics} = useTopics();
     const [allPassages, setAllPassages] = useState<Passage[]>([]);
     const [passages, setPassages] = useState<Passage[]>([]);
     const [currentPassage, setCurrentPassage] = useState<Passage | null>(null);
     const [currentIndex, setCurrentIndex] = useState<number>(0);
     const [translation, setTranslation] = useState<string>('niv');
+    const [showFilterModal, setShowFilterModal] = useState(false);
+    const [selectedTopicIds, setSelectedTopicIds] = useState<number[]>([]);
+    const [topicSearchTerm, setTopicSearchTerm] = useState('');
+    const [showTopics, setShowTopics] = useState(false);
 
     const currentUser = useAppSelector(state => state.user.currentUser);
     const user = currentUser || USER;
+
+    // Calculate topic counts from all passages
+    const topicCounts = useMemo(() => {
+        const counts: { [key: number]: number } = {};
+        if (allPassages) {
+            allPassages.forEach(passage => {
+                if (passage.topics) {
+                    passage.topics.forEach(topic => {
+                        counts[topic.id] = (counts[topic.id] || 0) + 1;
+                    });
+                }
+            });
+        }
+        return counts;
+    }, [allPassages]);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -35,6 +56,37 @@ export const useBiblePassages = () => {
 
         fetchData();
     }, [user]);
+
+    // Filter topics based on search term
+    const filteredTopics = topics.filter(topic =>
+        topicSearchTerm.trim() === '' ||
+        topic.name.toLowerCase().includes(topicSearchTerm.toLowerCase())
+    );
+
+    // Sort topics by count (most used first) and then alphabetically
+    const sortedTopics = useMemo(() => {
+        return [...filteredTopics].sort((a, b) => {
+            const countA = topicCounts[a.id] || 0;
+            const countB = topicCounts[b.id] || 0;
+
+            if (countB !== countA) {
+                return countB - countA; // Sort by count descending
+            }
+
+            // If counts are equal, sort alphabetically
+            return a.name.localeCompare(b.name);
+        });
+    }, [filteredTopics, topicCounts]);
+
+    const handleTopicFilterChange = (topicId: number) => {
+        setSelectedTopicIds(prev => {
+            if (prev.includes(topicId)) {
+                return prev.filter(id => id !== topicId);
+            } else {
+                return [...prev, topicId];
+            }
+        });
+    };
 
     const handleToolbarClick = (indicator: string) => {
         switch (indicator) {
@@ -84,12 +136,15 @@ export const useBiblePassages = () => {
             setCurrentIndex(0);
             setCurrentPassage(filteredPassages[0] || null);
         }
+        setShowFilterModal(false);
     };
 
     const clearTopicFilter = () => {
         setPassages(allPassages);
         setCurrentIndex(0);
         setCurrentPassage(allPassages[0]);
+        setSelectedTopicIds([]);
+        setShowFilterModal(false);
     };
 
     return {
@@ -98,6 +153,14 @@ export const useBiblePassages = () => {
             currentIndex,
             totalCount: passages.length,
             translation,
+            allPassages,
+            selectedTopicIds,
+            showTopics,
+            showFilterModal,
+            topicSearchTerm,
+            topics,
+            sortedTopics,
+            topicCounts
         },
         functions: {
             handleNext,
@@ -106,6 +169,10 @@ export const useBiblePassages = () => {
             handleTranslationChange,
             applyTopicFilter,
             clearTopicFilter,
+            setShowFilterModal,
+            setShowTopics,
+            setTopicSearchTerm,
+            handleTopicFilterChange
         },
     };
 };
