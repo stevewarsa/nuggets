@@ -403,15 +403,7 @@ export class BibleService {
     }
   }
 
-  async getNuggetIdList(user: string): Promise<
-    {
-      nuggetId: number;
-      bookId: number;
-      chapter: number;
-      startVerse: number;
-      endVerse: number;
-    }[]
-  > {
+  async getNuggetIdList(user: string): Promise<Passage[]> {
     try {
       const response = await axios.get(
         `${BibleService.BASE_URL}get_nugget_id_list.php`,
