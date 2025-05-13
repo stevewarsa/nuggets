@@ -70,6 +70,12 @@ interface Link {
   action: string;
 }
 
+interface AddPassageTopicPayload {
+  user: string;
+  topicIds: number[];
+  passageId: number;
+}
+
 export class BibleService {
   //private static readonly BASE_URL = 'https://ps11911.com/bible/api/';
   private static readonly BASE_URL = '/bible/api/';
@@ -171,6 +177,24 @@ export class BibleService {
       return response.data;
     } catch (error) {
       return this.handleError(error, 'adding quote topics');
+    }
+  }
+
+  async addPassageTopics(user: string, topicIds: number[], passageId: number): Promise<string> {
+    try {
+      const payload: AddPassageTopicPayload = {
+        user,
+        topicIds,
+        passageId
+      };
+
+      const response = await axios.post(
+          `${BibleService.BASE_URL}add_passage_topic.php`,
+          payload
+      );
+      return response.data;
+    } catch (error) {
+      return this.handleError(error, 'adding passage topics');
     }
   }
 

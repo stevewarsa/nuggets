@@ -17,9 +17,12 @@ export const useBiblePassages = () => {
     const [currentIndex, setCurrentIndex] = useState<number>(0);
     const [translation, setTranslation] = useState<string>('niv');
     const [showFilterModal, setShowFilterModal] = useState(false);
+    const [showManageTopicsModal, setShowManageTopicsModal] = useState(false);
     const [selectedTopicIds, setSelectedTopicIds] = useState<number[]>([]);
+    const [topicsToAdd, setTopicsToAdd] = useState<number[]>([]);
     const [topicSearchTerm, setTopicSearchTerm] = useState('');
     const [showTopics, setShowTopics] = useState(false);
+    const [isAddingTopics, setIsAddingTopics] = useState(false);
 
     const currentUser = useAppSelector(state => state.user.currentUser);
     const user = currentUser || USER;
@@ -39,6 +42,38 @@ export const useBiblePassages = () => {
         return counts;
     }, [allPassages]);
 
+    // Filter and sort topics for the filter modal
+    const sortedTopics = useMemo(() => {
+        return topics
+            .filter(topic =>
+                !topicSearchTerm.trim() ||
+                topic.name.toLowerCase().includes(topicSearchTerm.toLowerCase())
+            )
+            .sort((a, b) => {
+                const countA = topicCounts[a.id] || 0;
+                const countB = topicCounts[b.id] || 0;
+
+                if (countB !== countA) {
+                    return countB - countA; // Sort by count descending
+                }
+                return a.name.localeCompare(b.name); // Then alphabetically
+            });
+    }, [topics, topicCounts, topicSearchTerm]);
+
+    // Filter topics based on search term and current passage's topics
+    const availableTopics = useMemo(() => {
+        return topics.filter(topic => {
+            // Filter out topics already associated with the current passage
+            const isNotAssociated = !currentPassage?.topics?.some(t => t.id === topic.id);
+
+            // Apply search filter if there's a search term
+            const matchesSearch = !topicSearchTerm.trim() ||
+                topic.name.toLowerCase().includes(topicSearchTerm.toLowerCase());
+
+            return isNotAssociated && matchesSearch;
+        });
+    }, [topics, currentPassage, topicSearchTerm]);
+
     useEffect(() => {
         const fetchData = async () => {
             try {
@@ -56,27 +91,6 @@ export const useBiblePassages = () => {
 
         fetchData();
     }, [user]);
-
-    // Filter topics based on search term
-    const filteredTopics = topics.filter(topic =>
-        topicSearchTerm.trim() === '' ||
-        topic.name.toLowerCase().includes(topicSearchTerm.toLowerCase())
-    );
-
-    // Sort topics by count (most used first) and then alphabetically
-    const sortedTopics = useMemo(() => {
-        return [...filteredTopics].sort((a, b) => {
-            const countA = topicCounts[a.id] || 0;
-            const countB = topicCounts[b.id] || 0;
-
-            if (countB !== countA) {
-                return countB - countA; // Sort by count descending
-            }
-
-            // If counts are equal, sort alphabetically
-            return a.name.localeCompare(b.name);
-        });
-    }, [filteredTopics, topicCounts]);
 
     const handleTopicFilterChange = (topicId: number) => {
         setSelectedTopicIds(prev => {
@@ -123,6 +137,61 @@ export const useBiblePassages = () => {
         }
     };
 
+    const handleAddTopics = async () => {
+        if (!currentPassage || topicsToAdd.length === 0) return;
+
+        setIsAddingTopics(true);
+        try {
+            const result = await bibleService.addPassageTopics(
+                user,
+                topicsToAdd,
+                currentPassage.passageId
+            );
+
+            if (result === 'success') {
+                // Get the full topic objects for the newly added topics
+                const newTopics = topics.filter(topic => topicsToAdd.includes(topic.id));
+
+                // Update current passage
+                const updatedCurrentPassage = {
+                    ...currentPassage,
+                    topics: [...(currentPassage.topics || []), ...newTopics]
+                };
+                setCurrentPassage(updatedCurrentPassage);
+
+                // Update passages and allPassages arrays
+                const updatePassagesArray = (passageArray: Passage[]) => {
+                    return passageArray.map(passage =>
+                        passage.passageId === currentPassage.passageId
+                            ? updatedCurrentPassage
+                            : passage
+                    );
+                };
+
+                setPassages(updatePassagesArray(passages));
+                setAllPassages(updatePassagesArray(allPassages));
+
+                // Reset state
+                setTopicsToAdd([]);
+                setShowManageTopicsModal(false);
+            }
+        } catch (error) {
+            console.error('Error adding topics:', error);
+        } finally {
+            setIsAddingTopics(false);
+        }
+    };
+
+    const handleTopicToAddChange = (topicId: number) => {
+        setTopicsToAdd(prev => {
+            if (prev.includes(topicId)) {
+                return prev.filter(id => id !== topicId);
+            } else {
+                return [...prev, topicId];
+            }
+        });
+    };
+
     const applyTopicFilter = (selectedTopicIds: number[]) => {
         if (selectedTopicIds.length === 0) {
             setPassages(allPassages);
@@ -157,10 +226,14 @@ export const useBiblePassages = () => {
             selectedTopicIds,
             showTopics,
             showFilterModal,
+            showManageTopicsModal,
             topicSearchTerm,
             topics,
             sortedTopics,
-            topicCounts
+            availableTopics,
+            topicCounts,
+            topicsToAdd,
+            isAddingTopics
         },
         functions: {
             handleNext,
@@ -170,9 +243,12 @@ export const useBiblePassages = () => {
             applyTopicFilter,
             clearTopicFilter,
             setShowFilterModal,
+            setShowManageTopicsModal,
             setShowTopics,
             setTopicSearchTerm,
-            handleTopicFilterChange
+            handleTopicFilterChange,
+            handleTopicToAddChange,
+            handleAddTopics
         },
     };
 };

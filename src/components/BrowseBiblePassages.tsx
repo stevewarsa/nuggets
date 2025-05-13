@@ -3,9 +3,9 @@ import Toolbar from './Toolbar';
 import SwipeContainer from './SwipeContainer';
 import {useBiblePassages} from '../hooks/useBiblePassages';
 import {getUnformattedPassageTextNoVerseNumbers} from '../models/passage-utils';
-import {Button, Modal, Form, Badge, InputGroup, Row, Col, Collapse} from 'react-bootstrap';
+import {Button, Modal, Form, Badge, InputGroup, Row, Col, Collapse, Spinner} from 'react-bootstrap';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import {faFilter, faSearch, faTimesCircle} from '@fortawesome/free-solid-svg-icons';
+import {faFilter, faSearch, faTimesCircle, faTags} from '@fortawesome/free-solid-svg-icons';
 
 const BrowseBiblePassages = () => {
     const {state, functions} = useBiblePassages();
@@ -19,6 +19,11 @@ const BrowseBiblePassages = () => {
             itemLabel: "Filter by Topic...",
             icon: faFilter,
             callbackFunction: () => functions.setShowFilterModal(true)
+        },
+        {
+            itemLabel: "Manage Topics...",
+            icon: faTags,
+            callbackFunction: () => functions.setShowManageTopicsModal(true)
         }
     ];
 
@@ -156,15 +161,15 @@ const BrowseBiblePassages = () => {
                                                             id={`topic-${topic.id}`}
                                                             label={
                                                                 <span>
-                                  {topic.name}
+                                                                    {topic.name}
                                                                     <Badge
                                                                         bg="secondary"
                                                                         className="ms-2"
                                                                         style={{fontSize: '0.75em'}}
                                                                     >
-                                    {count}
-                                  </Badge>
-                                </span>
+                                                                        {count}
+                                                                    </Badge>
+                                                                </span>
                                                             }
                                                             checked={state.selectedTopicIds.includes(topic.id)}
                                                             onChange={() => functions.handleTopicFilterChange(topic.id)}
@@ -206,6 +211,129 @@ const BrowseBiblePassages = () => {
                             <Button variant="primary"
                                     onClick={() => functions.applyTopicFilter(state.selectedTopicIds)}>
                                 Apply Filter
+                            </Button>
+                        </Modal.Footer>
+                    </Modal>
+
+                    {/* Manage Topics Modal */}
+                    <Modal
+                        show={state.showManageTopicsModal}
+                        onHide={() => {
+                            functions.setShowManageTopicsModal(false);
+                            functions.setTopicSearchTerm('');
+                        }}
+                        centered
+                        size="lg"
+                    >
+                        <Modal.Header closeButton className="bg-dark text-white">
+                            <Modal.Title>Add Topics to Passage</Modal.Title>
+                        </Modal.Header>
+                        <Modal.Body className="bg-dark text-white">
+                            <p className="mb-3">
+                                Select topics to add to this passage. Only topics not already associated with the
+                                passage are shown.
+                            </p>
+
+                            <InputGroup className="mb-3">
+                                <InputGroup.Text className="bg-dark text-white border-secondary">
+                                    <FontAwesomeIcon icon={faSearch}/>
+                                </InputGroup.Text>
+                                <Form.Control
+                                    placeholder="Search topics..."
+                                    value={state.topicSearchTerm}
+                                    onChange={(e) => functions.setTopicSearchTerm(e.target.value)}
+                                    className="bg-dark text-white border-secondary"
+                                />
+                                {state.topicSearchTerm && (
+                                    <Button
+                                        variant="outline-secondary"
+                                        onClick={() => functions.setTopicSearchTerm('')}
+                                    >
+                                        Clear
+                                    </Button>
+                                )}
+                            </InputGroup>
+
+                            {state.topicsToAdd.length > 0 && (
+                                <div className="mb-3">
+                                    <p>Selected topics to add: {state.topicsToAdd.length}</p>
+                                    <div className="d-flex flex-wrap gap-2">
+                                        {state.topics
+                                            .filter(topic => state.topicsToAdd.includes(topic.id))
+                                            .map(topic => (
+                                                <Badge
+                                                    key={topic.id}
+                                                    bg="primary"
+                                                    className="p-2 d-flex align-items-center"
+                                                    style={{cursor: 'pointer'}}
+                                                    onClick={() => functions.handleTopicToAddChange(topic.id)}
+                                                >
+                                                    {topic.name} ×
+                                                </Badge>
+                                            ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            <div className="mb-3" style={{maxHeight: '300px', overflowY: 'auto'}}>
+                                <Form>
+                                    <Row xs={1} md={2} lg={3} className="g-3">
+                                        {state.availableTopics.length > 0 ? (
+                                            state.availableTopics.map(topic => (
+                                                <Col key={topic.id}>
+                                                    <Form.Check
+                                                        type="checkbox"
+                                                        id={`add-topic-${topic.id}`}
+                                                        label={topic.name}
+                                                        checked={state.topicsToAdd.includes(topic.id)}
+                                                        onChange={() => functions.handleTopicToAddChange(topic.id)}
+                                                        className="mb-2"
+                                                    />
+                                                </Col>
+                                            ))
+                                        ) : (
+                                            <Col>
+                                                <p className="text-muted">
+                                                    {state.topicSearchTerm
+                                                        ? 'No topics match your search.'
+                                                        : 'No additional topics available to add.'}
+                                                </p>
+                                            </Col>
+                                        )}
+                                    </Row>
+                                </Form>
+                            </div>
+                        </Modal.Body>
+                        <Modal.Footer className="bg-dark text-white">
+                            <Button
+                                variant="secondary"
+                                onClick={() => {
+                                    functions.setShowManageTopicsModal(false);
+                                    functions.setTopicSearchTerm('');
+                                }}
+                            >
+                                Cancel
+                            </Button>
+                            <Button
+                                variant="primary"
+                                onClick={functions.handleAddTopics}
+                                disabled={state.isAddingTopics || state.topicsToAdd.length === 0}
+                            >
+                                {state.isAddingTopics ? (
+                                    <>
+                                        <Spinner
+                                            as="span"
+                                            animation="border"
+                                            size="sm"
+                                            role="status"
+                                            aria-hidden="true"
+                                            className="me-2"
+                                        />
+                                        Adding Topics...
+                                    </>
+                                ) : (
+                                    'Add Topics'
+                                )}
                             </Button>
                         </Modal.Footer>
                     </Modal>
