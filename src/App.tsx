@@ -5,7 +5,6 @@ import ReadBibleChapter from './components/ReadBibleChapter';
 import PracticeSetup from './components/PracticeSetup';
 import Practice from './components/Practice';
 import ViewQuotes from './components/ViewQuotes';
-import SearchQuotes from './components/SearchQuotes';
 import AddQuote from './components/AddQuote';
 import BibleSearch from './components/BibleSearch';
 import BibleReadingPlan from './components/BibleReadingPlan';
@@ -16,8 +15,9 @@ import TopNav from './components/TopNav';
 import {useAppSelector} from './store/hooks';
 import {USER, GUEST_USER} from './models/constants';
 import './App.css';
-import ViewMemoryPracticeHistory from "./components/ViewMemoryPracticeHistory.tsx";
-import GoToPassageByRef from "./components/GoToPassageByRef.tsx";
+import ViewMemoryPracticeHistory from "./components/ViewMemoryPracticeHistory";
+import GoToPassageByRef from "./components/GoToPassageByRef";
+import QuoteSearch from "./components/QuoteSearch";
 
 // Create a wrapper component to access location
 const AppContent = () => {
@@ -52,7 +52,7 @@ const AppContent = () => {
                     <Route path="/readBibleChapter/:translation/:book/:chapter/:scrollToVerse" element={<ReadBibleChapter/>}/>
                     <Route path="/readBibleChapter/:translation/:book/:chapter" element={<ReadBibleChapter/>}/>
                     <Route path="/viewQuotes/:quoteId" element={<ViewQuotes/>}/>
-                    <Route path="/searchQuotes" element={<SearchQuotes/>}/>
+                    <Route path="/searchQuotes" element={<QuoteSearch/>}/>
                     <Route path="/memoryPracticeHistory" element={<ViewMemoryPracticeHistory />} />
                     <Route path="/memoryStats" element={<MemoryStats/>}/>
                     <Route path="/goToPassageByRef" element={<GoToPassageByRef/>}/>

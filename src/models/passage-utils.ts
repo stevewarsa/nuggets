@@ -10,6 +10,7 @@ import {
     faTags
 } from "@fortawesome/free-solid-svg-icons";
 import copy from "clipboard-copy";
+import {StringUtils} from "./string.utils.ts";
 
 export const RAND: string = 'rand';
 export const BY_FREQ: string = 'by_freq';
@@ -393,6 +394,23 @@ const handleMatch = (bookNm: string, matchType: number, passageRef: string, full
         handleBookMatchPlus(passageRef, fullBookNm, passage);
     }
     return passage;
+};
+export const updateAllMatches = (find: string, str: string) => {
+    if (StringUtils.isEmpty(find) || StringUtils.isEmpty(str)) {
+        return str;
+    }
+    const findWords = find.split(" ");
+    let locString = str;
+    for (let findWord of findWords) {
+        let stringToHighlight = findWord.replace("*", "(.*?)");
+        //console.log("PassageUtils.updateAllMatches - Here is the regex wildcard: '" + stringToHighlight + "'");
+        if (stringToHighlight === "") {
+            continue;
+        }
+        let regex: RegExp = new RegExp(stringToHighlight, "ig");
+        locString = locString.replace(regex, "<span class='search_result'>$&</span>");
+    }
+    return locString;
 };
 
 export const getBookId = (bookKey: string): number => {

@@ -58,3 +58,8 @@ footer {
 #toolbar-dropdown {
   color: white;
 }
+
+.search_result {
+  color: #00ff00;
+  font-weight: bold;
+}
