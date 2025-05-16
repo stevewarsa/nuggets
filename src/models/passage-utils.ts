@@ -1,5 +1,3 @@
-import {bookAbbrev, booksByNum} from './constants';
-import {Passage} from './passage';
 import {
     faCopy,
     faExternalLink,
@@ -7,10 +5,12 @@ import {
     faListOl,
     faPencilAlt,
     faSearch,
-    faTags
-} from "@fortawesome/free-solid-svg-icons";
-import copy from "clipboard-copy";
-import {StringUtils} from "./string.utils.ts";
+    faTags,
+} from '@fortawesome/free-solid-svg-icons';
+import copy from 'clipboard-copy';
+import {StringUtils} from './string.utils';
+import {bookAbbrev, booksByNum} from './constants';
+import {Passage} from './passage';
 
 export const RAND: string = 'rand';
 export const BY_FREQ: string = 'by_freq';
@@ -24,40 +24,44 @@ const PARTIAL_BOOK_MATCH = 2;
 const BOOK_MATCH_PLUS = 3;
 
 export const EDIT_MEM_PASSAGE = {
-    itemLabel: "Edit Mem Passage...",
-    icon: faPencilAlt
+    itemLabel: 'Edit Mem Passage...',
+    icon: faPencilAlt,
 };
 export const ADD_TO_MEMORY_VERSES = {
-    itemLabel: "Add to Memory Verses...",
-    icon: faListOl
+    itemLabel: 'Add to Memory Verses...',
+    icon: faListOl,
+};
+export const ADD_TO_NUGGETS = {
+    itemLabel: 'Add to Nuggets...',
+    icon: faListOl,
 };
 export const COPY_VERSE_RANGE = {
-    itemLabel: "Copy Verse Range...",
-    icon: faCopy
+    itemLabel: 'Copy Verse Range...',
+    icon: faCopy,
 };
 export const OPEN_IN_BIBLEHUB = {
-    itemLabel: "Open in Bible Hub...",
-    icon: faExternalLink
+    itemLabel: 'Open in Bible Hub...',
+    icon: faExternalLink,
 };
 export const OPEN_INTERLINEAR = {
-    itemLabel: "Interlinear View...",
-    icon: faExternalLink
+    itemLabel: 'Interlinear View...',
+    icon: faExternalLink,
 };
 export const EDIT_QUOTE = {
-    itemLabel: "Edit Quote...",
-    icon: faPencilAlt
+    itemLabel: 'Edit Quote...',
+    icon: faPencilAlt,
 };
 export const MANAGE_TOPICS = {
-    itemLabel: "Manage Topics...",
-    icon: faTags
+    itemLabel: 'Manage Topics...',
+    icon: faTags,
 };
 export const FILTER_BY_TOPIC = {
-    itemLabel: "Filter by Topic...",
-    icon: faFilter
+    itemLabel: 'Filter by Topic...',
+    icon: faFilter,
 };
 export const SEARCH_QUOTES = {
-    itemLabel: "Search Quotes...",
-    icon: faSearch
+    itemLabel: 'Search Quotes...',
+    icon: faSearch,
 };
 
 export const getNextBook = (
@@ -104,6 +108,7 @@ export const sortAccordingToPracticeConfig = (
         sortedArr.sort((a: Passage, b: Passage) => {
             return a.frequencyDays - b.frequencyDays;
         });
+
         sortedArr = sortWithinFrequencyGroups(sortedArr);
     } else if (order === BY_LAST_PRACTICED) {
         sortedArr.sort((a: Passage, b: Passage) => {
@@ -223,23 +228,27 @@ export const getFrequencyGroups = (
     return frequencyGroups;
 };
 
-export const handleCopyVerseRange = async (startVerse: number, endVerse: number, psg: Passage) => {
+export const handleCopyVerseRange = async (
+    startVerse: number,
+    endVerse: number,
+    psg: Passage
+) => {
     if (!psg || !psg.verses) return;
 
-    const selectedVerses = psg.verses.filter(
-        verse => {
-            const verseNum = verse.verseParts[0].verseNumber;
-            return verseNum >= startVerse && verseNum <= endVerse;
-        }
-    );
+    const selectedVerses = psg.verses.filter((verse) => {
+        const verseNum = verse.verseParts[0].verseNumber;
+        return verseNum >= startVerse && verseNum <= endVerse;
+    });
 
     if (selectedVerses.length === 0) return;
 
-    const reference = `${getDisplayBookName(psg.bookId)} ${psg.chapter}:${startVerse}${endVerse !== startVerse ? `-${endVerse}` : ''}`;
+    const reference = `${getDisplayBookName(psg.bookId)} ${
+        psg.chapter
+    }:${startVerse}${endVerse !== startVerse ? `-${endVerse}` : ''}`;
 
     let verseText = '';
-    selectedVerses.forEach(verse => {
-        verse.verseParts.forEach(part => {
+    selectedVerses.forEach((verse) => {
+        verse.verseParts.forEach((part) => {
             verseText += part.verseText + ' ';
         });
     });
@@ -254,7 +263,10 @@ export const handleCopyVerseRange = async (startVerse: number, endVerse: number,
     }
 };
 
-export const getPassageReference = (currentPassage: Passage, shortBook: boolean = true) => {
+export const getPassageReference = (
+    currentPassage: Passage,
+    shortBook: boolean = true
+) => {
     if (!currentPassage) return '';
     const bookName = getDisplayBookName(currentPassage.bookId, shortBook);
     const baseRef = `${bookName} ${currentPassage.chapter}:${currentPassage.startVerse}`;
@@ -273,7 +285,10 @@ export const getBookName = (bookId: number) => {
     return matchingRec.map((bookNum: any) => booksByNum[bookNum])[0];
 };
 
-export const getDisplayBookName = (bookId: number, shortBook: boolean = true): string => {
+export const getDisplayBookName = (
+    bookId: number,
+    shortBook: boolean = true
+): string => {
     const basicName: string = getBookName(bookId);
     return basicName ? bookAbbrev[basicName][shortBook ? 0 : 1] : 'Unknown Book';
 };
@@ -325,37 +340,62 @@ export const getUnformattedPassageTextNoVerseNumbers = (
 export const openInterlinearLink = (passage: Passage) => {
     let urlQuery: string;
     if (passage.startVerse === passage.endVerse) {
-        urlQuery = passage.bookName + "+" + passage.chapter + ":" + passage.startVerse + "&t=nas"
+        urlQuery =
+            passage.bookName +
+            '+' +
+            passage.chapter +
+            ':' +
+            passage.startVerse +
+            '&t=nas';
     } else {
-        urlQuery = passage.bookName + "+" + passage.chapter + ":" + passage.startVerse + "-" + passage.endVerse + "&t=nas"
+        urlQuery =
+            passage.bookName +
+            '+' +
+            passage.chapter +
+            ':' +
+            passage.startVerse +
+            '-' +
+            passage.endVerse +
+            '&t=nas';
     }
-    window.open("https://www.biblestudytools.com/interlinear-bible/passage/?q=" + urlQuery, '_blank');
+    window.open(
+        'https://www.biblestudytools.com/interlinear-bible/passage/?q=' + urlQuery,
+        '_blank'
+    );
 };
 export const openBibleHubLink = (passage: Passage) => {
     // https://biblehub.com/genesis/1-1.htm
     const replacements: {} = {
-        "1-kings": "1_kings",
-        "2-kings": "2_kings",
-        "1-samuel": "1_samuel",
-        "2-samuel": "2_samuel",
-        "1-chronicles": "1_chronicles",
-        "2-chronicles": "2_chronicles",
-        "1-peter": "1_peter",
-        "2-peter": "2_peter",
-        "1-john": "1_john",
-        "2-john": "2_john",
-        "3-john": "3_john",
-        "song-of-solomon": "songs",
-        "1-timothy": "1_timothy",
-        "2-timothy": "2_timothy",
-        "1-thessalonians": "1_thessalonians",
-        "2-thessalonians": "2_thessalonians",
-        "1-corinthians": "1_corinthians",
-        "2-corinthians": "2_corinthians",
+        '1-kings': '1_kings',
+        '2-kings': '2_kings',
+        '1-samuel': '1_samuel',
+        '2-samuel': '2_samuel',
+        '1-chronicles': '1_chronicles',
+        '2-chronicles': '2_chronicles',
+        '1-peter': '1_peter',
+        '2-peter': '2_peter',
+        '1-john': '1_john',
+        '2-john': '2_john',
+        '3-john': '3_john',
+        'song-of-solomon': 'songs',
+        '1-timothy': '1_timothy',
+        '2-timothy': '2_timothy',
+        '1-thessalonians': '1_thessalonians',
+        '2-thessalonians': '2_thessalonians',
+        '1-corinthians': '1_corinthians',
+        '2-corinthians': '2_corinthians',
     };
-    const bibleHubBookName: string = replacements.hasOwnProperty(passage.bookName) ? replacements[passage.bookName] : passage.bookName;
-    let urlQuery: string = bibleHubBookName + "/" + passage.chapter + "-" + passage.startVerse + ".htm";
-    window.open("https://biblehub.com/" + urlQuery, '_blank');
+    const bibleHubBookName: string = replacements.hasOwnProperty(passage.bookName)
+        ? replacements[passage.bookName]
+        : passage.bookName;
+    let urlQuery: string =
+        bibleHubBookName +
+        '/' +
+        passage.chapter +
+        '-' +
+        passage.startVerse +
+        '.htm';
+    window.open('https://biblehub.com/' + urlQuery, '_blank');
 };
 
 export const getPassageFromPassageRef = (passageRef: string): Passage[] => {
@@ -366,24 +406,35 @@ export const getPassageFromPassageRef = (passageRef: string): Passage[] => {
 
         // Exactly equal
         if (passageRef === fullBookNm.toLowerCase()) {
-            matchingPassages.push(handleMatch(bookNm, EXACT_BOOK_MATCH, passageRef, fullBookNm));
+            matchingPassages.push(
+                handleMatch(bookNm, EXACT_BOOK_MATCH, passageRef, fullBookNm)
+            );
             continue;
         }
         // Passage reference contains one of the book names
         if (passageRef.startsWith(fullBookNm.toLowerCase())) {
-            matchingPassages.push(handleMatch(bookNm, BOOK_MATCH_PLUS, passageRef, fullBookNm));
+            matchingPassages.push(
+                handleMatch(bookNm, BOOK_MATCH_PLUS, passageRef, fullBookNm)
+            );
             continue;
         }
         // the Passage reference passed in is a partial match to one of the book names
         if (fullBookNm.toLowerCase().includes(passageRef)) {
-            matchingPassages.push(handleMatch(bookNm, PARTIAL_BOOK_MATCH, passageRef, fullBookNm));
+            matchingPassages.push(
+                handleMatch(bookNm, PARTIAL_BOOK_MATCH, passageRef, fullBookNm)
+            );
             // implicit continue
         }
     }
     return matchingPassages;
 };
 
-const handleMatch = (bookNm: string, matchType: number, passageRef: string, fullBookNm: string): Passage => {
+const handleMatch = (
+    bookNm: string,
+    matchType: number,
+    passageRef: string,
+    fullBookNm: string
+): Passage => {
     let passage = {} as Passage;
     passage.chapter = 1;
     passage.startVerse = 1;
@@ -395,20 +446,24 @@ const handleMatch = (bookNm: string, matchType: number, passageRef: string, full
     }
     return passage;
 };
+
 export const updateAllMatches = (find: string, str: string) => {
     if (StringUtils.isEmpty(find) || StringUtils.isEmpty(str)) {
         return str;
     }
-    const findWords = find.split(" ");
+    const findWords = find.split(' ');
     let locString = str;
     for (let findWord of findWords) {
-        let stringToHighlight = findWord.replace("*", "(.*?)");
+        let stringToHighlight = findWord.replace('*', '(.*?)');
         //console.log("PassageUtils.updateAllMatches - Here is the regex wildcard: '" + stringToHighlight + "'");
-        if (stringToHighlight === "") {
+        if (stringToHighlight === '') {
             continue;
         }
-        let regex: RegExp = new RegExp(stringToHighlight, "ig");
-        locString = locString.replace(regex, "<span class='search_result'>$&</span>");
+        let regex: RegExp = new RegExp(stringToHighlight, 'ig');
+        locString = locString.replace(
+            regex,
+            "<span class='search_result'>$&</span>"
+        );
     }
     return locString;
 };
@@ -425,30 +480,34 @@ export const getBookId = (bookKey: string): number => {
     return -1;
 };
 
-export const handleBookMatchPlus = (passageRef: string, fullBookNm: string, passage: Passage) => {
+export const handleBookMatchPlus = (
+    passageRef: string,
+    fullBookNm: string,
+    passage: Passage
+) => {
     // assume that what is after the book is a chapter and possibly more
     let chapter = passageRef.substring(fullBookNm.length + 1, passageRef.length);
-    if (chapter.includes(":")) {
+    if (chapter.includes(':')) {
         // assume that they're trying to specify a verse or a verse range
-        let chapterParts = chapter.split(":");
+        let chapterParts = chapter.split(':');
         if (!isNaN(Number(chapterParts[0]))) {
             // assume that what is after the book name is a chapter
             passage.chapter = parseInt(chapterParts[0]);
         }
-        if (chapter.includes("-")) {
+        if (chapter.includes('-')) {
             // this is a verse range
-            let verseRange = chapterParts[1].split("-");
+            let verseRange = chapterParts[1].split('-');
             if (!isNaN(Number(verseRange[0]))) {
                 passage.startVerse = parseInt(verseRange[0]);
             }
-            if (!isNaN(Number(verseRange[1])) && verseRange[1] !== "") {
+            if (!isNaN(Number(verseRange[1])) && verseRange[1] !== '') {
                 passage.endVerse = parseInt(verseRange[1]);
             } else {
                 passage.endVerse = passage.startVerse;
             }
         } else {
             // this is only 1 verse
-            if (!isNaN(Number(chapterParts[1])) && chapterParts[1] !== "") {
+            if (!isNaN(Number(chapterParts[1])) && chapterParts[1] !== '') {
                 passage.startVerse = parseInt(chapterParts[1]);
                 passage.endVerse = passage.startVerse;
             } else {

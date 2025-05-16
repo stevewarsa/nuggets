@@ -482,6 +482,31 @@ export class BibleService {
     }
   }
 
+  async addNonMemoryPassage(
+      user: string,
+      translation: string,
+      book: string,
+      chapter: number,
+      start: number,
+      end: number
+  ): Promise<number> {
+    try {
+      const response = await axios.get(`${BibleService.BASE_URL}add_nonmemory_passage.php`, {
+        params: {
+          user,
+          translation,
+          book,
+          chapter,
+          start,
+          end
+        }
+      });
+      return response.data;
+    } catch (error) {
+      return this.handleError(error, 'adding non-memory passage');
+    }
+  }
+
   async sendSearchResults(payload: EmailSearchResultsPayload): Promise<string> {
     try {
       const response = await axios.post(

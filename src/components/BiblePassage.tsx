@@ -5,8 +5,8 @@ import {USER, translationsShortNms} from '../models/constants';
 import {bibleService} from '../services/bible-service';
 import {getBookName, getDisplayBookName, handleCopyVerseRange} from '../models/passage-utils';
 import {useAppSelector} from '../store/hooks';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCopy, faArrowUp } from '@fortawesome/free-solid-svg-icons';
+import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
+import {faCopy, faArrowUp} from '@fortawesome/free-solid-svg-icons';
 
 interface BiblePassageProps {
     passage: Passage;
@@ -16,6 +16,7 @@ interface BiblePassageProps {
     showVerseText?: boolean;
     showVerseModal?: boolean;
     scrollToVerse?: number;
+    highlightedVerses?: number[];
     onVerseSelection?: (startVerse: number, endVerse: number) => void;
     onVerseModalClose?: () => void;
 }
@@ -28,6 +29,7 @@ const BiblePassage: React.FC<BiblePassageProps> = ({
                                                        showVerseText = true,
                                                        showVerseModal = false,
                                                        scrollToVerse = -1,
+                                                       highlightedVerses = [],
                                                        onVerseSelection,
                                                        onVerseModalClose,
                                                    }) => {
@@ -48,6 +50,7 @@ const BiblePassage: React.FC<BiblePassageProps> = ({
     const currentUser = useAppSelector(state => state.user.currentUser);
     const user = currentUser || USER;
 
+    console.log("BiblePassage.useEffect[] - here are the highlighted verses: ", highlightedVerses);
     useEffect(() => {
         const handleScroll = () => {
             setShowFloatingButtons(window.scrollY > 100);
@@ -227,8 +230,8 @@ const BiblePassage: React.FC<BiblePassageProps> = ({
                             <React.Fragment key={verse.verseParts[0].verseNumber}>
                                 {showVerseNumbers && localPassage.verses.length > 1 && (
                                     <span id={"" + verse.verseParts[0].verseNumber} className="verse-number me-2">
-                    {verse.verseParts[0].verseNumber}
-                  </span>
+                                        {verse.verseParts[0].verseNumber}
+                                    </span>
                                 )}
                                 {verse.verseParts.map((part, index) => (
                                     <span
@@ -236,9 +239,14 @@ const BiblePassage: React.FC<BiblePassageProps> = ({
                                         className={`${
                                             part.wordsOfChrist ? 'words-of-christ' : 'verse-text'
                                         } fw-bold`}
+                                        style={{
+                                            backgroundColor: highlightedVerses.includes(verse.verseParts[0].verseNumber)
+                                                ? '#ff8c00'
+                                                : 'transparent'
+                                        }}
                                     >
-                    {part.verseText}{' '}
-                  </span>
+                                        {part.verseText}{' '}
+                                    </span>
                                 ))}
                             </React.Fragment>
                         ))}
@@ -260,17 +268,17 @@ const BiblePassage: React.FC<BiblePassageProps> = ({
                         variant="primary"
                         size="lg"
                         onClick={() => setInternalVerseModal(true)}
-                        style={{ borderRadius: '50%', width: '50px', height: '50px' }}
+                        style={{borderRadius: '50%', width: '50px', height: '50px'}}
                     >
-                        <FontAwesomeIcon icon={faCopy} />
+                        <FontAwesomeIcon icon={faCopy}/>
                     </Button>
                     <Button
                         variant="secondary"
                         size="lg"
                         onClick={scrollToTop}
-                        style={{ borderRadius: '50%', width: '50px', height: '50px' }}
+                        style={{borderRadius: '50%', width: '50px', height: '50px'}}
                     >
-                        <FontAwesomeIcon icon={faArrowUp} />
+                        <FontAwesomeIcon icon={faArrowUp}/>
                     </Button>
                 </div>
             )}
