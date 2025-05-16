@@ -5,6 +5,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import {useAppDispatch, useAppSelector} from "../store/hooks.ts";
 import {bibleService, ChapterInfo} from "../services/bible-service.ts";
 import {setMaxVerseByBookChapter} from "../store/memoryPassageSlice.ts";
+import {useNavigate} from "react-router-dom";
 
 interface Suggestion {
     text: string;
@@ -17,14 +18,18 @@ interface BibleReferenceInputProps {
 }
 
 export const BibleReferenceInput: React.FC<BibleReferenceInputProps> = ({userEnteredValue, onChange}) => {
+    const navigate = useNavigate();
     const dispatcher = useAppDispatch();
     const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
     const [maxChaptersByBook, setMaxChaptersByBook] = useState<ChapterInfo[]>([]);
+    const [selectedBook, setSelectedBook] = useState<string | null>(null);
+    const [selectedChapter, setSelectedChapter] = useState<number | null>(null);
     let maxVerseByBookChapterMap = useAppSelector(state => state.memoryPassage.maxVerseByBookChapter);
 
     useEffect(() => {
         if (!maxVerseByBookChapterMap?.hasOwnProperty(TRANSLATION)) {
             (async () => {
+                console.log('Fetching max verses for translation:', TRANSLATION);
                 const locMaxVerseByBookChapter = await bibleService.getMaxVersesByBookChapter(TRANSLATION);
                 dispatcher(setMaxVerseByBookChapter({
                     maxVerseByBookChapter: locMaxVerseByBookChapter,
@@ -38,6 +43,8 @@ export const BibleReferenceInput: React.FC<BibleReferenceInputProps> = ({userEnt
         const getSuggestions = async () => {
             if (!userEnteredValue.trim()) {
                 setSuggestions([]);
+                setSelectedBook(null);
+                setSelectedChapter(null);
                 return;
             }
 
@@ -61,6 +68,8 @@ export const BibleReferenceInput: React.FC<BibleReferenceInputProps> = ({userEnt
                     setMaxChaptersByBook(chapters);
                     const bookInfo = chapters.find(chapter => chapter.bookName === exactMatch[0]);
                     if (bookInfo) {
+                        console.log('Setting selected book:', exactMatch[0]);
+                        setSelectedBook(exactMatch[0]);
                         newSuggestions = Array.from(
                             {length: bookInfo.maxChapter},
                             (_, i) => ({
@@ -97,6 +106,8 @@ export const BibleReferenceInput: React.FC<BibleReferenceInputProps> = ({userEnt
                 if (bookMatch && /^\d*$/.test(chapterPart)) {
                     const bookInfo = maxChaptersByBook.find(b => b.bookName === bookMatch[0]);
                     if (bookInfo) {
+                        console.log('Setting selected book from chapter match:', bookMatch[0]);
+                        setSelectedBook(bookMatch[0]);
                         newSuggestions = Array.from(
                             {length: bookInfo.maxChapter},
                             (_, i) => i + 1
@@ -121,9 +132,14 @@ export const BibleReferenceInput: React.FC<BibleReferenceInputProps> = ({userEnt
 
                     if (bookKey) {
                         const chapterNum = parseInt(chapter);
+                        console.log('Setting selected book and chapter:', bookKey, chapterNum);
+                        setSelectedBook(bookKey);
+                        setSelectedChapter(chapterNum);
+
                         const locMaxVerseByBookChapter = maxVerseByBookChapterMap[TRANSLATION];
                         const maxChapVerseForBook = locMaxVerseByBookChapter[bookKey];
-                        const maxVerse = maxChapVerseForBook.find((chapAndVerse: number[]) => chapAndVerse[0] === chapterNum);
+                        const maxVerseData = maxChapVerseForBook.find((chapAndVerse: number[]) => chapAndVerse[0] === chapterNum);
+                        const maxVerse = maxVerseData ? maxVerseData[1] : 0;
 
                         newSuggestions = Array.from(
                             {length: maxVerse},
@@ -163,6 +179,82 @@ export const BibleReferenceInput: React.FC<BibleReferenceInputProps> = ({userEnt
         onChange(suggestion.text);
     };
 
+    // Get available verses for the selected book and chapter
+    const getAvailableVerses = () => {
+        if (!selectedBook || !selectedChapter || !maxVerseByBookChapterMap[TRANSLATION]) {
+            console.log('Cannot get verses - missing data:', {
+                selectedBook,
+                selectedChapter,
+                hasMaxVerseMap: !!maxVerseByBookChapterMap[TRANSLATION]
+            });
+            return [];
+        }
+
+        const maxChapVerseForBook = maxVerseByBookChapterMap[TRANSLATION][selectedBook];
+        if (!maxChapVerseForBook) {
+            console.log('No max verse data for book:', selectedBook);
+            return [];
+        }
+
+        const maxVerseData = maxChapVerseForBook.find((chapAndVerse: number[]) => chapAndVerse[0] === selectedChapter);
+        if (!maxVerseData) {
+            console.log('No verse data for chapter:', selectedChapter);
+            return [];
+        }
+
+        const maxVerse = maxVerseData[1];
+        const bookFullName = bookAbbrev[selectedBook][1];
+
+        console.log('Generated verses for:', {
+            book: selectedBook,
+            chapter: selectedChapter,
+            maxVerse
+        });
+
+        return Array.from(
+            {length: maxVerse},
+            (_, i) => ({
+                text: `${bookFullName} ${selectedChapter}:${i + 1}`,
+                type: 'verse' as const
+            })
+        );
+    };
+
+    const handleVerseSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const selectedValue = e.target.value;
+        console.log('Verse selected:', selectedValue);
+
+        if (selectedValue && selectedBook && selectedChapter) {
+            console.log('Navigation data:', {
+                selectedBook,
+                selectedChapter,
+                selectedValue
+            });
+
+            // Parse the verse number from the selected text
+            const verseNumber = parseInt(selectedValue.split(':')[1]);
+            console.log('Parsed verse number:', verseNumber);
+
+            // Update the input value
+            onChange(selectedValue);
+
+            // Build the navigation URL
+            const navigationUrl = `/readBibleChapter/${TRANSLATION}/${selectedBook}/${selectedChapter}/${verseNumber}`;
+            console.log('Navigating to:', navigationUrl);
+
+            // Navigate immediately
+            navigate(navigationUrl);
+        } else {
+            console.log('Missing required data for navigation:', {
+                hasSelectedValue: !!selectedValue,
+                selectedBook,
+                selectedChapter
+            });
+        }
+    };
+
+    const availableVerses = getAvailableVerses();
+
     return (
         <div className="position-relative">
             <Form.Control
@@ -185,6 +277,20 @@ export const BibleReferenceInput: React.FC<BibleReferenceInputProps> = ({userEnt
                         </ListGroup.Item>
                     ))}
                 </ListGroup>
+            )}
+            {selectedBook && selectedChapter && availableVerses.length > 0 && !userEnteredValue.includes(':') && (
+                <Form.Select
+                    className="mt-2"
+                    onChange={handleVerseSelect}
+                    value=""
+                >
+                    <option value="">Select a verse...</option>
+                    {availableVerses.map((verse, index) => (
+                        <option key={index} value={verse.text}>
+                            {verse.text}
+                        </option>
+                    ))}
+                </Form.Select>
             )}
         </div>
     );
