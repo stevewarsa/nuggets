@@ -1,5 +1,5 @@
-import React, {useState, useEffect} from 'react';
-import {Container, Form, Button, Spinner, Card, Toast} from 'react-bootstrap';
+import React, {useState, useEffect, useMemo} from 'react';
+import {Container, Form, Button, Spinner, Card, Toast, Pagination} from 'react-bootstrap';
 import {Quote} from '../models/quote';
 import {bibleService} from '../services/bible-service';
 import {USER} from '../models/constants';
@@ -7,14 +7,17 @@ import copy from 'clipboard-copy';
 import {useAppSelector} from '../store/hooks';
 import {useNavigate} from "react-router-dom";
 
+const QUOTES_PER_PAGE = 4;
+const MAX_VISIBLE_PAGES = 5; // Number of page numbers to show at once
+
 const SearchQuotes: React.FC = () => {
     const [quotes, setQuotes] = useState<Quote[]>([]);
-    const [filteredQuotes, setFilteredQuotes] = useState<Quote[]>([]);
     const [searchTerm, setSearchTerm] = useState<string>('');
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [showToast, setShowToast] = useState<boolean>(false);
     const [toastMessage, setToastMessage] = useState<string>('');
     const [toastBg, setToastBg] = useState<string>('#28a745');
+    const [currentPage, setCurrentPage] = useState(1);
     const navigate = useNavigate();
 
     const currentUser = useAppSelector(state => state.user.currentUser);
@@ -27,7 +30,6 @@ const SearchQuotes: React.FC = () => {
                 // Get quotes with text included for searching
                 const quoteList = await bibleService.getQuoteList(user, true);
                 setQuotes(quoteList);
-                setFilteredQuotes(quoteList);
             } catch (error) {
                 console.error('Error fetching quotes:', error);
             } finally {
@@ -38,24 +40,33 @@ const SearchQuotes: React.FC = () => {
         fetchQuotes();
     }, [user]);
 
-    useEffect(() => {
+    // Filter quotes based on search term
+    const filteredQuotes = useMemo(() => {
         if (searchTerm.trim() === '') {
-            setFilteredQuotes(quotes);
-            return;
+            return quotes;
         }
 
         const searchWords = searchTerm.toLowerCase().split(' ').filter(word => word.length > 0);
 
-        const filtered = quotes.filter(quote => {
+        return quotes.filter(quote => {
             if (!quote.quoteTx) return false;
 
             const quoteText = quote.quoteTx.toLowerCase();
             // Match only if ALL of the search words are found in the quote
             return searchWords.every(word => quoteText.includes(word));
         });
-
-        setFilteredQuotes(filtered);
     }, [searchTerm, quotes]);
+
+    // Calculate pagination values
+    const totalPages = Math.ceil(filteredQuotes.length / QUOTES_PER_PAGE);
+    const startIndex = (currentPage - 1) * QUOTES_PER_PAGE;
+    const endIndex = startIndex + QUOTES_PER_PAGE;
+    const currentQuotes = filteredQuotes.slice(startIndex, endIndex);
+
+    // Reset to first page when search term changes
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchTerm]);
 
     const handleCopyQuote = async (quoteText: string) => {
         try {
@@ -85,6 +96,89 @@ const SearchQuotes: React.FC = () => {
         });
 
         return highlightedText;
+    };
+
+    const renderPagination = () => {
+        if (totalPages <= 1) return null;
+
+        const items = [];
+
+        // First page
+        items.push(
+            <Pagination.First
+                key="first"
+                onClick={() => setCurrentPage(1)}
+                disabled={currentPage === 1}
+            />
+        );
+
+        // Previous page
+        items.push(
+            <Pagination.Prev
+                key="prev"
+                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                disabled={currentPage === 1}
+            />
+        );
+
+        // Calculate visible page range
+        let startPage = Math.max(1, currentPage - Math.floor(MAX_VISIBLE_PAGES / 2));
+        let endPage = Math.min(totalPages, startPage + MAX_VISIBLE_PAGES - 1);
+
+        // Adjust start page if we're near the end
+        if (endPage - startPage + 1 < MAX_VISIBLE_PAGES) {
+            startPage = Math.max(1, endPage - MAX_VISIBLE_PAGES + 1);
+        }
+
+        // Add ellipsis at start if needed
+        if (startPage > 1) {
+            items.push(<Pagination.Ellipsis key="ellipsis-start" disabled/>);
+        }
+
+        // Add page numbers
+        for (let number = startPage; number <= endPage; number++) {
+            items.push(
+                <Pagination.Item
+                    key={number}
+                    active={number === currentPage}
+                    onClick={() => setCurrentPage(number)}
+                >
+                    {number}
+                </Pagination.Item>
+            );
+        }
+
+        // Add ellipsis at end if needed
+        if (endPage < totalPages) {
+            items.push(<Pagination.Ellipsis key="ellipsis-end" disabled/>);
+        }
+
+        // Next page
+        items.push(
+            <Pagination.Next
+                key="next"
+                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                disabled={currentPage === totalPages}
+            />
+        );
+
+        // Last page
+        items.push(
+            <Pagination.Last
+                key="last"
+                onClick={() => setCurrentPage(totalPages)}
+                disabled={currentPage === totalPages}
+            />
+        );
+
+        return (
+            <div className="d-flex flex-wrap justify-content-center align-items-center gap-3 mb-4">
+                <Pagination className="mb-0">{items}</Pagination>
+                <span className="text-white">
+          Page {currentPage} of {totalPages}
+        </span>
+            </div>
+        );
     };
 
     return (
@@ -118,10 +212,11 @@ const SearchQuotes: React.FC = () => {
                         {searchTerm.trim() && ` containing all terms in "${searchTerm}"`}
                     </div>
 
-                    {filteredQuotes.map((quote) => (
+                    {renderPagination()}
+
+                    {currentQuotes.map((quote) => (
                         <Card key={quote.quoteId} className="mb-4 bg-dark text-white">
                             <Card.Body>
-                                {/* Using a div instead of Card.Text to avoid nesting issues */}
                                 <div
                                     className="quote-text mb-3"
                                     dangerouslySetInnerHTML={{__html: highlightSearchTerms(quote.quoteTx)}}
@@ -146,6 +241,8 @@ const SearchQuotes: React.FC = () => {
                             </Card.Body>
                         </Card>
                     ))}
+
+                    {renderPagination()}
 
                     {filteredQuotes.length === 0 && !isLoading && (
                         <div className="text-center text-white">

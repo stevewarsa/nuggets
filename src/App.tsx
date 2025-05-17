@@ -17,7 +17,7 @@ import {USER, GUEST_USER} from './models/constants';
 import './App.css';
 import ViewMemoryPracticeHistory from "./components/ViewMemoryPracticeHistory";
 import GoToPassageByRef from "./components/GoToPassageByRef";
-import QuoteSearch from "./components/QuoteSearch";
+import SearchQuotes from "./components/SearchQuotes.tsx";
 
 // Create a wrapper component to access location
 const AppContent = () => {
@@ -49,11 +49,12 @@ const AppContent = () => {
                     <Route path="/browseBible" element={<BrowseBiblePassages/>}/>
                     <Route path="/login" element={<Login/>}/>
                     <Route path="/practice/:mode/:order" element={<Practice/>}/>
-                    <Route path="/readBibleChapter/:translation/:book/:chapter/:scrollToVerse" element={<ReadBibleChapter/>}/>
+                    <Route path="/readBibleChapter/:translation/:book/:chapter/:scrollToVerse"
+                           element={<ReadBibleChapter/>}/>
                     <Route path="/readBibleChapter/:translation/:book/:chapter" element={<ReadBibleChapter/>}/>
                     <Route path="/viewQuotes/:quoteId" element={<ViewQuotes/>}/>
-                    <Route path="/searchQuotes" element={<QuoteSearch/>}/>
-                    <Route path="/memoryPracticeHistory" element={<ViewMemoryPracticeHistory />} />
+                    <Route path="/searchQuotes" element={<SearchQuotes/>}/>
+                    <Route path="/memoryPracticeHistory" element={<ViewMemoryPracticeHistory/>}/>
                     <Route path="/memoryStats" element={<MemoryStats/>}/>
                     <Route path="/goToPassageByRef" element={<GoToPassageByRef/>}/>
                 </Routes>
