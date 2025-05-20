@@ -2,10 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { Modal, Form, Button, Spinner } from 'react-bootstrap';
 import { Passage } from '../models/passage';
 import { bibleService } from '../services/bible-service';
-import { translations } from '../models/constants';
+import {getMaxVerse, translations} from '../models/constants';
 import { getUnformattedPassageTextNoVerseNumbers } from '../models/passage-utils';
-import { useAppDispatch, useAppSelector } from '../store/hooks';
-import { setMaxVerseByBookChapter } from '../store/memoryPassageSlice';
+import { useAppSelector } from '../store/hooks';
 import { StringUtils } from '../models/string.utils';
 import { UpdatePassageParam } from '../models/update-passage-param';
 
@@ -18,22 +17,18 @@ interface EditPassageProps {
 
 const colsInTextArea = 47;
 const EditPassage = ({ props }: { props: EditPassageProps }) => {
-    const dispatcher = useAppDispatch();
     const user = useAppSelector((state) => state.user.currentUser);
-    const [psgTextChanged, setPsgTextChanged] = useState(false);
-    const [startVerse, setStartVerse] = useState(props.passage.startVerse);
-    const [frequency, setFrequency] = useState(props.passage.frequencyDays);
-    const [endVerse, setEndVerse] = useState(props.passage.endVerse);
+    const [psgTextChanged, setPsgTextChanged] = useState<boolean>(false);
+    const [startVerse, setStartVerse] = useState<number>(props.passage.startVerse);
+    const [endVerse, setEndVerse] = useState<number>(props.passage.endVerse);
+    const [frequency, setFrequency] = useState<number>(props.passage.frequencyDays);
     const [appendLetter, setAppendLetter] = useState(
         props.passage.passageRefAppendLetter
             ? props.passage.passageRefAppendLetter
             : undefined
     );
     const [translation, setTranslation] = useState(props.passage.translationName);
-    let maxVerseByBookChapterMap = useAppSelector(
-        (state) => state.memoryPassage.maxVerseByBookChapter
-    );
-    const [maxVerse, setMaxVerse] = useState(props.passage.endVerse);
+    const [maxVerse, setMaxVerse] = useState(getMaxVerse(props.passage.translationName, props.passage.bookName, props.passage.chapter));
     const [currPassageText, setCurrPassageText] = useState('');
     const [rowsInTextArea, setRowsInTextArea] = useState(10);
     const [frequencies, setFrequencies] = useState<
@@ -62,10 +57,12 @@ const EditPassage = ({ props }: { props: EditPassageProps }) => {
     }, [props.passage.translationName]);
 
     useEffect(() => {
-        if (
-            startVerse === props.passage.startVerse &&
-            endVerse === props.passage.endVerse
-        ) {
+        console.log("EditPassage.useEffect[props.passage.endVerse] - props.passage.endVerse: " + props.passage.endVerse);
+        setEndVerse(props.passage.endVerse);
+    }, [props.passage.endVerse]);
+
+    useEffect(() => {
+        if (startVerse === props.passage.startVerse && endVerse === props.passage.endVerse) {
             // no update necessary, just return
             return;
         }
@@ -92,12 +89,9 @@ const EditPassage = ({ props }: { props: EditPassageProps }) => {
     }, [appendLetter]);
 
     const updateStateFromPassage = (psg: Passage) => {
-        const locMaxVerseByBookChapter = maxVerseByBookChapterMap[translation];
-        const maxChapVerseForBook = locMaxVerseByBookChapter[psg.bookName];
-        const maxVerseForChap = maxChapVerseForBook.find(
-            (chapAndVerse: number[]) => chapAndVerse[0] === psg.chapter
-        );
-        setMaxVerse(maxVerseForChap[1]);
+        const maxVerseForChap = getMaxVerse(translation, psg.bookName, psg.chapter);
+        console.log("EditPassage.updateStateFromPassage - maxVerseForChap: ", maxVerseForChap);
+        setMaxVerse(maxVerseForChap);
         setStartVerse(psg.startVerse);
         setEndVerse(psg.endVerse);
         setFrequency(psg.frequencyDays);
@@ -131,19 +125,6 @@ const EditPassage = ({ props }: { props: EditPassageProps }) => {
     };
 
     useEffect(() => {
-        if (!maxVerseByBookChapterMap?.hasOwnProperty(translation)) {
-            (async () => {
-                const locMaxVerseByBookChapter =
-                    await bibleService.getMaxVersesByBookChapter(translation);
-                dispatcher(
-                    setMaxVerseByBookChapter({
-                        maxVerseByBookChapter: locMaxVerseByBookChapter,
-                        translation: translation,
-                    })
-                );
-            })();
-            return;
-        }
         if (!editPassageVisible) {
             return;
         }
@@ -156,7 +137,7 @@ const EditPassage = ({ props }: { props: EditPassageProps }) => {
         } else {
             updateStateFromPassage(props.passage);
         }
-    }, [props.passage, maxVerseByBookChapterMap, editPassageVisible]);
+    }, [props.passage, editPassageVisible]);
 
     const populateCurrentPassageTextFromPassage = (psg: Passage) => {
         if (psg.verses && psg.verses.length > 0) {
@@ -274,6 +255,7 @@ const EditPassage = ({ props }: { props: EditPassageProps }) => {
     } else {
         return (
             <Modal
+                className="text-white"
                 show={editPassageVisible}
                 onHide={() => {
                     setEditPassageVisible(false);

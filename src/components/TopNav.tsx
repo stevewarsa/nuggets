@@ -2,7 +2,7 @@ import {Navbar, Nav, Container, Toast} from 'react-bootstrap';
 import {Link, useNavigate, useLocation} from 'react-router-dom';
 import {useState} from 'react';
 import {useAppSelector} from '../store/hooks';
-import {GUEST_USER, USER} from '../models/constants';
+import {GUEST_USER} from '../models/constants';
 import {bibleService} from '../services/bible-service';
 
 const TopNav = () => {
@@ -15,7 +15,7 @@ const TopNav = () => {
     const location = useLocation();
     const currentUser = useAppSelector(state => state.user.currentUser);
     const isGuestUser = currentUser === GUEST_USER;
-    const isMainUser = currentUser === USER;
+    const isMainUser = !isGuestUser;
 
     const handleNavigation = (path: string) => {
         setExpanded(false);

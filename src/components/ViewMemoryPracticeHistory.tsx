@@ -2,7 +2,6 @@ import React, {useState, useEffect} from 'react';
 import {Container, Spinner, Collapse, Button, Pagination} from 'react-bootstrap';
 import {useAppSelector, useAppDispatch} from '../store/hooks';
 import {bibleService} from '../services/bible-service';
-import {USER} from '../models/constants';
 import {setMemoryPassages, setMemoryPassagesLoading} from '../store/memoryPassageSlice';
 import {MemoryPracticeHistoryEntry, GroupedHistoryEntry} from '../models/memory-practice-history';
 import {getDisplayBookName} from '../models/passage-utils';
@@ -18,11 +17,9 @@ const ViewMemoryPracticeHistory: React.FC = () => {
     const [expandedDays, setExpandedDays] = useState<Set<string>>(new Set());
     const [currentPage, setCurrentPage] = useState(1);
 
-    const currentUser = useAppSelector(state => state.user.currentUser);
+    const user = useAppSelector(state => state.user.currentUser);
     const {passages, loading: passagesLoading} = useAppSelector(state => state.memoryPassage);
     const dispatch = useAppDispatch();
-
-    const user = currentUser || USER;
 
     // Calculate pagination values
     const totalPages = Math.ceil(groupedHistory.length / ITEMS_PER_PAGE);
@@ -62,7 +59,9 @@ const ViewMemoryPracticeHistory: React.FC = () => {
             }
         };
 
-        fetchData();
+        if (user) {
+            fetchData();
+        }
 
         return () => {
             if (loadingInterval) {

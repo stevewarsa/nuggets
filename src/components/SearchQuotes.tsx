@@ -1,8 +1,7 @@
-import React, {useState, useEffect, useMemo} from 'react';
-import {Container, Form, Button, Spinner, Card, Toast, Pagination} from 'react-bootstrap';
+import React, {useEffect, useMemo, useState} from 'react';
+import {Button, Card, Container, Form, Pagination, Spinner, Toast} from 'react-bootstrap';
 import {Quote} from '../models/quote';
 import {bibleService} from '../services/bible-service';
-import {USER} from '../models/constants';
 import copy from 'clipboard-copy';
 import {useAppSelector} from '../store/hooks';
 import {useNavigate} from "react-router-dom";
@@ -20,8 +19,7 @@ const SearchQuotes: React.FC = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const navigate = useNavigate();
 
-    const currentUser = useAppSelector(state => state.user.currentUser);
-    const user = currentUser || USER;
+    const user = useAppSelector(state => state.user.currentUser);
 
     useEffect(() => {
         const fetchQuotes = async () => {
@@ -36,8 +34,9 @@ const SearchQuotes: React.FC = () => {
                 setIsLoading(false);
             }
         };
-
-        fetchQuotes();
+        if (user) {
+            fetchQuotes();
+        }
     }, [user]);
 
     // Filter quotes based on search term

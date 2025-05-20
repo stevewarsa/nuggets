@@ -1,12 +1,12 @@
 import React, {useEffect, useState} from 'react';
-import {Container, Spinner, Modal, Form, Button, Toast} from 'react-bootstrap';
+import {Button, Container, Form, Modal, Spinner, Toast} from 'react-bootstrap';
 import {Passage} from '../models/passage';
-import {USER, translationsShortNms} from '../models/constants';
+import {translationsShortNms} from '../models/constants';
 import {bibleService} from '../services/bible-service';
 import {getBookName, getDisplayBookName, handleCopyVerseRange} from '../models/passage-utils';
 import {useAppSelector} from '../store/hooks';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import {faCopy, faArrowUp} from '@fortawesome/free-solid-svg-icons';
+import {faArrowUp, faCopy} from '@fortawesome/free-solid-svg-icons';
 
 interface BiblePassageProps {
     passage: Passage;
@@ -47,10 +47,8 @@ const BiblePassage: React.FC<BiblePassageProps> = ({
     const [toastBg, setToastBg] = useState<string>('');
     const [internalVerseModal, setInternalVerseModal] = useState<boolean>(false);
 
-    const currentUser = useAppSelector(state => state.user.currentUser);
-    const user = currentUser || USER;
+    const user = useAppSelector(state => state.user.currentUser);
 
-    console.log("BiblePassage.useEffect[] - here are the highlighted verses: ", highlightedVerses);
     useEffect(() => {
         const handleScroll = () => {
             setShowFloatingButtons(window.scrollY > 100);

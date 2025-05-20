@@ -1,11 +1,7 @@
-import {useState, useEffect, useMemo} from 'react';
+import {useEffect, useMemo, useState} from 'react';
 import {Passage} from '../models/passage';
 import {bibleService} from '../services/bible-service';
-import {
-    getNextIndex,
-    shuffleArray,
-} from '../models/passage-utils';
-import {USER} from '../models/constants';
+import {getNextIndex, shuffleArray,} from '../models/passage-utils';
 import {useAppSelector} from '../store/hooks';
 import {useTopics} from "./useTopics.ts";
 
@@ -24,8 +20,7 @@ export const useBiblePassages = () => {
     const [showTopics, setShowTopics] = useState(false);
     const [isAddingTopics, setIsAddingTopics] = useState(false);
 
-    const currentUser = useAppSelector(state => state.user.currentUser);
-    const user = currentUser || USER;
+    const user = useAppSelector(state => state.user.currentUser);
 
     // Calculate topic counts from all passages
     const topicCounts = useMemo(() => {
@@ -88,8 +83,9 @@ export const useBiblePassages = () => {
                 console.error('Error fetching passage:', error);
             }
         };
-
-        fetchData();
+        if (user) {
+            fetchData();
+        }
     }, [user]);
 
     const handleTopicFilterChange = (topicId: number) => {

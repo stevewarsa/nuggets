@@ -1,4 +1,4 @@
-<?php
+<?php /** @noinspection SqlNoDataSourceInspection */
 /** @noinspection PhpParamsInspection */
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, PATCH, PUT, DELETE, OPTIONS');
@@ -6,6 +6,7 @@ header('Access-Control-Allow-Headers: Origin, Content-Type, X-Auth-Token');
 
 $request = file_get_contents('php://input');
 $input = json_decode($request);
+error_log("[update_passage.php] Here is the incoming request:\n" . $request);
 
 $user = $input->user;
 $passageId = $input->passage->passageId;
@@ -19,10 +20,10 @@ $passageRefAppendLetter = $input->passageRefAppendLetter;
 $explanation = $input->passage->explanation;
 
 // update this passage
-$db = new SQLite3('db/memory_' . $user . '.db');
+$db = new SQLite3("db/memory_$user.db");
 $db->busyTimeout(250);
 if (isset($explanation)) {
-    error_log("update_passage.php - explanation is set to " . $explanation . ".  First trying to update it...");
+    error_log("update_passage.php - explanation is set to $explanation. First trying to update it...");
     try {
         /** @noinspection SqlResolve */
         $statement = $db->prepare('update passage_explanation set explanation = :explanation where passage_id = :passage_id');
@@ -97,6 +98,14 @@ if (isset($newText)) {
         $statement->execute();
         $statement->close();
     }
+} else if (isset($passageRefAppendLetter)) {
+    // No new text sent, but passage ref append letter set, so update it
+    /** @noinspection SqlResolve */
+    $statement = $db->prepare('update passage_text_override set passage_ref_append_letter = :passage_ref_append_letter where passage_id = :passage_id');
+    $statement->bindValue(':passage_ref_append_letter', $passageRefAppendLetter);
+    $statement->bindValue(':passage_id', $passageId);
+    $statement->execute();
+    $statement->close();
 }
 
 $db->close();

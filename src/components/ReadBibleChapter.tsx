@@ -5,7 +5,7 @@ import BiblePassage from './BiblePassage';
 import Toolbar from './Toolbar';
 import {Passage} from '../models/passage';
 import {bibleService} from '../services/bible-service';
-import {booksByNum, USER, GUEST_USER} from '../models/constants';
+import {booksByNum, GUEST_USER, getMaxChapterByBook, getMaxVerse} from '../models/constants';
 import {
     getUnformattedPassageTextNoVerseNumbers,
     getNextBook,
@@ -28,7 +28,6 @@ const ReadBibleChapter = () => {
     const navigate = useNavigate();
     const [passage, setPassage] = useState<Passage | null>(null);
     const [currentTranslation, setCurrentTranslation] = useState(translation || 'niv');
-    const [maxChapters, setMaxChapters] = useState<{ [key: string]: number }>({});
     const [showVerseModal, setShowVerseModal] = useState(false);
     const [addToMemoryMode, setAddToMemoryMode] = useState(false);
     const [addToNuggetsMode, setAddToNuggetsMode] = useState(false);
@@ -41,74 +40,40 @@ const ReadBibleChapter = () => {
     const [highlightedVerses, setHighlightedVerses] = useState<number[]>([]);
     const [isHighlightMode, setIsHighlightMode] = useState(false);
 
-    const currentUser = useAppSelector(state => state.user.currentUser);
-    const user = currentUser || USER;
-    const isGuestUser = currentUser === GUEST_USER;
+    const user = useAppSelector(state => state.user.currentUser);
+    const isGuestUser = user === GUEST_USER;
 
     // Use the useBiblePassages hook to get access to nuggets
     const {state: {allPassages}} = useBiblePassages();
 
     useEffect(() => {
-        console.log("ReadBibleChapter.useEffect[] - scrollToVerse=" + scrollToVerse);
-        const fetchMaxChapters = async () => {
-            try {
-                const chapters = await bibleService.getMaxChaptersByBook();
-                const maxChaptersMap = chapters.reduce((acc, {bookName, maxChapter}) => {
-                    acc[bookName] = maxChapter;
-                    return acc;
-                }, {} as { [key: string]: number });
-                setMaxChapters(maxChaptersMap);
-            } catch (error) {
-                console.error('Error fetching max chapters:', error);
-            }
+        if (!translation || !book || !chapter) return;
+        const bookId = Object.entries(booksByNum).find(([_, name]) => name === book)?.[0];
+
+        if (!bookId) {
+            console.error('Could not find bookId for book:', book);
+            return;
+        }
+
+        const newPassage: Passage = {
+            passageId: 0,
+            bookId: parseInt(bookId),
+            bookName: book,
+            translationId: translation,
+            translationName: '',
+            chapter: parseInt(chapter),
+            startVerse: 1,
+            endVerse: getMaxVerse(translation, book, parseInt(chapter)),
+            verseText: '',
+            frequencyDays: 0,
+            last_viewed_str: '',
+            last_viewed_num: 0,
+            passageRefAppendLetter: '',
+            verses: [],
+            topics: [],
+            explanation: ''
         };
-        fetchMaxChapters();
-    }, []);
-
-    useEffect(() => {
-        const fetchMaxVerse = async () => {
-            if (!translation || !book || !chapter) return;
-
-            try {
-                const response = await bibleService.getMaxVersesByBookChapter(translation);
-                const bookData = response[book];
-                if (bookData) {
-                    const chapterData = bookData.find(([chapterNum]) => chapterNum === parseInt(chapter));
-                    if (chapterData) {
-                        const bookId = Object.entries(booksByNum).find(([_, name]) => name === book)?.[0];
-
-                        if (!bookId) {
-                            console.error('Could not find bookId for book:', book);
-                            return;
-                        }
-
-                        const newPassage: Passage = {
-                            passageId: 0,
-                            bookId: parseInt(bookId),
-                            bookName: book,
-                            translationId: translation,
-                            translationName: '',
-                            chapter: parseInt(chapter),
-                            startVerse: 1,
-                            endVerse: chapterData[1],
-                            verseText: '',
-                            frequencyDays: 0,
-                            last_viewed_str: '',
-                            last_viewed_num: 0,
-                            passageRefAppendLetter: '',
-                            verses: [],
-                            topics: [],
-                            explanation: ''
-                        };
-                        setPassage(newPassage);
-                    }
-                }
-            } catch (error) {
-                console.error('Error fetching max verse:', error);
-            }
-        };
-
-        fetchMaxVerse();
+        setPassage(newPassage);
     }, [translation, book, chapter]);
 
     // Effect to highlight nugget verses when highlight mode is enabled
@@ -134,10 +99,10 @@ const ReadBibleChapter = () => {
     }, [isHighlightMode, passage, allPassages]);
 
     const handleToolbarClick = (direction: string) => {
-        if (!book || !chapter || !maxChapters[book]) return;
+        if (!book || !chapter || !getMaxChapterByBook(book)) return;
 
         const currentChapter = parseInt(chapter);
-        const maxChapter = maxChapters[book];
+        const maxChapter = getMaxChapterByBook(book);
 
         if (direction === 'RIGHT') {
             if (currentChapter < maxChapter) {
@@ -157,8 +122,9 @@ const ReadBibleChapter = () => {
             } else {
                 // Move to last chapter of previous book
                 const previousBook = getNextBook(book, 'previous');
-                if (previousBook && maxChapters[previousBook]) {
-                    navigate(`/readBibleChapter/${currentTranslation}/${previousBook}/${maxChapters[previousBook]}`);
+                const maxChapterForBook = getMaxChapterByBook(previousBook);
+                if (previousBook && maxChapterForBook) {
+                    navigate(`/readBibleChapter/${currentTranslation}/${previousBook}/${maxChapterForBook}`);
                 }
             }
         }
@@ -326,7 +292,8 @@ const ReadBibleChapter = () => {
         return menus;
     };
 
-    if (!passage || !translation || !book || !chapter || !maxChapters[book]) {
+    if (!passage || !translation || !book || !chapter) {
+        console.log(`ReadBibleChapter - showing loading chapter - here are the values: translation: ${translation}, book: ${book}, chapter: ${chapter}, passage:`, passage);
         return (
             <Container>
                 <div className="text-white text-center">Loading chapter information...</div>
@@ -341,7 +308,7 @@ const ReadBibleChapter = () => {
         >
             <Toolbar
                 currentIndex={parseInt(chapter) - 1}
-                totalCount={maxChapters[book]}
+                totalCount={getMaxChapterByBook(book)}
                 clickFunction={handleToolbarClick}
                 translation={currentTranslation}
                 onTranslationChange={handleTranslationChange}

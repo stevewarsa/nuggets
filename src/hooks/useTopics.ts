@@ -2,14 +2,12 @@ import {useEffect} from 'react';
 import {useAppDispatch, useAppSelector} from '../store/hooks';
 import {setTopics, setTopicsLoading, setTopicsError} from '../store/topicSlice';
 import {bibleService} from '../services/bible-service';
-import {USER} from '../models/constants';
 
 export const useTopics = () => {
     const dispatch = useAppDispatch();
-    const currentUser = useAppSelector(state => state.user.currentUser);
+    const user = useAppSelector(state => state.user.currentUser);
     const {topics, loading, error} = useAppSelector(state => state.topic);
 
-    const user = currentUser || USER;
 
     useEffect(() => {
         // Fetch topics if they're not already in the store
@@ -24,8 +22,9 @@ export const useTopics = () => {
                     dispatch(setTopicsError('Failed to load topics'));
                 }
             };
-
-            fetchTopics();
+            if (user) {
+                fetchTopics();
+            }
         }
     }, [user, topics.length, loading, error, dispatch]);
 

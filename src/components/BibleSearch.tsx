@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
-import { Container, Form, Button, Row, Col, Toast, Modal } from 'react-bootstrap';
-import { bookAbbrev, translations, USER } from '../models/constants';
-import { Passage } from '../models/passage';
-import { bibleService } from '../services/bible-service';
-import { getDisplayBookName } from '../models/passage-utils';
-import { useAppSelector } from '../store/hooks';
+import React, {useState} from 'react';
+import {Button, Col, Container, Form, Modal, Row, Toast} from 'react-bootstrap';
+import {bookAbbrev, translations} from '../models/constants';
+import {Passage} from '../models/passage';
+import {bibleService} from '../services/bible-service';
+import {getDisplayBookName} from '../models/passage-utils';
+import {useAppSelector} from '../store/hooks';
 import copy from 'clipboard-copy';
 
 const BibleSearch: React.FC = () => {
@@ -21,8 +21,7 @@ const BibleSearch: React.FC = () => {
   const [emailAddress, setEmailAddress] = useState<string>('');
   const [isSendingEmail, setIsSendingEmail] = useState<boolean>(false);
 
-  const currentUser = useAppSelector(state => state.user.currentUser);
-  const user = currentUser || USER;
+  const user = useAppSelector(state => state.user.currentUser);
 
   const testamentOptions = [
     { label: 'NT', value: 'new' },

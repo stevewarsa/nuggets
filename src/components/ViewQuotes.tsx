@@ -2,7 +2,6 @@ import {Container, Spinner, Toast, Badge, Collapse, Button, Modal, Form, Row, Co
 import {useState, useEffect, useMemo} from 'react';
 import {Quote} from '../models/quote';
 import {bibleService} from '../services/bible-service';
-import {USER} from '../models/constants';
 import Toolbar from './Toolbar';
 import SwipeContainer from './SwipeContainer';
 import {shuffleArray} from '../models/passage-utils';
@@ -35,15 +34,13 @@ const ViewQuotes = () => {
     const [isAddingTopics, setIsAddingTopics] = useState(false);
     const [showOnlyAssociatedTopics, setShowOnlyAssociatedTopics] = useState(true);
 
-    const currentUser = useAppSelector(state => state.user.currentUser);
+    const user = useAppSelector(state => state.user.currentUser);
     const topics = useAppSelector(state => state.topic.topics);
     const topicsLoading = useAppSelector(state => state.topic.loading);
     const topicsError = useAppSelector(state => state.topic.error);
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
     const {quoteId} = useParams();
-
-    const user = currentUser || USER;
 
     // Calculate topic counts from current quotes
     const topicCounts = useMemo(() => {
@@ -139,8 +136,9 @@ const ViewQuotes = () => {
         const loadingInterval = setInterval(() => {
             setLoadingSeconds(s => s + 1);
         }, 1000);
-
-        fetchQuotes();
+        if (user) {
+            fetchQuotes();
+        }
 
         return () => clearInterval(loadingInterval);
     }, [user]);
@@ -158,8 +156,9 @@ const ViewQuotes = () => {
                     dispatch(setTopicsError('Failed to load topics'));
                 }
             };
-
-            fetchTopics();
+            if (user) {
+                fetchTopics();
+            }
         }
     }, [user, topics.length, topicsLoading, topicsError, dispatch]);
 

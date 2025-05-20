@@ -3,7 +3,6 @@ import { Container, Card, Row, Col, Spinner, Alert } from 'react-bootstrap';
 import { useAppSelector, useAppDispatch } from '../store/hooks';
 import { bibleService } from '../services/bible-service';
 import { setMemoryPassages, setMemoryPassagesLoading, setMemoryPassagesError } from '../store/memoryPassageSlice';
-import { USER } from '../models/constants';
 
 interface TranslationStat {
   translation: string;
@@ -15,10 +14,8 @@ const MemoryStats: React.FC = () => {
   const [translationStats, setTranslationStats] = useState<TranslationStat[]>([]);
   
   const dispatch = useAppDispatch();
-  const currentUser = useAppSelector(state => state.user.currentUser);
+  const user = useAppSelector(state => state.user.currentUser);
   const { passages, loading, error, lastLoaded } = useAppSelector(state => state.memoryPassage);
-  
-  const user = currentUser || USER;
   
   // Calculate if we need to refresh the data (e.g., if it's older than 5 minutes)
   const needsRefresh = !lastLoaded || (Date.now() - lastLoaded > 5 * 60 * 1000);
@@ -37,8 +34,9 @@ const MemoryStats: React.FC = () => {
         }
       }
     };
-
-    fetchMemoryPassages();
+    if (user) {
+      fetchMemoryPassages();
+    }
   }, [dispatch, user, passages.length, needsRefresh]);
 
   useEffect(() => {

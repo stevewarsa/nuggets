@@ -4,7 +4,14 @@ import { useNavigate } from 'react-router-dom';
 import { ReadingHistoryEntry } from '../models/reading-history-entry';
 import { bibleService } from '../services/bible-service';
 import { DateUtils } from '../models/date-utils';
-import { USER, booksByDay, booksByNum, bookAbbrev, TRANSLATION, GUEST_USER } from '../models/constants';
+import {
+  booksByDay,
+  booksByNum,
+  bookAbbrev,
+  TRANSLATION,
+  GUEST_USER,
+  getMaxChapterByBook
+} from '../models/constants';
 import { useAppSelector } from '../store/hooks';
 
 const BibleReadingPlan: React.FC = () => {
@@ -13,9 +20,8 @@ const BibleReadingPlan: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
   
-  const currentUser = useAppSelector(state => state.user.currentUser);
-  const user = currentUser || USER;
-  const isGuestUser = currentUser === GUEST_USER;
+  const user = useAppSelector(state => state.user.currentUser);
+  const isGuestUser = user === GUEST_USER;
 
   useEffect(() => {
     const fetchData = async () => {
@@ -43,8 +49,8 @@ const BibleReadingPlan: React.FC = () => {
         } else {
           // Continue from last reading
           nextReadingEntry = JSON.parse(JSON.stringify(readingEntriesForTodaysGroup[0]));
-          const maxChap = await bibleService.getMaxChaptersByBook()
-            .then(chapters => chapters.find(mx => mx.bookName === nextReadingEntry.bookName)?.maxChapter || 1);
+
+          const maxChap = getMaxChapterByBook(nextReadingEntry.bookName) || 1;
 
           if (nextReadingEntry.chapter === maxChap) {
             // Move to next book
@@ -73,8 +79,9 @@ const BibleReadingPlan: React.FC = () => {
         setIsLoading(false);
       }
     };
-
-    fetchData();
+    if (user) {
+      fetchData();
+    }
   }, [user]);
 
   const handleReadClick = async () => {

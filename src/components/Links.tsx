@@ -1,10 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { Container, Card, ListGroup, Button, Modal, Form, Spinner, Toast } from 'react-bootstrap';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faExternalLinkAlt, faPlus, faStar } from '@fortawesome/free-solid-svg-icons';
-import { bibleService } from '../services/bible-service';
-import { USER } from '../models/constants';
-import { useAppSelector } from '../store/hooks';
+import React, {useEffect, useState} from 'react';
+import {Button, Card, Container, Form, ListGroup, Modal, Spinner, Toast} from 'react-bootstrap';
+import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
+import {faExternalLinkAlt, faPlus, faStar} from '@fortawesome/free-solid-svg-icons';
+import {bibleService} from '../services/bible-service';
+import {useAppSelector} from '../store/hooks';
 
 interface Link {
   key: string;
@@ -23,9 +22,8 @@ const Links: React.FC = () => {
   const [showToast, setShowToast] = useState<boolean>(false);
   const [toastMessage, setToastMessage] = useState<string>('');
   const [toastBg, setToastBg] = useState<string>('#28a745');
-  
-  const currentUser = useAppSelector(state => state.user.currentUser);
-  const user = currentUser || USER;
+
+  const user = useAppSelector(state => state.user.currentUser);
 
   // Hard-coded links
   const hardcodedLinks: Link[] = [

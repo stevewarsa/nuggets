@@ -12,7 +12,7 @@ import {useParams} from 'react-router-dom';
 import {useState, useEffect, useRef} from 'react';
 import {Passage} from '../models/passage';
 import {bibleService} from '../services/bible-service';
-import {USER, GUEST_USER} from '../models/constants';
+import {GUEST_USER} from '../models/constants';
 import Toolbar from './Toolbar';
 import BiblePassage from './BiblePassage';
 import SwipeContainer from './SwipeContainer';
@@ -64,9 +64,8 @@ const Practice = () => {
 
     const searchInputRef = useRef<HTMLInputElement>(null);
 
-    const currentUser = useAppSelector((state) => state.user.currentUser);
-    const user = currentUser || USER;
-    const isGuestUser = currentUser === GUEST_USER;
+    const user = useAppSelector((state) => state.user.currentUser);
+    const isGuestUser = user === GUEST_USER;
 
     // Focus search input when modal opens
     useEffect(() => {
@@ -132,8 +131,9 @@ const Practice = () => {
                 setInitSeconds(0);
             }
         };
-
-        fetchMemoryPassages();
+        if (user) {
+            fetchMemoryPassages();
+        }
     }, [order, user, isGuestUser]);
 
     const updateLastViewed = (passageId: number) => {

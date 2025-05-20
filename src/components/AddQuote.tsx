@@ -1,8 +1,7 @@
 import React, {useState} from 'react';
-import {Container, Form, Button, Spinner, Toast} from 'react-bootstrap';
+import {Button, Container, Form, Spinner, Toast} from 'react-bootstrap';
 import {useNavigate} from 'react-router-dom';
 import {bibleService} from '../services/bible-service';
-import {USER} from '../models/constants';
 import {useAppSelector} from '../store/hooks';
 
 const AddQuote = () => {
@@ -13,8 +12,7 @@ const AddQuote = () => {
     const [toastBg, setToastBg] = useState('#28a745');
 
     const navigate = useNavigate();
-    const currentUser = useAppSelector(state => state.user.currentUser);
-    const user = currentUser || USER;
+    const user = useAppSelector(state => state.user.currentUser);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();

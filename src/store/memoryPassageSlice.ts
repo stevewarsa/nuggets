@@ -6,15 +6,13 @@ interface MemoryPassageState {
     loading: boolean;
     error: string | null;
     lastLoaded: number | null;
-    maxVerseByBookChapter: any;
 }
 
 const initialState: MemoryPassageState = {
     passages: [],
     loading: false,
     error: null,
-    lastLoaded: null,
-    maxVerseByBookChapter: {}
+    lastLoaded: null
 };
 
 export const memoryPassageSlice = createSlice({
@@ -34,14 +32,6 @@ export const memoryPassageSlice = createSlice({
         setMemoryPassagesError: (state, action: PayloadAction<string>) => {
             state.loading = false;
             state.error = action.payload;
-        },
-        clearMemoryPassages: (state) => {
-            state.passages = [];
-            state.lastLoaded = null;
-        },
-        setMaxVerseByBookChapter(state, action) {
-            console.log("reducer.setMaxVerseByBookChapter - action:", action);
-            state.maxVerseByBookChapter[action.payload.translation] = action.payload.maxVerseByBookChapter;
         }
     }
 });
@@ -49,9 +39,7 @@ export const memoryPassageSlice = createSlice({
 export const {
     setMemoryPassages,
     setMemoryPassagesLoading,
-    setMemoryPassagesError,
-    clearMemoryPassages,
-    setMaxVerseByBookChapter
+    setMemoryPassagesError
 } = memoryPassageSlice.actions;
 
 export default memoryPassageSlice.reducer;

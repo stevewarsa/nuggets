@@ -1,45 +1,18 @@
 import { Container, Form, Row, Col, Collapse } from 'react-bootstrap';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { translations, bookAbbrev } from '../models/constants';
-import { bibleService } from '../services/bible-service';
-
-interface ChapterInfo {
-  bookName: string;
-  maxChapter: number;
-}
+import {translations, bookAbbrev, getMaxChapterByBook} from '../models/constants';
 
 const ViewChapter = () => {
   const [selectedTranslation, setSelectedTranslation] = useState('niv');
   const [selectedBook, setSelectedBook] = useState('genesis');
-  const [maxChapters, setMaxChapters] = useState<ChapterInfo[]>([]);
   const [currentBookMaxChapter, setCurrentBookMaxChapter] = useState(50);
   const [isBookOpen, setIsBookOpen] = useState(true);
   const [isChapterOpen, setIsChapterOpen] = useState(false);
 
-  useEffect(() => {
-    const fetchMaxChapters = async () => {
-      try {
-        const chapters = await bibleService.getMaxChaptersByBook();
-        setMaxChapters(chapters);
-        updateCurrentBookMaxChapter(selectedBook, chapters);
-      } catch (error) {
-        console.error('Error fetching max chapters:', error);
-      }
-    };
-    fetchMaxChapters();
-  }, []);
-
-  const updateCurrentBookMaxChapter = (bookName: string, chapters: ChapterInfo[]) => {
-    const bookInfo = chapters.find(chapter => chapter.bookName === bookName);
-    if (bookInfo) {
-      setCurrentBookMaxChapter(bookInfo.maxChapter);
-    }
-  };
-
   const handleBookChange = (book: string) => {
     setSelectedBook(book);
-    updateCurrentBookMaxChapter(book, maxChapters);
+    setCurrentBookMaxChapter(getMaxChapterByBook(book));
     setIsBookOpen(false);
     setIsChapterOpen(true);
   };

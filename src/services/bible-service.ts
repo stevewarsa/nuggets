@@ -5,15 +5,6 @@ import { ReadingHistoryEntry } from '../models/reading-history-entry';
 import { Topic } from '../models/topic';
 import {MemoryPracticeHistoryEntry} from "../models/memory-practice-history.ts";
 
-export interface ChapterInfo {
-  bookName: string;
-  maxChapter: number;
-}
-
-export interface MaxVerseResponse {
-  [key: string]: [number, number][];
-}
-
 interface BibleSearchPayload {
   book: string;
   translations: string[];
@@ -452,33 +443,6 @@ export class BibleService {
       return response.data;
     } catch (error) {
       return this.handleError(error, 'fetching memory passages');
-    }
-  }
-
-  async getMaxChaptersByBook(): Promise<ChapterInfo[]> {
-    try {
-      const response = await axios.get(
-        `${BibleService.BASE_URL}get_max_chapter_by_book.php`
-      );
-      return response.data;
-    } catch (error) {
-      return this.handleError(error, 'fetching max chapters');
-    }
-  }
-
-  async getMaxVersesByBookChapter(
-    translation: string
-  ): Promise<MaxVerseResponse> {
-    try {
-      const response = await axios.get(
-        `${BibleService.BASE_URL}get_max_verse_by_book_chapter.php`,
-        {
-          params: { translation },
-        }
-      );
-      return response.data;
-    } catch (error) {
-      return this.handleError(error, 'fetching max verses');
     }
   }
 
