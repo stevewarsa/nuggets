@@ -1,43 +1,50 @@
 import React, {useEffect, useMemo, useState} from 'react';
 import {Button, Card, Container, Form, Pagination, Spinner, Toast} from 'react-bootstrap';
-import {Quote} from '../models/quote';
 import {bibleService} from '../services/bible-service';
 import copy from 'clipboard-copy';
-import {useAppSelector} from '../store/hooks';
+import {useAppDispatch, useAppSelector} from '../store/hooks';
 import {useNavigate} from "react-router-dom";
+import {setQuotes, setQuotesError, setQuotesLoading} from '../store/quoteSlice';
 
 const QUOTES_PER_PAGE = 4;
 const MAX_VISIBLE_PAGES = 5; // Number of page numbers to show at once
+const MAX_PREVIEW_LENGTH = 200;
 
 const SearchQuotes: React.FC = () => {
-    const [quotes, setQuotes] = useState<Quote[]>([]);
     const [searchTerm, setSearchTerm] = useState<string>('');
-    const [isLoading, setIsLoading] = useState<boolean>(true);
     const [showToast, setShowToast] = useState<boolean>(false);
     const [toastMessage, setToastMessage] = useState<string>('');
     const [toastBg, setToastBg] = useState<string>('#28a745');
     const [currentPage, setCurrentPage] = useState(1);
+    const [expandedQuotes, setExpandedQuotes] = useState<Set<number>>(new Set());
     const navigate = useNavigate();
 
+    const dispatch = useAppDispatch();
     const user = useAppSelector(state => state.user.currentUser);
+    const {quotes, loading, error} = useAppSelector(state => state.quote);
+
+    // Scroll to top when page changes
+    useEffect(() => {
+        window.scrollTo({top: 0, behavior: 'smooth'});
+    }, [currentPage]);
 
     useEffect(() => {
         const fetchQuotes = async () => {
-            try {
-                setIsLoading(true);
-                // Get quotes with text included for searching
-                const quoteList = await bibleService.getQuoteList(user, true);
-                setQuotes(quoteList);
-            } catch (error) {
-                console.error('Error fetching quotes:', error);
-            } finally {
-                setIsLoading(false);
+            if (quotes.length === 0) {
+                try {
+                    dispatch(setQuotesLoading());
+                    const quoteList = await bibleService.getQuoteList(user, true);
+                    dispatch(setQuotes(quoteList));
+                } catch (error) {
+                    console.error('Error fetching quotes:', error);
+                    dispatch(setQuotesError('Failed to load quotes'));
+                }
             }
         };
         if (user) {
             fetchQuotes();
         }
-    }, [user]);
+    }, [user, quotes.length, dispatch]);
 
     // Filter quotes based on search term
     const filteredQuotes = useMemo(() => {
@@ -79,6 +86,18 @@ const SearchQuotes: React.FC = () => {
             setToastBg('#dc3545');
             setShowToast(true);
         }
+    };
+
+    const toggleQuoteExpansion = (quoteId: number) => {
+        setExpandedQuotes(prev => {
+            const newSet = new Set(prev);
+            if (newSet.has(quoteId)) {
+                newSet.delete(quoteId);
+            } else {
+                newSet.add(quoteId);
+            }
+            return newSet;
+        });
     };
 
     const highlightSearchTerms = (text: string) => {
@@ -174,11 +193,32 @@ const SearchQuotes: React.FC = () => {
             <div className="d-flex flex-wrap justify-content-center align-items-center gap-3 mb-4">
                 <Pagination className="mb-0">{items}</Pagination>
                 <span className="text-white">
-          Page {currentPage} of {totalPages}
-        </span>
+                    Page {currentPage} of {totalPages}
+                </span>
             </div>
         );
     };
+
+    if (loading) {
+        return (
+            <Container className="py-4">
+                <div className="text-center text-white">
+                    <Spinner animation="border" role="status"/>
+                    <p className="mt-2">Loading quotes...</p>
+                </div>
+            </Container>
+        );
+    }
+
+    if (error) {
+        return (
+            <Container className="py-4">
+                <div className="text-center text-white">
+                    <p>Error: {error}</p>
+                </div>
+            </Container>
+        );
+    }
 
     return (
         <Container className="py-4">
@@ -199,56 +239,63 @@ const SearchQuotes: React.FC = () => {
                 </Form.Group>
             </Form>
 
-            {isLoading ? (
-                <div className="text-center text-white">
-                    <Spinner animation="border" role="status"/>
-                    <p className="mt-2">Loading quotes...</p>
-                </div>
-            ) : (
-                <>
-                    <div className="mb-3 text-white">
-                        Found {filteredQuotes.length} {filteredQuotes.length === 1 ? 'quote' : 'quotes'}
-                        {searchTerm.trim() && ` containing all terms in "${searchTerm}"`}
-                    </div>
+            <div className="mb-3 text-white">
+                Found {filteredQuotes.length} {filteredQuotes.length === 1 ? 'quote' : 'quotes'}
+                {searchTerm.trim() && ` containing all terms in "${searchTerm}"`}
+            </div>
 
-                    {renderPagination()}
+            {renderPagination()}
 
-                    {currentQuotes.map((quote) => (
-                        <Card key={quote.quoteId} className="mb-4 bg-dark text-white">
-                            <Card.Body>
-                                <div
-                                    className="quote-text mb-3"
-                                    dangerouslySetInnerHTML={{__html: highlightSearchTerms(quote.quoteTx)}}
-                                />
-                                <div className="d-flex justify-content-end">
-                                    <Button
-                                        className="me-2"
-                                        variant="outline-light"
-                                        size="sm"
-                                        onClick={() => handleCopyQuote(quote.quoteTx)}
-                                    >
-                                        Copy
-                                    </Button>
-                                    <Button
-                                        variant="outline-light"
-                                        size="sm"
-                                        onClick={() => navigate(`/viewQuotes/${quote.quoteId}`)}
-                                    >
-                                        Go To...
-                                    </Button>
-                                </div>
-                            </Card.Body>
-                        </Card>
-                    ))}
-
-                    {renderPagination()}
-
-                    {filteredQuotes.length === 0 && !isLoading && (
-                        <div className="text-center text-white">
-                            <p>No quotes found matching your search.</p>
+            {currentQuotes.map((quote) => (
+                <Card key={quote.quoteId} className="mb-4 bg-dark text-white">
+                    <Card.Body>
+                        <div className="quote-text mb-3">
+                            <div
+                                dangerouslySetInnerHTML={{
+                                    __html: highlightSearchTerms(
+                                        expandedQuotes.has(quote.quoteId)
+                                            ? quote.quoteTx
+                                            : quote.quoteTx.slice(0, MAX_PREVIEW_LENGTH) + (quote.quoteTx.length > MAX_PREVIEW_LENGTH ? '...' : '')
+                                    )
+                                }}
+                            />
+                            {quote.quoteTx.length > MAX_PREVIEW_LENGTH && (
+                                <Button
+                                    variant="link"
+                                    className="text-white p-0"
+                                    onClick={() => toggleQuoteExpansion(quote.quoteId)}
+                                >
+                                    {expandedQuotes.has(quote.quoteId) ? 'Less...' : 'More...'}
+                                </Button>
+                            )}
                         </div>
-                    )}
-                </>
+                        <div className="d-flex justify-content-end">
+                            <Button
+                                className="me-2"
+                                variant="outline-light"
+                                size="sm"
+                                onClick={() => handleCopyQuote(quote.quoteTx)}
+                            >
+                                Copy
+                            </Button>
+                            <Button
+                                variant="outline-light"
+                                size="sm"
+                                onClick={() => navigate(`/viewQuotes/${quote.quoteId}`)}
+                            >
+                                Go To...
+                            </Button>
+                        </div>
+                    </Card.Body>
+                </Card>
+            ))}
+
+            {renderPagination()}
+
+            {filteredQuotes.length === 0 && (
+                <div className="text-center text-white">
+                    <p>No quotes found matching your search.</p>
+                </div>
             )}
 
             <Toast

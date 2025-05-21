@@ -2,7 +2,8 @@ import React, {useState} from 'react';
 import {Button, Container, Form, Spinner, Toast} from 'react-bootstrap';
 import {useNavigate} from 'react-router-dom';
 import {bibleService} from '../services/bible-service';
-import {useAppSelector} from '../store/hooks';
+import {useAppDispatch, useAppSelector} from '../store/hooks';
+import {addQuote} from '../store/quoteSlice';
 
 const AddQuote = () => {
     const [quoteText, setQuoteText] = useState('');
@@ -12,6 +13,7 @@ const AddQuote = () => {
     const [toastBg, setToastBg] = useState('#28a745');
 
     const navigate = useNavigate();
+    const dispatch = useAppDispatch();
     const user = useAppSelector(state => state.user.currentUser);
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -33,6 +35,17 @@ const AddQuote = () => {
             const result = await bibleService.addQuote(user, quoteText, prompt);
 
             if (result && result.quoteId > 1) {
+                // Add the new quote to Redux store
+                dispatch(addQuote({
+                    quoteId: result.quoteId,
+                    quoteTx: quoteText,
+                    approved: 'Y',
+                    fromUser: user,
+                    sourceId: 0,
+                    tags: [],
+                    tagIds: []
+                }));
+
                 setToastMessage('Quote added successfully!');
                 setToastBg('#28a745');
                 setShowToast(true);
