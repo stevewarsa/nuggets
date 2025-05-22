@@ -1,14 +1,16 @@
 import React, {useEffect, useMemo, useState} from 'react';
-import {Button, Card, Container, Form, Pagination, Spinner, Toast} from 'react-bootstrap';
+import {Button, Card, Container, Form, InputGroup, Pagination, Spinner, Toast} from 'react-bootstrap';
 import {bibleService} from '../services/bible-service';
 import copy from 'clipboard-copy';
 import {useAppDispatch, useAppSelector} from '../store/hooks';
 import {useNavigate} from "react-router-dom";
 import {setQuotes, setQuotesError, setQuotesLoading} from '../store/quoteSlice';
+import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
+import {faTimes} from '@fortawesome/free-solid-svg-icons';
 
 const QUOTES_PER_PAGE = 4;
 const MAX_VISIBLE_PAGES = 5; // Number of page numbers to show at once
-const MAX_PREVIEW_LENGTH = 200;
+const MAX_PREVIEW_LENGTH = 100;
 
 const SearchQuotes: React.FC = () => {
     const [searchTerm, setSearchTerm] = useState<string>('');
@@ -227,12 +229,22 @@ const SearchQuotes: React.FC = () => {
             <Form className="mb-4">
                 <Form.Group>
                     <Form.Label className="text-white">Search for quotes</Form.Label>
-                    <Form.Control
-                        type="text"
-                        placeholder="Enter search terms..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                    />
+                    <InputGroup>
+                        <Form.Control
+                            type="text"
+                            placeholder="Enter search terms..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                        {searchTerm && (
+                            <Button
+                                variant="outline-secondary"
+                                onClick={() => setSearchTerm('')}
+                            >
+                                <FontAwesomeIcon icon={faTimes}/>
+                            </Button>
+                        )}
+                    </InputGroup>
                     <Form.Text className="text-white-50">
                         Enter one or more words to search for. Quotes containing all of the words will be shown.
                     </Form.Text>
