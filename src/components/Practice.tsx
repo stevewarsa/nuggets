@@ -8,7 +8,7 @@ import {
     Form,
     InputGroup,
 } from 'react-bootstrap';
-import {useParams} from 'react-router-dom';
+import {useNavigate, useParams} from 'react-router-dom';
 import {useState, useEffect, useRef} from 'react';
 import {Passage} from '../models/passage';
 import {bibleService} from '../services/bible-service';
@@ -27,16 +27,17 @@ import {
     OPEN_INTERLINEAR,
     openInterlinearLink,
     EDIT_MEM_PASSAGE,
-    getPassageReference,
+    getPassageReference, getBookName,
 } from '../models/passage-utils';
 import {useAppSelector} from '../store/hooks';
 import EditPassage from './EditPassage.tsx';
 import copy from 'clipboard-copy';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import {faSearch} from '@fortawesome/free-solid-svg-icons';
+import {faBookOpen, faSearch} from '@fortawesome/free-solid-svg-icons';
 
 const Practice = () => {
     const {mode, order} = useParams();
+    const navigate = useNavigate();
     const [memPsgList, setMemPsgList] = useState<Passage[]>([]);
     const [currentPassage, setCurrentPassage] = useState<Passage | null>(null);
     const [currentIndex, setCurrentIndex] = useState(0);
@@ -511,6 +512,15 @@ const Practice = () => {
         {...OPEN_IN_BIBLEHUB, callbackFunction: () => openBibleHubLink(currentPassage)},
         {...OPEN_INTERLINEAR, callbackFunction: () => openInterlinearLink(currentPassage)},
         {...EDIT_MEM_PASSAGE, callbackFunction: () => setShowEditModal(true)},
+        {
+            itemLabel: "View In Context...",
+            icon: faBookOpen,
+            callbackFunction: () => {
+                const readChapRoute = `/readBibleChapter/${translation}/${getBookName(currentPassage.bookId)}/${currentPassage.chapter}/${currentPassage.startVerse}`;
+                console.log("Practice.additionalMenus - navigating to chapter:", readChapRoute);
+                navigate(readChapRoute);
+            }
+        }
     ];
 
     return (

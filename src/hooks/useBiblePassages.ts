@@ -1,12 +1,14 @@
 import {useEffect, useMemo, useState} from 'react';
 import {Passage} from '../models/passage';
 import {bibleService} from '../services/bible-service';
-import {getNextIndex, shuffleArray,} from '../models/passage-utils';
+import {getBookName, getNextIndex, shuffleArray,} from '../models/passage-utils';
 import {useAppSelector} from '../store/hooks';
 import {useTopics} from "./useTopics.ts";
+import {useNavigate} from 'react-router-dom';
 
 export const useBiblePassages = () => {
     const {topics} = useTopics();
+    const navigate = useNavigate();
     const [allPassages, setAllPassages] = useState<Passage[]>([]);
     const [passages, setPassages] = useState<Passage[]>([]);
     const [currentPassage, setCurrentPassage] = useState<Passage | null>(null);
@@ -212,6 +214,12 @@ export const useBiblePassages = () => {
         setShowFilterModal(false);
     };
 
+    const viewInContext = () => {
+        const readChapRoute = `/readBibleChapter/${translation}/${getBookName(currentPassage.bookId)}/${currentPassage.chapter}/${currentPassage.startVerse}`;
+        console.log("useBiblePassages.viewInContext - navigating to route:", readChapRoute);
+        navigate(readChapRoute);
+    };
+
     return {
         state: {
             currentPassage,
@@ -244,7 +252,8 @@ export const useBiblePassages = () => {
             setTopicSearchTerm,
             handleTopicFilterChange,
             handleTopicToAddChange,
-            handleAddTopics
+            handleAddTopics,
+            viewInContext
         },
     };
 };

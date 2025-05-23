@@ -5,7 +5,7 @@ import {useBiblePassages} from '../hooks/useBiblePassages';
 import {getUnformattedPassageTextNoVerseNumbers} from '../models/passage-utils';
 import {Button, Modal, Form, Badge, InputGroup, Row, Col, Collapse, Spinner} from 'react-bootstrap';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import {faFilter, faSearch, faTimesCircle, faTags} from '@fortawesome/free-solid-svg-icons';
+import {faFilter, faSearch, faTimesCircle, faTags, faBookOpen} from '@fortawesome/free-solid-svg-icons';
 
 const BrowseBiblePassages = () => {
     const {state, functions} = useBiblePassages();
@@ -24,6 +24,11 @@ const BrowseBiblePassages = () => {
             itemLabel: "Manage Topics...",
             icon: faTags,
             callbackFunction: () => functions.setShowManageTopicsModal(true)
+        },
+        {
+            itemLabel: "View In Context...",
+            icon: faBookOpen,
+            callbackFunction: () => functions.viewInContext()
         }
     ];
 
