@@ -23,6 +23,7 @@ const TopNav = () => {
     };
 
     const handleCopyToGuest = async () => {
+        setExpanded(false);
         try {
             if (!currentUser) return;
 
@@ -84,7 +85,7 @@ const TopNav = () => {
                             {location.pathname !== "/goToPassageByRef" && (
                                 <Nav.Link onClick={() => handleNavigation("/goToPassageByRef")}>Go To Passage</Nav.Link>
                             )}
-                            {isMainUser && (
+                            {isMainUser && currentUser === "SteveWarsa" && (
                                 <Nav.Link onClick={handleCopyToGuest}>Copy This DB to Guest</Nav.Link>
                             )}
                             {location.pathname !== "/browseBible" && (
