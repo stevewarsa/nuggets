@@ -1,15 +1,6 @@
-import {
-    Container,
-    Spinner,
-    Button,
-    Collapse,
-    Toast,
-    Modal,
-    Form,
-    InputGroup,
-} from 'react-bootstrap';
+import {Button, Collapse, Container, Form, InputGroup, Modal, Spinner, Toast,} from 'react-bootstrap';
 import {useNavigate, useParams} from 'react-router-dom';
-import {useState, useEffect, useRef} from 'react';
+import {useEffect, useRef, useState} from 'react';
 import {Passage} from '../models/passage';
 import {bibleService} from '../services/bible-service';
 import {GUEST_USER} from '../models/constants';
@@ -18,22 +9,23 @@ import BiblePassage from './BiblePassage';
 import SwipeContainer from './SwipeContainer';
 import {DateUtils} from '../models/date-utils';
 import {
-    getUnformattedPassageTextNoVerseNumbers,
     BY_PSG_TXT,
     BY_REF,
-    sortAccordingToPracticeConfig,
-    OPEN_IN_BIBLEHUB,
-    openBibleHubLink,
-    OPEN_INTERLINEAR,
-    openInterlinearLink,
     EDIT_MEM_PASSAGE,
-    getPassageReference, getBookName,
+    getBookName,
+    getPassageReference,
+    getUnformattedPassageTextNoVerseNumbers,
+    OPEN_IN_BIBLEHUB,
+    OPEN_INTERLINEAR,
+    openBibleHubLink,
+    openInterlinearLink,
+    sortAccordingToPracticeConfig,
 } from '../models/passage-utils';
 import {useAppSelector} from '../store/hooks';
 import EditPassage from './EditPassage.tsx';
 import copy from 'clipboard-copy';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import {faBookOpen, faSearch} from '@fortawesome/free-solid-svg-icons';
+import {faBookOpen, faCommentDots, faSearch} from '@fortawesome/free-solid-svg-icons';
 
 const Practice = () => {
     const {mode, order} = useParams();
@@ -61,11 +53,15 @@ const Practice = () => {
     } | null>(null);
     const [showEditModal, setShowEditModal] = useState(false);
     const [showGoToModal, setShowGoToModal] = useState(false);
+    const [showExplanationModal, setShowExplanationModal] = useState(false);
+    const [showExplanationEditor, setShowExplanationEditor] = useState(false);
+    const [explanationText, setExplanationText] = useState('');
     const [searchTerm, setSearchTerm] = useState('');
+    const [isUpdatingExplanation, setIsUpdatingExplanation] = useState(false);
 
     const searchInputRef = useRef<HTMLInputElement>(null);
 
-    const user = useAppSelector((state) => state.user.currentUser);
+    const user = useAppSelector(state => state.user.currentUser);
     const isGuestUser = user === GUEST_USER;
 
     // Focus search input when modal opens
@@ -74,6 +70,13 @@ const Practice = () => {
             searchInputRef.current.focus();
         }
     }, [showGoToModal]);
+
+    // Initialize explanation text when editor opens
+    useEffect(() => {
+        if (showExplanationEditor && currentPassage) {
+            setExplanationText(currentPassage.explanation || '');
+        }
+    }, [showExplanationEditor, currentPassage]);
 
     useEffect(() => {
         const fetchMemoryPassages = async () => {
@@ -463,6 +466,47 @@ const Practice = () => {
         setTranslation(memPsgList[index].translationName);
     };
 
+    const handleSaveExplanation = async () => {
+        if (!currentPassage || !explanationText.trim()) return;
+
+        setIsUpdatingExplanation(true);
+        try {
+            const updatedPassage = {
+                ...currentPassage,
+                explanation: explanationText.trim()
+            };
+
+            const result = await bibleService.updatePassage(user, updatedPassage);
+
+            if (result === 'success') {
+                // Update current passage
+                setCurrentPassage(updatedPassage);
+
+                // Update passage in lists
+                const updatePassageInList = (list: Passage[]) =>
+                    list.map(p => p.passageId === currentPassage.passageId ? updatedPassage : p);
+
+                setMemPsgList(prev => updatePassageInList(prev));
+
+                setToastMessage('Explanation saved successfully');
+                setToastBg('#28a745');
+                setShowToast(true);
+                setShowExplanationEditor(false);
+            } else {
+                setToastMessage('Failed to save explanation');
+                setToastBg('#dc3545');
+                setShowToast(true);
+            }
+        } catch (error) {
+            console.error('Error saving explanation:', error);
+            setToastMessage('Error saving explanation');
+            setToastBg('#dc3545');
+            setShowToast(true);
+        } finally {
+            setIsUpdatingExplanation(false);
+        }
+    };
+
     // Filter passages based on search term
     const filteredPassages = memPsgList.filter((passage) => {
         if (!searchTerm) return true;
@@ -503,25 +547,32 @@ const Practice = () => {
     const downEnabled = !isGuestUser && currentPassage.frequencyDays < 3;
 
     // Create additional menus for the toolbar
-    const additionalMenus = [
-        {
-            itemLabel: 'Go to Passage...',
-            icon: faSearch,
-            callbackFunction: () => setShowGoToModal(true),
-        },
-        {...OPEN_IN_BIBLEHUB, callbackFunction: () => openBibleHubLink(currentPassage)},
-        {...OPEN_INTERLINEAR, callbackFunction: () => openInterlinearLink(currentPassage)},
-        {...EDIT_MEM_PASSAGE, callbackFunction: () => setShowEditModal(true)},
-        {
-            itemLabel: "View In Context...",
-            icon: faBookOpen,
-            callbackFunction: () => {
-                const readChapRoute = `/readBibleChapter/${translation}/${getBookName(currentPassage.bookId)}/${currentPassage.chapter}/${currentPassage.startVerse}`;
-                console.log("Practice.additionalMenus - navigating to chapter:", readChapRoute);
-                navigate(readChapRoute);
+    const getAdditionalMenus = () => {
+        return [
+            {
+                itemLabel: "Explanation...",
+                icon: faCommentDots,
+                callbackFunction: () => setShowExplanationEditor(true)
+            },
+            {
+                itemLabel: "Go to Passage...",
+                icon: faSearch,
+                callbackFunction: () => setShowGoToModal(true),
+            },
+            {...OPEN_IN_BIBLEHUB, callbackFunction: () => openBibleHubLink(currentPassage)},
+            {...OPEN_INTERLINEAR, callbackFunction: () => openInterlinearLink(currentPassage)},
+            {...EDIT_MEM_PASSAGE, callbackFunction: () => setShowEditModal(true)},
+            {
+                itemLabel: "View In Context...",
+                icon: faBookOpen,
+                callbackFunction: () => {
+                    const readChapRoute = `/readBibleChapter/${translation}/${getBookName(currentPassage.bookId)}/${currentPassage.chapter}/${currentPassage.startVerse}`;
+                    console.log("Practice.additionalMenus - navigating to chapter:", readChapRoute);
+                    navigate(readChapRoute);
+                }
             }
-        }
-    ];
+        ];
+    };
 
     return (
         <SwipeContainer
@@ -545,7 +596,7 @@ const Practice = () => {
                 onQuestionClick={handleQuestionClick}
                 onLightbulbClick={handleLightbulbClick}
                 onCopy={handleCopy}
-                additionalMenus={additionalMenus}
+                additionalMenus={getAdditionalMenus()}
             />
 
             <div className="text-center mb-3">
@@ -569,6 +620,18 @@ const Practice = () => {
                             Box: {currentPassage.frequencyDays} | Last Practiced:{' '}
                             {currentPassage.last_viewed_str} | Psg ID:{' '}
                             {currentPassage.passageId}
+                            {currentPassage.explanation && (
+                                <>
+                                    {' | '}
+                                    <Button
+                                        variant="link"
+                                        className="text-white-50 p-0"
+                                        onClick={() => setShowExplanationModal(true)}
+                                    >
+                                        Explanation
+                                    </Button>
+                                </>
+                            )}
                         </div>
                     </div>
                 </Collapse>
@@ -700,6 +763,89 @@ const Practice = () => {
                         </p>
                     )}
                 </Modal.Body>
+            </Modal>
+
+            {/* Explanation Editor Modal */}
+            <Modal
+                show={showExplanationEditor}
+                onHide={() => setShowExplanationEditor(false)}
+                centered
+                size="lg"
+            >
+                <Modal.Header closeButton className="bg-dark text-white">
+                    <Modal.Title>
+                        {currentPassage?.explanation ? 'Update Explanation' : 'Add Explanation'}
+                    </Modal.Title>
+                </Modal.Header>
+                <Modal.Body className="bg-dark text-white">
+                    <div className="mb-3">
+                        <h5>{getPassageReference(currentPassage)}</h5>
+                        <p className="text-white-50" style={{whiteSpace: 'pre-line'}}>
+                            {getUnformattedPassageTextNoVerseNumbers(currentPassage)}
+                        </p>
+                    </div>
+                    <Form.Group>
+                        <Form.Label>Explanation</Form.Label>
+                        <Form.Control
+                            as="textarea"
+                            rows={6}
+                            value={explanationText}
+                            onChange={(e) => setExplanationText(e.target.value)}
+                            className="bg-dark text-white"
+                            placeholder="Enter explanation..."
+                        />
+                    </Form.Group>
+                </Modal.Body>
+                <Modal.Footer className="bg-dark text-white">
+                    <Button
+                        variant="secondary"
+                        onClick={() => setShowExplanationEditor(false)}
+                    >
+                        Cancel
+                    </Button>
+                    <Button
+                        variant="primary"
+                        onClick={handleSaveExplanation}
+                        disabled={isUpdatingExplanation || !explanationText.trim()}
+                    >
+                        {isUpdatingExplanation ? (
+                            <>
+                                <Spinner
+                                    as="span"
+                                    animation="border"
+                                    size="sm"
+                                    role="status"
+                                    aria-hidden="true"
+                                    className="me-2"
+                                />
+                                Saving...
+                            </>
+                        ) : currentPassage?.explanation ? (
+                            'Update Explanation'
+                        ) : (
+                            'Add Explanation'
+                        )}
+                    </Button>
+                </Modal.Footer>
+            </Modal>
+
+            {/* View Explanation Modal */}
+            <Modal
+                show={showExplanationModal}
+                onHide={() => setShowExplanationModal(false)}
+                centered
+            >
+                <Modal.Header closeButton className="bg-dark text-white">
+                    <Modal.Title>Passage Explanation</Modal.Title>
+                </Modal.Header>
+                <Modal.Body className="bg-dark text-white">
+                    <p style={{whiteSpace: 'pre-line'}}>{currentPassage?.explanation}</p>
+                </Modal.Body>
+                <Modal.Footer className="bg-dark text-white">
+                    <Button variant="primary" onClick={() => setShowExplanationModal(false)}>
+                        Close
+                    </Button>
+                </Modal.Footer>
             </Modal>
         </SwipeContainer>
     );
