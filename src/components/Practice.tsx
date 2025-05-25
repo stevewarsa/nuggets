@@ -45,7 +45,6 @@ const Practice = () => {
     const [showToast, setShowToast] = useState(false);
     const [toastMessage, setToastMessage] = useState('');
     const [toastBg, setToastBg] = useState('#28a745');
-    const [isUpdating, setIsUpdating] = useState(false);
     const [showConfirmModal, setShowConfirmModal] = useState(false);
     const [pendingFrequencyChange, setPendingFrequencyChange] = useState<{
         direction: string;
@@ -58,6 +57,7 @@ const Practice = () => {
     const [explanationText, setExplanationText] = useState('');
     const [searchTerm, setSearchTerm] = useState('');
     const [isUpdatingExplanation, setIsUpdatingExplanation] = useState(false);
+    const [isUpdating, setIsUpdating] = useState(false);
 
     const searchInputRef = useRef<HTMLInputElement>(null);
 
@@ -139,6 +139,34 @@ const Practice = () => {
             fetchMemoryPassages();
         }
     }, [order, user, isGuestUser]);
+
+    const ensureVersesLoaded = async () => {
+        if (!currentPassage || !currentPassage.verses || currentPassage.verses.length === 0) {
+            try {
+                const passageWithVerses = await bibleService.getPassageText(
+                    user,
+                    translation,
+                    currentPassage.bookName,
+                    currentPassage.chapter,
+                    currentPassage.startVerse,
+                    currentPassage.endVerse
+                );
+
+                // Update the current passage with verses
+                setCurrentPassage({
+                    ...currentPassage,
+                    verses: passageWithVerses.verses
+                });
+            } catch (error) {
+                console.error('Error fetching verses:', error);
+                setToastMessage('Error loading verses');
+                setToastBg('#dc3545');
+                setShowToast(true);
+                return false;
+            }
+        }
+        return true;
+    };
 
     const updateLastViewed = (passageId: number) => {
         // Skip for guest users
@@ -238,8 +266,7 @@ const Practice = () => {
         if (direction === 'RIGHT') {
             newIndex = currentIndex + 1 >= memPsgList.length ? 0 : currentIndex + 1;
         } else if (direction === 'LEFT') {
-            newIndex =
-                currentIndex - 1 < 0 ? memPsgList.length - 1 : currentIndex - 1;
+            newIndex = currentIndex - 1 < 0 ? memPsgList.length - 1 : currentIndex - 1;
         }
 
         setCurrentIndex(newIndex);
@@ -552,7 +579,12 @@ const Practice = () => {
             {
                 itemLabel: "Explanation...",
                 icon: faCommentDots,
-                callbackFunction: () => setShowExplanationEditor(true)
+                callbackFunction: async () => {
+                    const versesLoaded = await ensureVersesLoaded();
+                    if (versesLoaded) {
+                        setShowExplanationEditor(true);
+                    }
+                }
             },
             {
                 itemLabel: "Go to Passage...",
@@ -788,7 +820,7 @@ const Practice = () => {
                         <Form.Label>Explanation</Form.Label>
                         <Form.Control
                             as="textarea"
-                            rows={6}
+                            rows={15}
                             value={explanationText}
                             onChange={(e) => setExplanationText(e.target.value)}
                             className="bg-dark text-white"
