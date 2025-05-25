@@ -97,8 +97,9 @@ const Links: React.FC = () => {
         setIsLoading(false);
       }
     };
-
-    fetchAdditionalLinks();
+    if (user) {
+      fetchAdditionalLinks();
+    }
   }, [user]);
 
   const handleOpenLink = (url: string) => {
