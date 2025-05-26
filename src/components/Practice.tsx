@@ -820,11 +820,16 @@ const Practice = () => {
                         <Form.Label>Explanation</Form.Label>
                         <Form.Control
                             as="textarea"
-                            rows={15}
+                            rows={10}
                             value={explanationText}
                             onChange={(e) => setExplanationText(e.target.value)}
                             className="bg-dark text-white"
                             placeholder="Enter explanation..."
+                            style={{
+                                minHeight: '50vh',
+                                whiteSpace: 'pre-line',
+                                fontSize: "1.71rem"
+                            }}
                         />
                     </Form.Group>
                 </Modal.Body>

@@ -6,8 +6,10 @@ import {bibleService} from '../services/bible-service';
 import {getDisplayBookName} from '../models/passage-utils';
 import {useAppSelector} from '../store/hooks';
 import copy from 'clipboard-copy';
+import {useNavigate} from "react-router-dom";
 
 const BibleSearch: React.FC = () => {
+  const navigate = useNavigate();
   const [testament, setTestament] = useState<string>('both');
   const [selectedBook, setSelectedBook] = useState<string>('All');
   const [selectedTranslation, setSelectedTranslation] = useState<string>('all');
@@ -68,6 +70,12 @@ const BibleSearch: React.FC = () => {
     return text.split(regex).map((part, i) => 
       regex.test(part) ? <span key={i} style={{ color: 'green' }}>{part}</span> : part
     );
+  };
+
+  const handleGoToVerse = (passage: Passage) => {
+    const readChapRoute = `/readBibleChapter/${passage.translationName}/${passage.bookName}/${passage.chapter}/${passage.startVerse}`;
+    console.log("BibleSearch.handleGoToVerse - navigating to route:", readChapRoute);
+    navigate(readChapRoute);
   };
 
   const handleCopyPassage = async (passage: Passage) => {
@@ -174,9 +182,17 @@ const BibleSearch: React.FC = () => {
           <Button 
             variant="outline-light" 
             size="sm"
+            className="me-2"
             onClick={() => handleCopyPassage(passage)}
           >
             Copy
+          </Button>
+          <Button
+              variant="outline-light"
+              size="sm"
+              onClick={() => handleGoToVerse(passage)}
+          >
+            Go...
           </Button>
         </div>
         <div className="text-white">

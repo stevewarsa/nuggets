@@ -361,6 +361,11 @@ const EditPassage = ({ props }: { props: EditPassageProps }) => {
                                 value={currPassageText}
                                 onChange={changePassageText}
                                 className="bg-dark text-white"
+                                style={{
+                                    minHeight: '50vh',
+                                    whiteSpace: 'pre-line',
+                                    fontSize: "1.71rem"
+                                }}
                             />
                         </Form.Group>
                     </Form>
