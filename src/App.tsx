@@ -25,6 +25,7 @@ import ViewMemoryPracticeHistory from './components/ViewMemoryPracticeHistory';
 import GoToPassageByRef from './components/GoToPassageByRef';
 import SearchQuotes from './components/SearchQuotes';
 import ProtectedRoute from './components/ProtectedRoute';
+import MemoryPassages from "./components/MemoryPassages.tsx";
 
 // Create a wrapper component to access location
 const AppContent = () => {
@@ -139,6 +140,12 @@ const AppContent = () => {
                     <Route path="/goToPassageByRef" element={
                         <ProtectedRoute>
                             <GoToPassageByRef/>
+                        </ProtectedRoute>
+                    }/>
+
+                    <Route path="/memoryPassages" element={
+                        <ProtectedRoute>
+                            <MemoryPassages/>
                         </ProtectedRoute>
                     }/>
                 </Routes>

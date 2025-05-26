@@ -100,6 +100,9 @@ const TopNav = () => {
                             {location.pathname !== "/searchQuotes" && (
                                 <Nav.Link onClick={() => handleNavigation("/searchQuotes")}>Search Quotes</Nav.Link>
                             )}
+                            {location.pathname !== "/memoryPassages" && (
+                                <Nav.Link onClick={() => handleNavigation("/memoryPassages")}>My Memory Passages</Nav.Link>
+                            )}
                             {location.pathname !== "/login" && (
                                 <Nav.Link onClick={() => handleNavigation("/login")}>Login</Nav.Link>
                             )}
