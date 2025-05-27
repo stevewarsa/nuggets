@@ -4,6 +4,7 @@ import { Quote } from '../models/quote';
 import { ReadingHistoryEntry } from '../models/reading-history-entry';
 import { Topic } from '../models/topic';
 import {MemoryPracticeHistoryEntry} from "../models/memory-practice-history.ts";
+import {Prayer, PrayerSession} from "../models/prayer.ts";
 
 interface BibleSearchPayload {
   book: string;
@@ -491,6 +492,72 @@ export class BibleService {
       return response.data;
     } catch (error) {
       return this.handleError(error, 'fetching memory practice history');
+    }
+  }
+
+  async addPrayerSession(prayerId: number, userId: string, prayerNoteTx: string | null): Promise<string> {
+    try {
+      const response = await axios.post(
+          `${BibleService.BASE_URL}add_prayer_session.php`,
+          {
+            prayerId,
+            userId,
+            prayerNoteTx
+          }
+      );
+      return response.data;
+    } catch (error) {
+      return this.handleError(error, 'adding prayer session');
+    }
+  }
+
+  async getAllPrayers(userId: string): Promise<Prayer[]> {
+    try {
+      const response = await axios.get(
+          `${BibleService.BASE_URL}get_prayers.php`,
+          {
+            params: { userId }
+          }
+      );
+      return response.data;
+    } catch (error) {
+      return this.handleError(error, 'fetching prayers');
+    }
+  }
+
+  async getAllPrayerSessions(userId: string): Promise<PrayerSession[]> {
+    try {
+      const response = await axios.get(
+          `${BibleService.BASE_URL}get_prayer_sessions.php`,
+          {
+            params: { userId }
+          }
+      );
+      return response.data;
+    } catch (error) {
+      return this.handleError(error, 'fetching prayers');
+    }
+  }
+
+
+  async addPrayer(prayer: Prayer): Promise<string> {
+    try {
+      const response = await axios.post(`${BibleService.BASE_URL}add_prayer.php`, prayer);
+      return response.data;
+    } catch (error) {
+      return this.handleError(error, 'adding prayer session');
+    }
+  }
+
+  async updatePrayer(editingPrayer: Prayer, userId: string): Promise<string> {
+    try {
+      const response = await axios.post(`${BibleService.BASE_URL}update_prayer.php`, {
+        prayer: editingPrayer,
+        userId: userId
+      });
+      return response.data;
+    } catch (error) {
+      return this.handleError(error, 'updating prayer session');
     }
   }
 }
