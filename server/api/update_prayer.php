@@ -21,6 +21,7 @@ try {
     $statement->bindValue(':prayer_title_tx', $prayer->prayerTitleTx);
     $statement->bindValue(':prayer_desc_tx', $prayer->prayerDetailsTx);
     $statement->bindValue(':prayer_subject_person_nm', $prayer->prayerSubjectPersonName);
+    $statement->bindValue(':prayer_id', $prayer->prayerId);
     $statement->execute();
     $statement->close();
     $db->close();
