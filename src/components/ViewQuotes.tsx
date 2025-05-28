@@ -5,7 +5,6 @@ import {bibleService} from '../services/bible-service';
 import Toolbar from './Toolbar';
 import SwipeContainer from './SwipeContainer';
 import {shuffleArray} from '../models/passage-utils';
-import copy from 'clipboard-copy';
 import {useAppSelector, useAppDispatch} from '../store/hooks';
 import {setTopics, setTopicsLoading, setTopicsError} from '../store/topicSlice';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
@@ -219,7 +218,7 @@ const ViewQuotes = () => {
     const handleCopy = async () => {
         if (currentQuote && currentQuote.quoteTx) {
             try {
-                await copy(currentQuote.quoteTx);
+                await navigator.clipboard.writeText(currentQuote.quoteTx);
                 setToastMessage('Quote copied to clipboard!');
                 setToastBg('#28a745');
                 setShowToast(true);

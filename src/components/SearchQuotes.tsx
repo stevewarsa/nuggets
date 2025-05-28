@@ -1,7 +1,6 @@
 import React, {useEffect, useMemo, useState} from 'react';
 import {Button, Card, Container, Form, InputGroup, Pagination, Spinner, Toast} from 'react-bootstrap';
 import {bibleService} from '../services/bible-service';
-import copy from 'clipboard-copy';
 import {useAppDispatch, useAppSelector} from '../store/hooks';
 import {useNavigate} from "react-router-dom";
 import {setQuotes, setQuotesError, setQuotesLoading} from '../store/quoteSlice';
@@ -78,7 +77,7 @@ const SearchQuotes: React.FC = () => {
 
     const handleCopyQuote = async (quoteText: string) => {
         try {
-            await copy(quoteText);
+            await navigator.clipboard.writeText(quoteText);
             setToastMessage('Quote copied to clipboard!');
             setToastBg('#28a745');
             setShowToast(true);

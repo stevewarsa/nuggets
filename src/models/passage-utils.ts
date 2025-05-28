@@ -7,7 +7,6 @@ import {
     faSearch,
     faTags,
 } from '@fortawesome/free-solid-svg-icons';
-import copy from 'clipboard-copy';
 import {StringUtils} from './string.utils';
 import {bookAbbrev, booksByNum, getMaxChapterByBook, getMaxVerse, TRANSLATION} from './constants';
 import {Passage} from './passage';
@@ -255,7 +254,7 @@ export const handleCopyVerseRange = async (
 
     const textToCopy = `${reference}\n\n${verseText.trim()}`;
     try {
-        await copy(textToCopy);
+        await navigator.clipboard.writeText(textToCopy);
         return true;
     } catch (err) {
         console.error('Failed to copy text:', err);

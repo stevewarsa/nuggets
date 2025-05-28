@@ -13,7 +13,6 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { translationsShortNms } from '../models/constants';
 import { useState } from 'react';
-import copy from 'clipboard-copy';
 import {getPassageReference} from '../models/passage-utils';
 
 interface MenuItem {
@@ -84,7 +83,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
       const textToCopy = `${passageRef}\n\n${verseText}`;
 
       try {
-        await copy(textToCopy);
+        await navigator.clipboard.writeText(textToCopy);
         setToastMessage('Passage copied to clipboard!');
         setToastBg('#28a745');
         setShowToast(true);

@@ -23,7 +23,6 @@ import {
 } from '../models/passage-utils';
 import {useAppSelector} from '../store/hooks';
 import EditPassage from './EditPassage.tsx';
-import copy from 'clipboard-copy';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {faBookOpen, faCommentDots, faSearch} from '@fortawesome/free-solid-svg-icons';
 
@@ -423,7 +422,7 @@ const Practice = () => {
                 const textToCopy = `${passageRef}\n\n${verseText}`;
 
                 try {
-                    await copy(textToCopy);
+                    await navigator.clipboard.writeText(textToCopy);
                     setToastMessage('Passage copied to clipboard!');
                     setToastBg('#28a745');
                     setShowToast(true);
@@ -446,7 +445,7 @@ const Practice = () => {
             const textToCopy = `${passageRef}\n\n${verseText}`;
 
             try {
-                await copy(textToCopy);
+                await navigator.clipboard.writeText(textToCopy);
                 setToastMessage('Passage copied to clipboard!');
                 setToastBg('#28a745');
                 setShowToast(true);

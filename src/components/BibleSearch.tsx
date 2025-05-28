@@ -5,7 +5,6 @@ import {Passage} from '../models/passage';
 import {bibleService} from '../services/bible-service';
 import {getDisplayBookName} from '../models/passage-utils';
 import {useAppSelector} from '../store/hooks';
-import copy from 'clipboard-copy';
 import {useNavigate} from "react-router-dom";
 
 const BibleSearch: React.FC = () => {
@@ -92,8 +91,8 @@ const BibleSearch: React.FC = () => {
       
       // Don't include the translation in the copied text
       const textToCopy = `${reference}\n\n${verseText.trim()}`;
-      
-      await copy(textToCopy);
+
+      await navigator.clipboard.writeText(textToCopy);
       setToastMessage('Passage copied to clipboard!');
       setToastBg('#28a745');
       setShowToast(true);
