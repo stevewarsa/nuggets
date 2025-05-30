@@ -22,11 +22,10 @@ import {useAppSelector} from './store/hooks';
 import {GUEST_USER} from './models/constants';
 import './App.css';
 import ViewMemoryPracticeHistory from './components/ViewMemoryPracticeHistory';
-import GoToPassageByRef from './components/GoToPassageByRef';
 import SearchQuotes from './components/SearchQuotes';
 import ProtectedRoute from './components/ProtectedRoute';
-import MemoryPassages from "./components/MemoryPassages.tsx";
-import Prayers from "./components/Prayers.tsx";
+import MemoryPassages from './components/MemoryPassages.tsx';
+import Prayers from './components/Prayers.tsx';
 
 // Create a wrapper component to access location
 const AppContent = () => {
@@ -48,113 +47,162 @@ const AppContent = () => {
                     <Route path="/" element={<Login/>}/>
                     <Route path="/login" element={<Login/>}/>
 
-                    <Route path="/practiceSetup" element={
-                        <ProtectedRoute>
-                            <PracticeSetup/>
-                        </ProtectedRoute>
-                    }/>
+                    <Route
+                        path="/practiceSetup"
+                        element={
+                            <ProtectedRoute>
+                                <PracticeSetup/>
+                            </ProtectedRoute>
+                        }
+                    />
 
-                    <Route path="/readingPlan" element={
-                        <ProtectedRoute>
-                            <BibleReadingPlan/>
-                        </ProtectedRoute>
-                    }/>
+                    <Route
+                        path="/readingPlan"
+                        element={
+                            <ProtectedRoute>
+                                <BibleReadingPlan/>
+                            </ProtectedRoute>
+                        }
+                    />
 
-                    <Route path="/viewQuotes" element={
-                        <ProtectedRoute>
-                            <ViewQuotes/>
-                        </ProtectedRoute>
-                    }/>
+                    <Route
+                        path="/viewQuotes"
+                        element={
+                            <ProtectedRoute>
+                                <ViewQuotes/>
+                            </ProtectedRoute>
+                        }
+                    />
 
-                    <Route path="/addQuote" element={
-                        <ProtectedRoute>
-                            {isGuestUser ? <Navigate to="/browseBible" replace/> : <AddQuote/>}
-                        </ProtectedRoute>
-                    }/>
+                    <Route
+                        path="/addQuote"
+                        element={
+                            <ProtectedRoute>
+                                {isGuestUser ? (
+                                    <Navigate to="/browseBible\" replace/>
+                                ) : (
+                                    <AddQuote/>
+                                )}
+                            </ProtectedRoute>
+                        }
+                    />
 
-                    <Route path="/links" element={
-                        <ProtectedRoute>
-                            <Links/>
-                        </ProtectedRoute>
-                    }/>
+                    <Route
+                        path="/links"
+                        element={
+                            <ProtectedRoute>
+                                <Links/>
+                            </ProtectedRoute>
+                        }
+                    />
 
-                    <Route path="/viewChapter" element={
-                        <ProtectedRoute>
-                            <ViewChapter/>
-                        </ProtectedRoute>
-                    }/>
+                    <Route
+                        path="/viewChapter"
+                        element={
+                            <ProtectedRoute>
+                                <ViewChapter/>
+                            </ProtectedRoute>
+                        }
+                    />
 
-                    <Route path="/search" element={
-                        <ProtectedRoute>
-                            <BibleSearch/>
-                        </ProtectedRoute>
-                    }/>
+                    <Route
+                        path="/search"
+                        element={
+                            <ProtectedRoute>
+                                <BibleSearch/>
+                            </ProtectedRoute>
+                        }
+                    />
 
-                    <Route path="/browseBible" element={
-                        <ProtectedRoute>
-                            <BrowseBiblePassages/>
-                        </ProtectedRoute>
-                    }/>
+                    <Route
+                        path="/browseBible"
+                        element={
+                            <ProtectedRoute>
+                                <BrowseBiblePassages/>
+                            </ProtectedRoute>
+                        }
+                    />
 
-                    <Route path="/practice/:mode/:order" element={
-                        <ProtectedRoute>
-                            <Practice/>
-                        </ProtectedRoute>
-                    }/>
+                    <Route
+                        path="/practice/:mode/:order"
+                        element={
+                            <ProtectedRoute>
+                                <Practice/>
+                            </ProtectedRoute>
+                        }
+                    />
 
-                    <Route path="/readBibleChapter/:translation/:book/:chapter/:scrollToVerse" element={
-                        <ProtectedRoute>
-                            <ReadBibleChapter/>
-                        </ProtectedRoute>
-                    }/>
+                    <Route
+                        path="/readBibleChapter/:translation/:book/:chapter/:scrollToVerse"
+                        element={
+                            <ProtectedRoute>
+                                <ReadBibleChapter/>
+                            </ProtectedRoute>
+                        }
+                    />
 
-                    <Route path="/readBibleChapter/:translation/:book/:chapter" element={
-                        <ProtectedRoute>
-                            <ReadBibleChapter/>
-                        </ProtectedRoute>
-                    }/>
+                    <Route
+                        path="/readBibleChapter/:translation/:book/:chapter"
+                        element={
+                            <ProtectedRoute>
+                                <ReadBibleChapter/>
+                            </ProtectedRoute>
+                        }
+                    />
 
-                    <Route path="/viewQuotes/:quoteId" element={
-                        <ProtectedRoute>
-                            <ViewQuotes/>
-                        </ProtectedRoute>
-                    }/>
+                    <Route
+                        path="/viewQuotes/:quoteId"
+                        element={
+                            <ProtectedRoute>
+                                <ViewQuotes/>
+                            </ProtectedRoute>
+                        }
+                    />
 
-                    <Route path="/searchQuotes" element={
-                        <ProtectedRoute>
-                            <SearchQuotes/>
-                        </ProtectedRoute>
-                    }/>
+                    <Route
+                        path="/searchQuotes"
+                        element={
+                            <ProtectedRoute>
+                                <SearchQuotes/>
+                            </ProtectedRoute>
+                        }
+                    />
 
-                    <Route path="/memoryPracticeHistory" element={
-                        <ProtectedRoute>
-                            <ViewMemoryPracticeHistory/>
-                        </ProtectedRoute>
-                    }/>
+                    <Route
+                        path="/memoryPracticeHistory"
+                        element={
+                            <ProtectedRoute>
+                                <ViewMemoryPracticeHistory/>
+                            </ProtectedRoute>
+                        }
+                    />
 
-                    <Route path="/memoryStats" element={
-                        <ProtectedRoute>
-                            <MemoryStats/>
-                        </ProtectedRoute>
-                    }/>
+                    <Route
+                        path="/memoryStats"
+                        element={
+                            <ProtectedRoute>
+                                <MemoryStats/>
+                            </ProtectedRoute>
+                        }
+                    />
 
-                    <Route path="/goToPassageByRef" element={
-                        <ProtectedRoute>
-                            <GoToPassageByRef/>
-                        </ProtectedRoute>
-                    }/>
+                    <Route
+                        path="/prayers"
+                        element={
+                            <ProtectedRoute>
+                                <Prayers/>
+                            </ProtectedRoute>
+                        }
+                    />
 
-                    <Route path="/prayers" element={
-                        <ProtectedRoute>
-                            <Prayers/>
-                        </ProtectedRoute>
-                    }/>
-
-                    <Route path="/memoryPassages" element={
-                        <ProtectedRoute>
-                            <MemoryPassages/>
-                        </ProtectedRoute>
-                    }/>
+                    <Route
+                        path="/memoryPassages"
+                        element={
+                            <ProtectedRoute>
+                                <MemoryPassages/>
+                            </ProtectedRoute>
+                        }
+                    />
                 </Routes>
             </div>
             {!isLoginPage && (

@@ -63,3 +63,8 @@ footer {
   color: #00ff00;
   font-weight: bold;
 }
+
+/* Position modal near top of page */
+.modal-near-top {
+  margin-top: 20px;
+}
