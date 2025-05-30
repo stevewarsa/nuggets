@@ -1,10 +1,11 @@
-import {useEffect, useMemo, useState} from 'react';
+import {useState, useEffect, useMemo} from 'react';
 import {Passage} from '../models/passage';
 import {bibleService} from '../services/bible-service';
 import {getBookName, getNextIndex, shuffleArray,} from '../models/passage-utils';
 import {useAppSelector} from '../store/hooks';
 import {useTopics} from "./useTopics.ts";
 import {useNavigate} from 'react-router-dom';
+import {bookAbbrev, booksByNum} from '../models/constants';
 
 export const useBiblePassages = () => {
     const {topics} = useTopics();
@@ -21,6 +22,10 @@ export const useBiblePassages = () => {
     const [topicSearchTerm, setTopicSearchTerm] = useState('');
     const [showTopics, setShowTopics] = useState(false);
     const [isAddingTopics, setIsAddingTopics] = useState(false);
+    const [showBookChapterModal, setShowBookChapterModal] = useState(false);
+    const [selectedBook, setSelectedBook] = useState<string>('');
+    const [selectedChapter, setSelectedChapter] = useState<string>('all');
+    const [activeBookFilter, setActiveBookFilter] = useState<string>('');
 
     const user = useAppSelector(state => state.user.currentUser);
 
@@ -38,6 +43,28 @@ export const useBiblePassages = () => {
         }
         return counts;
     }, [allPassages]);
+
+    // Calculate passage counts for book/chapter filter
+    const passageFilterCounts = useMemo(() => {
+        const counts: { [key: string]: { total: number, chapters: { [key: number]: number } } } = {};
+
+        // Initialize counts for all books
+        Object.keys(bookAbbrev).forEach(book => {
+            counts[book] = {total: 0, chapters: {}};
+        });
+
+        // Count passages
+        passages.forEach(passage => {
+            const bookId = passage.bookId;
+            const bookName = Object.entries(booksByNum).find(([id, _]) => parseInt(id) === bookId)?.[1];
+            if (bookName) {
+                counts[bookName].total++;
+                counts[bookName].chapters[passage.chapter] = (counts[bookName].chapters[passage.chapter] || 0) + 1;
+            }
+        });
+
+        return counts;
+    }, [passages]);
 
     // Filter and sort topics for the filter modal
     const sortedTopics = useMemo(() => {
@@ -190,6 +217,48 @@ export const useBiblePassages = () => {
         });
     };
 
+    const applyBookChapterFilter = () => {
+        if (!selectedBook) {
+            return;
+        }
+
+        let filteredPassages = [...allPassages];
+
+        // Filter by book
+        filteredPassages = filteredPassages.filter(passage => {
+            const bookId = passage.bookId;
+            const bookName = Object.entries(booksByNum).find(([id, _]) => parseInt(id) === bookId)?.[1];
+            return bookName === selectedBook;
+        });
+
+        // Filter by chapter if selected
+        if (selectedChapter !== 'all') {
+            filteredPassages = filteredPassages.filter(
+                passage => passage.chapter === parseInt(selectedChapter)
+            );
+        }
+
+        setPassages(filteredPassages);
+        setCurrentIndex(0);
+        if (filteredPassages.length > 0) {
+            setCurrentPassage(filteredPassages[0]);
+        }
+        setActiveBookFilter(selectedBook);
+        setShowBookChapterModal(false);
+    };
+
+    const clearBookChapterFilter = () => {
+        setSelectedBook('');
+        setSelectedChapter('all');
+        setActiveBookFilter('');
+        setPassages(allPassages);
+        setCurrentIndex(0);
+        if (allPassages.length > 0) {
+            setCurrentPassage(allPassages[0]);
+        }
+        setShowBookChapterModal(false);
+    };
+
     const applyTopicFilter = (selectedTopicIds: number[]) => {
         if (selectedTopicIds.length === 0) {
             setPassages(allPassages);
@@ -201,7 +270,7 @@ export const useBiblePassages = () => {
             );
             setPassages(filteredPassages);
             setCurrentIndex(0);
-            setCurrentPassage(filteredPassages[0] || null);
+            setCurrentPassage(filteredPassages[0]);
         }
         setShowFilterModal(false);
     };
@@ -231,13 +300,18 @@ export const useBiblePassages = () => {
             showTopics,
             showFilterModal,
             showManageTopicsModal,
+            showBookChapterModal,
             topicSearchTerm,
             topics,
             sortedTopics,
             availableTopics,
             topicCounts,
             topicsToAdd,
-            isAddingTopics
+            isAddingTopics,
+            selectedBook,
+            selectedChapter,
+            passageFilterCounts,
+            activeBookFilter
         },
         functions: {
             handleNext,
@@ -247,13 +321,18 @@ export const useBiblePassages = () => {
             applyTopicFilter,
             clearTopicFilter,
             setShowFilterModal,
+            setShowBookChapterModal,
             setShowManageTopicsModal,
             setShowTopics,
             setTopicSearchTerm,
             handleTopicFilterChange,
             handleTopicToAddChange,
             handleAddTopics,
-            viewInContext
+            viewInContext,
+            setSelectedBook,
+            setSelectedChapter,
+            applyBookChapterFilter,
+            clearBookChapterFilter
         },
     };
 };

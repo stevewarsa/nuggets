@@ -5,7 +5,8 @@ import {useBiblePassages} from '../hooks/useBiblePassages';
 import {getUnformattedPassageTextNoVerseNumbers} from '../models/passage-utils';
 import {Button, Modal, Form, Badge, InputGroup, Row, Col, Collapse, Spinner} from 'react-bootstrap';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import {faFilter, faSearch, faTimesCircle, faTags, faBookOpen} from '@fortawesome/free-solid-svg-icons';
+import {faFilter, faSearch, faTimesCircle, faTags, faBookOpen, faBook} from '@fortawesome/free-solid-svg-icons';
+import {bookAbbrev} from '../models/constants';
 
 const BrowseBiblePassages = () => {
     const {state, functions} = useBiblePassages();
@@ -21,6 +22,11 @@ const BrowseBiblePassages = () => {
             callbackFunction: () => functions.setShowFilterModal(true)
         },
         {
+            itemLabel: "Filter by Book/Chapter...",
+            icon: faBook,
+            callbackFunction: () => functions.setShowBookChapterModal(true)
+        },
+        {
             itemLabel: "Manage Topics...",
             icon: faTags,
             callbackFunction: () => functions.setShowManageTopicsModal(true)
@@ -32,12 +38,20 @@ const BrowseBiblePassages = () => {
         }
     ];
 
-    // Add clear filter menu item if there are selected topics
+    // Add clear filter menu items if there are selected filters
     if (state.selectedTopicIds.length > 0) {
         additionalMenus.push({
             itemLabel: "Clear Topic Filter",
             icon: faTimesCircle,
             callbackFunction: functions.clearTopicFilter
+        });
+    }
+
+    if (state.activeBookFilter) {
+        additionalMenus.push({
+            itemLabel: "Clear Book/Chapter Filter",
+            icon: faTimesCircle,
+            callbackFunction: functions.clearBookChapterFilter
         });
     }
 
@@ -215,6 +229,76 @@ const BrowseBiblePassages = () => {
                             </Button>
                             <Button variant="primary"
                                     onClick={() => functions.applyTopicFilter(state.selectedTopicIds)}>
+                                Apply Filter
+                            </Button>
+                        </Modal.Footer>
+                    </Modal>
+
+                    {/* Book/Chapter Filter Modal */}
+                    <Modal
+                        show={state.showBookChapterModal}
+                        onHide={() => functions.setShowBookChapterModal(false)}
+                        style={{top: '20px'}}
+                        dialogClassName="modal-near-top"
+                    >
+                        <Modal.Header closeButton className="bg-dark text-white">
+                            <Modal.Title>Filter by Book/Chapter</Modal.Title>
+                        </Modal.Header>
+                        <Modal.Body className="bg-dark text-white">
+                            <Form>
+                                <Form.Group className="mb-3">
+                                    <Form.Label>Book</Form.Label>
+                                    <Form.Select
+                                        value={state.selectedBook}
+                                        onChange={(e) => functions.setSelectedBook(e.target.value)}
+                                        className="bg-dark text-white"
+                                    >
+                                        <option value="">Select a book...</option>
+                                        {Object.entries(bookAbbrev).map(([key, [_, fullName]]) => (
+                                            <option key={key} value={key}>
+                                                {fullName} ({state.passageFilterCounts[key]?.total || 0})
+                                            </option>
+                                        ))}
+                                    </Form.Select>
+                                </Form.Group>
+
+                                {state.selectedBook && (
+                                    <Form.Group>
+                                        <Form.Label>Chapter</Form.Label>
+                                        <Form.Select
+                                            value={state.selectedChapter}
+                                            onChange={(e) => functions.setSelectedChapter(e.target.value)}
+                                            className="bg-dark text-white"
+                                        >
+                                            <option value="all">All Chapters</option>
+                                            {Object.entries(state.passageFilterCounts[state.selectedBook]?.chapters || {})
+                                                .sort(([a], [b]) => parseInt(a) - parseInt(b))
+                                                .map(([chapter, count]) => (
+                                                    <option key={chapter} value={chapter}>
+                                                        Chapter {chapter} ({count})
+                                                    </option>
+                                                ))}
+                                        </Form.Select>
+                                    </Form.Group>
+                                )}
+                            </Form>
+                        </Modal.Body>
+                        <Modal.Footer className="bg-dark text-white">
+                            <Button variant="secondary" onClick={() => functions.setShowBookChapterModal(false)}>
+                                Cancel
+                            </Button>
+                            <Button
+                                variant="danger"
+                                onClick={functions.clearBookChapterFilter}
+                                disabled={!state.activeBookFilter}
+                            >
+                                Clear Filter
+                            </Button>
+                            <Button
+                                variant="primary"
+                                onClick={functions.applyBookChapterFilter}
+                                disabled={!state.selectedBook}
+                            >
                                 Apply Filter
                             </Button>
                         </Modal.Footer>
