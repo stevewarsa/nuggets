@@ -397,6 +397,113 @@ export const openBibleHubLink = (passage: Passage) => {
     window.open('https://biblehub.com/' + urlQuery, '_blank');
 };
 
+export const getExactBookNameMatch = (searchTerm: string) => {
+    const trimmedSearchTerm = searchTerm ? searchTerm.trim() : undefined;
+    if (!trimmedSearchTerm || trimmedSearchTerm.includes(':')) {
+        return undefined;
+    }
+    const exactMatch = Object.entries(bookAbbrev).find(([key, [abbrev, fullName]]) =>
+        key === trimmedSearchTerm.toLowerCase() ||
+        abbrev.toLowerCase() === trimmedSearchTerm.toLowerCase() ||
+        fullName.toLowerCase() === trimmedSearchTerm.toLowerCase()
+    );
+    if (exactMatch) {
+        return exactMatch;
+    } else {
+        return undefined;
+    }
+};
+
+export const getMatchingBookNameContains = (searchTerm: string) => {
+    const trimmedSearchTerm = searchTerm ? searchTerm.trim() : undefined;
+    if (!trimmedSearchTerm || trimmedSearchTerm.includes(':')) {
+        return undefined;
+    }
+    const matches = Object.entries(bookAbbrev).filter(([key, [abbrev, fullName]]) =>
+        key.includes(trimmedSearchTerm.toLowerCase()) ||
+        abbrev.toLowerCase().includes(trimmedSearchTerm.toLowerCase()) ||
+        fullName.toLowerCase().includes(trimmedSearchTerm.toLowerCase())
+    );
+    if (matches) {
+        return matches;
+    } else {
+        return undefined;
+    }
+};
+
+const isInteger = (str: string): boolean => {
+    return /^-?\d+$/.test(str);
+}
+
+export const getNewSuggestions = (passageRef: string, selectedMatch: boolean=false) => {
+    const trimmedSearchTerm = passageRef ? passageRef.trim() : undefined;
+    if (!trimmedSearchTerm) {
+        return [];
+    }
+
+    if (trimmedSearchTerm.includes(":")) {
+        const [bookChapter, verse] = trimmedSearchTerm.split(":");
+        const parts = bookChapter.trim().split(/\s+/);
+        const chapter = parts[parts.length - 1].toLowerCase();
+        const fullBookName = parts.join(" ").replace(chapter, "").trim();
+        const exactMatch = getExactBookNameMatch(fullBookName);
+        const fullPassageRef = exactMatch && isInteger(chapter) && isInteger(verse);
+        if (fullPassageRef && selectedMatch) {
+            return undefined;
+        }
+        const bookKey = exactMatch[0];
+        const maxVerse = getMaxVerse(TRANSLATION, bookKey, parseInt(chapter));
+        const newSuggestions = Array.from({length: maxVerse}, (_, i) => i + 1)
+            .map(num => (`${fullBookName} ${chapter}:${num}`))
+            // Filter verses based on user input after the colon
+            .filter(suggestion => {
+                if (!verse) {
+                    return true;
+                }
+                const verseNum = suggestion.split(':')[1];
+                return verseNum.startsWith(verse);
+            });
+        // If there's exactly one suggestion and it matches
+        //  the input exactly, clear the suggestions
+        if (newSuggestions.length === 1 && newSuggestions[0] === passageRef) {
+            return undefined;
+        } else {
+            return newSuggestions;
+        }
+    }
+
+    // now check for book and chapter, but no verse
+    const parts = trimmedSearchTerm.split(/[\s:]/);
+    if (parts.length >= 2) {
+        const lastPart = parts[parts.length - 1].toLowerCase();
+        if (isInteger(lastPart)) {
+            const bookWithoutChapter = parts.join(" ").replace(lastPart, "");
+            const exactMatch = getExactBookNameMatch(bookWithoutChapter);
+            const bookName = exactMatch[0];
+            const fullBookName = exactMatch[1][1];
+            const chapter = parseInt(lastPart);
+            const maxVerse = getMaxVerse(TRANSLATION, bookName, chapter);
+            let suggestions: string[] = [];
+            for (let i = 1; i <= maxVerse; i++) {
+                suggestions.push(fullBookName + " " + chapter + ":" + i);
+            }
+            return suggestions;
+        }
+    }
+
+    const exactMatch = getExactBookNameMatch(passageRef);
+    if (exactMatch) {
+        const maxChapter: number = getMaxChapterByBook(exactMatch[0]);
+        return Array.from({length: maxChapter}, (_, i) => (`${exactMatch[1][1]} ${i + 1}`));
+    }
+
+    const fuzzyBookNameMatches = getMatchingBookNameContains(passageRef);
+    if (fuzzyBookNameMatches?.length > 0) {
+        return fuzzyBookNameMatches.map(([, [, fullName]]) => (fullName));
+    }
+    return [];
+};
+
 export const getSuggestions = (passageRef: string): string[] => {
     if (!passageRef.trim()) {
         return [];
