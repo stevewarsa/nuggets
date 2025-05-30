@@ -1,6 +1,6 @@
 import React, {useState, useEffect, useRef} from 'react';
 import {Button, Col, Form, ListGroup, Modal, Row} from 'react-bootstrap';
-import {TRANSLATION} from '../models/constants';
+import {TRANSLATION, translationsShortNms} from '../models/constants';
 import {
     getPassageFromPassageRef,
     getNewSuggestions,
@@ -16,6 +16,7 @@ interface GoToPassageByRefProps {
 const GoToPassageByRef: React.FC<GoToPassageByRefProps> = ({show, onHide, onNavigate}) => {
     const [passageRef, setPassageRef] = useState('');
     const [suggestions, setSuggestions] = useState<string[] | undefined>([]);
+    const [selectedTranslation, setSelectedTranslation] = useState(TRANSLATION);
     const inputRef = useRef<HTMLInputElement>(null);
 
     // Focus input when modal opens
@@ -32,6 +33,7 @@ const GoToPassageByRef: React.FC<GoToPassageByRefProps> = ({show, onHide, onNavi
         if (!show) {
             setPassageRef('');
             setSuggestions([]);
+            setSelectedTranslation(TRANSLATION);
         }
     }, [show]);
 
@@ -66,7 +68,7 @@ const GoToPassageByRef: React.FC<GoToPassageByRefProps> = ({show, onHide, onNavi
                 'GoToPassageByRef.handleGoToPassage - Setting the first passage parsed:',
                 passagesFromPassageRef[0]
             );
-            const readChapRoute = `/readBibleChapter/${TRANSLATION}/${passagesFromPassageRef[0].bookName}/${passagesFromPassageRef[0].chapter}/${passagesFromPassageRef[0].startVerse}`;
+            const readChapRoute = `/readBibleChapter/${selectedTranslation}/${passagesFromPassageRef[0].bookName}/${passagesFromPassageRef[0].chapter}/${passagesFromPassageRef[0].startVerse}`;
             console.log(
                 'GoToPassageByRef.handleGoToPassage - navigating to route:',
                 readChapRoute
@@ -92,6 +94,24 @@ const GoToPassageByRef: React.FC<GoToPassageByRefProps> = ({show, onHide, onNavi
                 <Modal.Title>Go To Passage</Modal.Title>
             </Modal.Header>
             <Modal.Body className="bg-dark text-white">
+                <Row className="mb-3">
+                    <Col>
+                        <Form.Group>
+                            <Form.Label>Translation</Form.Label>
+                            <Form.Select
+                                value={selectedTranslation}
+                                onChange={(e) => setSelectedTranslation(e.target.value)}
+                                className="bg-dark text-white"
+                            >
+                                {translationsShortNms.map((trans) => (
+                                    <option key={trans.code} value={trans.code}>
+                                        {trans.translationName}
+                                    </option>
+                                ))}
+                            </Form.Select>
+                        </Form.Group>
+                    </Col>
+                </Row>
                 <Row>
                     <Col>
                         <div className="position-relative">
