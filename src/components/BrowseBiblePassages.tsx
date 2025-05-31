@@ -39,19 +39,11 @@ const BrowseBiblePassages = () => {
     ];
 
     // Add clear filter menu items if there are selected filters
-    if (state.selectedTopicIds.length > 0) {
+    if (state.selectedTopicIds.length > 0 || state.activeBookFilter) {
         additionalMenus.push({
-            itemLabel: "Clear Topic Filter",
+            itemLabel: "Clear Filter(s)",
             icon: faTimesCircle,
-            callbackFunction: functions.clearTopicFilter
-        });
-    }
-
-    if (state.activeBookFilter) {
-        additionalMenus.push({
-            itemLabel: "Clear Book/Chapter Filter",
-            icon: faTimesCircle,
-            callbackFunction: functions.clearBookChapterFilter
+            callbackFunction: functions.clearFilters
         });
     }
 
@@ -222,7 +214,7 @@ const BrowseBiblePassages = () => {
                             </Button>
                             <Button
                                 variant="danger"
-                                onClick={functions.clearTopicFilter}
+                                onClick={functions.clearFilters}
                                 disabled={state.selectedTopicIds.length === 0}
                             >
                                 Clear Filter
@@ -289,7 +281,7 @@ const BrowseBiblePassages = () => {
                             </Button>
                             <Button
                                 variant="danger"
-                                onClick={functions.clearBookChapterFilter}
+                                onClick={functions.clearFilters}
                                 disabled={!state.activeBookFilter}
                             >
                                 Clear Filter

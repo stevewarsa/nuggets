@@ -222,7 +222,7 @@ export const useBiblePassages = () => {
             return;
         }
 
-        let filteredPassages = [...allPassages];
+        let filteredPassages = [...passages];
 
         // Filter by book
         filteredPassages = filteredPassages.filter(passage => {
@@ -247,7 +247,7 @@ export const useBiblePassages = () => {
         setShowBookChapterModal(false);
     };
 
-    const clearBookChapterFilter = () => {
+    const clearFilters = () => {
         setSelectedBook('');
         setSelectedChapter('all');
         setActiveBookFilter('');
@@ -261,25 +261,17 @@ export const useBiblePassages = () => {
 
     const applyTopicFilter = (selectedTopicIds: number[]) => {
         if (selectedTopicIds.length === 0) {
-            setPassages(allPassages);
+            setPassages(passages);
             setCurrentIndex(0);
-            setCurrentPassage(allPassages[0]);
+            setCurrentPassage(passages[0]);
         } else {
-            const filteredPassages = allPassages.filter(passage =>
+            const filteredPassages = passages.filter(passage =>
                 passage.topics?.some(topic => selectedTopicIds.includes(topic.id))
             );
             setPassages(filteredPassages);
             setCurrentIndex(0);
             setCurrentPassage(filteredPassages[0]);
         }
-        setShowFilterModal(false);
-    };
-
-    const clearTopicFilter = () => {
-        setPassages(allPassages);
-        setCurrentIndex(0);
-        setCurrentPassage(allPassages[0]);
-        setSelectedTopicIds([]);
         setShowFilterModal(false);
     };
 
@@ -319,7 +311,6 @@ export const useBiblePassages = () => {
             handleToolbarClick,
             handleTranslationChange,
             applyTopicFilter,
-            clearTopicFilter,
             setShowFilterModal,
             setShowBookChapterModal,
             setShowManageTopicsModal,
@@ -332,7 +323,7 @@ export const useBiblePassages = () => {
             setSelectedBook,
             setSelectedChapter,
             applyBookChapterFilter,
-            clearBookChapterFilter
+            clearFilters
         },
     };
 };
