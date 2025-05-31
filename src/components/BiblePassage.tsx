@@ -46,6 +46,7 @@ const BiblePassage: React.FC<BiblePassageProps> = ({
     const [toastMessage, setToastMessage] = useState<string>('');
     const [toastBg, setToastBg] = useState<string>('');
     const [internalVerseModal, setInternalVerseModal] = useState<boolean>(false);
+    const [lastScrollPosition, setLastScrollPosition] = useState<number>(0);
 
     const user = useAppSelector(state => state.user.currentUser);
 
@@ -171,6 +172,11 @@ const BiblePassage: React.FC<BiblePassageProps> = ({
                 setShowToast(true);
             }
             setInternalVerseModal(false);
+            // Restore scroll position
+            window.scrollTo({
+                top: lastScrollPosition,
+                behavior: 'smooth'
+            });
         } else {
             if (onVerseSelection) {
                 onVerseSelection(startVerse, endVerse);
@@ -184,6 +190,11 @@ const BiblePassage: React.FC<BiblePassageProps> = ({
         setSelectedVerses([]);
         if (internalVerseModal) {
             setInternalVerseModal(false);
+            // Restore scroll position
+            window.scrollTo({
+                top: lastScrollPosition,
+                behavior: 'smooth'
+            });
         } else {
             onVerseModalClose?.();
         }
@@ -193,10 +204,55 @@ const BiblePassage: React.FC<BiblePassageProps> = ({
         return verse.verseParts.map(part => part.verseText).join(' ');
     };
 
+    const handleCopyClick = () => {
+        // Store current scroll position
+        setLastScrollPosition(window.scrollY);
+
+        // If there's only one verse, copy it directly
+        if (passage.startVerse === passage.endVerse) {
+            const success = handleCopyVerseRange(passage.startVerse, passage.endVerse, passage);
+            if (success) {
+                setToastMessage('Passage copied to clipboard!');
+                setToastBg('#28a745');
+                setShowToast(true);
+            } else {
+                setToastMessage('Failed to copy text');
+                setToastBg('#dc3545');
+                setShowToast(true);
+            }
+        } else {
+            setInternalVerseModal(true);
+            // After modal is shown, scroll to match the current viewport position
+            setTimeout(() => {
+                const modalBody = document.querySelector('.modal-body');
+                if (modalBody) {
+                    const verses = document.querySelectorAll('.verse-number');
+                    let targetVerse = null;
+
+                    // Find the first verse that's currently visible in the viewport
+                    verses.forEach(verse => {
+                        const rect = verse.getBoundingClientRect();
+                        if (rect.top >= 0 && rect.bottom <= window.innerHeight && !targetVerse) {
+                            targetVerse = verse;
+                        }
+                    });
+
+                    if (targetVerse) {
+                        const verseId = targetVerse.id;
+                        const modalVerse = modalBody.querySelector(`#verse-${verseId}`);
+                        if (modalVerse) {
+                            modalVerse.scrollIntoView({behavior: 'auto', block: 'center'});
+                        }
+                    }
+                }
+            }, 100);
+        }
+    };
+
     if (busy) {
         return (
             <Container className="text-white text-center">
-                <Spinner animation="border" role="status" className="me-2"/>
+                <Spinner animation="border" role="status\" className="me-2"/>
                 <span>Loading passage... ({seconds} seconds)</span>
             </Container>
         );
@@ -265,7 +321,7 @@ const BiblePassage: React.FC<BiblePassageProps> = ({
                     <Button
                         variant="primary"
                         size="lg"
-                        onClick={() => setInternalVerseModal(true)}
+                        onClick={handleCopyClick}
                         style={{borderRadius: '50%', width: '50px', height: '50px'}}
                     >
                         <FontAwesomeIcon icon={faCopy}/>
