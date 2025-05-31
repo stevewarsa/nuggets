@@ -1,9 +1,17 @@
-import React, { useState, useEffect } from 'react';
-import { Container, Card, Button, Modal, Form, Spinner, Toast } from 'react-bootstrap';
-import { useAppSelector } from '../store/hooks';
-import { bibleService } from '../services/bible-service';
-import { Prayer, PrayerSession } from '../models/prayer';
-import { format } from 'date-fns';
+import React, {useState, useEffect} from 'react';
+import {
+    Container,
+    Card,
+    Button,
+    Modal,
+    Form,
+    Spinner,
+    Toast,
+} from 'react-bootstrap';
+import {useAppSelector} from '../store/hooks';
+import {bibleService} from '../services/bible-service';
+import {Prayer, PrayerSession} from '../models/prayer';
+import {format} from 'date-fns';
 
 const Prayers: React.FC = () => {
     const [prayers, setPrayers] = useState<Prayer[]>([]);
@@ -11,6 +19,7 @@ const Prayers: React.FC = () => {
     const [showAddModal, setShowAddModal] = useState(false);
     const [showHistoryModal, setShowHistoryModal] = useState(false);
     const [showPrayModal, setShowPrayModal] = useState(false);
+    const [showArchiveModal, setShowArchiveModal] = useState(false);
     const [selectedPrayer, setSelectedPrayer] = useState<Prayer | null>(null);
     const [prayerHistory, setPrayerHistory] = useState<PrayerSession[]>([]);
     const [prayerNote, setPrayerNote] = useState('');
@@ -21,10 +30,11 @@ const Prayers: React.FC = () => {
         userId: '',
         prayerTitleTx: '',
         prayerDetailsTx: '',
-        prayerSubjectPersonName: ''
+        prayerSubjectPersonName: '',
+        archiveFl: 'N'
     });
 
-    const user = useAppSelector(state => state.user.currentUser);
+    const user = useAppSelector((state) => state.user.currentUser);
 
     useEffect(() => {
         fetchPrayers();
@@ -35,7 +45,8 @@ const Prayers: React.FC = () => {
         try {
             setIsLoading(true);
             const prayerList = await bibleService.getAllPrayers(user);
-            setPrayers(prayerList);
+            // Filter out archived prayers
+            setPrayers(prayerList.filter(prayer => prayer.archiveFl === 'N'));
         } catch (error) {
             console.error('Error fetching prayers:', error);
             showToastMessage('Error fetching prayers', true);
@@ -52,14 +63,18 @@ const Prayers: React.FC = () => {
 
     const handleAddEditPrayer = async () => {
         try {
-            let result: string = null;
+            let result: string;
             if (editingPrayer.prayerId) {
                 result = await bibleService.updatePrayer(editingPrayer, user);
             } else {
                 result = await bibleService.addPrayer(editingPrayer);
             }
-            if (result !== "error") {
-                showToastMessage(editingPrayer.prayerId ? 'Prayer updated successfully' : 'Prayer added successfully');
+            if (result !== 'error') {
+                showToastMessage(
+                    editingPrayer.prayerId
+                        ? 'Prayer updated successfully'
+                        : 'Prayer added successfully'
+                );
                 setShowAddModal(false);
                 fetchPrayers();
             } else {
@@ -74,7 +89,7 @@ const Prayers: React.FC = () => {
     const handleViewHistory = async (prayer: Prayer) => {
         try {
             const history = await bibleService.getAllPrayerSessions(user);
-            setPrayerHistory(history.filter(h => h.prayerId === prayer.prayerId));
+            setPrayerHistory(history.filter((h) => h.prayerId === prayer.prayerId));
             setSelectedPrayer(prayer);
             setShowHistoryModal(true);
         } catch (error) {
@@ -104,6 +119,23 @@ const Prayers: React.FC = () => {
         }
     };
 
+    const handleArchive = async () => {
+        if (!selectedPrayer?.prayerId || !user) return;
+        try {
+            const result = await bibleService.archivePrayer(user, selectedPrayer.prayerId);
+            if (result === 'success') {
+                showToastMessage('Prayer archived successfully');
+                fetchPrayers(); // Refresh the prayer list
+            } else {
+                showToastMessage('Failed to archive prayer', true);
+            }
+            setShowArchiveModal(false);
+        } catch (error) {
+            console.error('Error archiving prayer:', error);
+            showToastMessage('Error archiving prayer', true);
+        }
+    };
+
     if (isLoading) {
         return (
             <Container className="py-4 text-center text-white">
@@ -117,15 +149,19 @@ const Prayers: React.FC = () => {
         <Container className="py-4">
             <div className="d-flex justify-content-between align-items-center mb-4">
                 <h1 className="text-white">Prayers</h1>
-                <Button variant="primary" onClick={() => {
-                    setEditingPrayer({
-                        prayerTitleTx: '',
-                        userId: user,
-                        prayerDetailsTx: '',
-                        prayerSubjectPersonName: ''
-                    });
-                    setShowAddModal(true);
-                }}>
+                <Button
+                    variant="primary"
+                    onClick={() => {
+                        setEditingPrayer({
+                            prayerTitleTx: '',
+                            userId: user,
+                            prayerDetailsTx: '',
+                            prayerSubjectPersonName: '',
+                            archiveFl: 'N'
+                        });
+                        setShowAddModal(true);
+                    }}
+                >
                     Add Prayer
                 </Button>
             </div>
@@ -148,13 +184,23 @@ const Prayers: React.FC = () => {
                                     >
                                         Edit
                                     </Button>
+                                    <Button
+                                        variant="outline-danger"
+                                        size="sm"
+                                        onClick={() => {
+                                            setSelectedPrayer(prayer);
+                                            setShowArchiveModal(true);
+                                        }}
+                                    >
+                                        Archive...
+                                    </Button>
                                 </div>
                             </Card.Header>
                             <Card.Body>
                                 <Card.Subtitle className="mb-2 text-muted">
                                     Pray for: {prayer.prayerSubjectPersonName}
                                 </Card.Subtitle>
-                                <Card.Text style={{ whiteSpace: 'pre-line' }}>
+                                <Card.Text style={{whiteSpace: 'pre-line'}}>
                                     {prayer.prayerDetailsTx}
                                 </Card.Text>
                                 <div className="d-flex justify-content-end">
@@ -184,11 +230,7 @@ const Prayers: React.FC = () => {
             </div>
 
             {/* Add/Edit Prayer Modal */}
-            <Modal
-                show={showAddModal}
-                onHide={() => setShowAddModal(false)}
-                centered
-            >
+            <Modal show={showAddModal} onHide={() => setShowAddModal(false)} centered>
                 <Modal.Header closeButton className="bg-dark text-white">
                     <Modal.Title>
                         {editingPrayer.prayerId ? 'Edit Prayer' : 'Add Prayer'}
@@ -201,10 +243,12 @@ const Prayers: React.FC = () => {
                             <Form.Control
                                 type="text"
                                 value={editingPrayer.prayerTitleTx}
-                                onChange={(e) => setEditingPrayer({
-                                    ...editingPrayer,
-                                    prayerTitleTx: e.target.value
-                                })}
+                                onChange={(e) =>
+                                    setEditingPrayer({
+                                        ...editingPrayer,
+                                        prayerTitleTx: e.target.value,
+                                    })
+                                }
                                 className="bg-dark text-white"
                             />
                         </Form.Group>
@@ -213,10 +257,12 @@ const Prayers: React.FC = () => {
                             <Form.Control
                                 type="text"
                                 value={editingPrayer.prayerSubjectPersonName}
-                                onChange={(e) => setEditingPrayer({
-                                    ...editingPrayer,
-                                    prayerSubjectPersonName: e.target.value
-                                })}
+                                onChange={(e) =>
+                                    setEditingPrayer({
+                                        ...editingPrayer,
+                                        prayerSubjectPersonName: e.target.value,
+                                    })
+                                }
                                 className="bg-dark text-white"
                             />
                         </Form.Group>
@@ -226,10 +272,12 @@ const Prayers: React.FC = () => {
                                 as="textarea"
                                 rows={4}
                                 value={editingPrayer.prayerDetailsTx}
-                                onChange={(e) => setEditingPrayer({
-                                    ...editingPrayer,
-                                    prayerDetailsTx: e.target.value
-                                })}
+                                onChange={(e) =>
+                                    setEditingPrayer({
+                                        ...editingPrayer,
+                                        prayerDetailsTx: e.target.value,
+                                    })
+                                }
                                 className="bg-dark text-white"
                             />
                         </Form.Group>
@@ -265,7 +313,10 @@ const Prayers: React.FC = () => {
                     ) : (
                         <div className="list-group">
                             {prayerHistory.map((session, index) => (
-                                <div key={index} className="list-group-item bg-dark text-white border-secondary">
+                                <div
+                                    key={index}
+                                    className="list-group-item bg-dark text-white border-secondary"
+                                >
                                     <div className="d-flex justify-content-between align-items-start">
                                         <div>
                                             <div className="fw-bold">
@@ -319,6 +370,28 @@ const Prayers: React.FC = () => {
                     </Button>
                     <Button variant="primary" onClick={handlePray}>
                         Record Prayer
+                    </Button>
+                </Modal.Footer>
+            </Modal>
+
+            {/* Archive Confirmation Modal */}
+            <Modal
+                show={showArchiveModal}
+                onHide={() => setShowArchiveModal(false)}
+                centered
+            >
+                <Modal.Header closeButton className="bg-dark text-white">
+                    <Modal.Title>Archive Prayer</Modal.Title>
+                </Modal.Header>
+                <Modal.Body className="bg-dark text-white">
+                    Are you sure you want to archive this prayer?
+                </Modal.Body>
+                <Modal.Footer className="bg-dark text-white">
+                    <Button variant="secondary" onClick={() => setShowArchiveModal(false)}>
+                        Cancel
+                    </Button>
+                    <Button variant="danger" onClick={handleArchive}>
+                        Archive Prayer
                     </Button>
                 </Modal.Footer>
             </Modal>
