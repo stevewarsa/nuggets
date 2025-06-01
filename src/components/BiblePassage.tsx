@@ -252,7 +252,7 @@ const BiblePassage: React.FC<BiblePassageProps> = ({
     if (busy) {
         return (
             <Container className="text-white text-center">
-                <Spinner animation="border" role="status\" className="me-2"/>
+                <Spinner animation="border" role="status" className="me-2"/>
                 <span>Loading passage... ({seconds} seconds)</span>
             </Container>
         );

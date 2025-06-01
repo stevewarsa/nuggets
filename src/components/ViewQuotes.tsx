@@ -37,6 +37,7 @@ const ViewQuotes = () => {
     const topics = useAppSelector(state => state.topic.topics);
     const topicsLoading = useAppSelector(state => state.topic.loading);
     const topicsError = useAppSelector(state => state.topic.error);
+    const storedQuotes = useAppSelector((state) => state.quote.quotes);
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
     const {quoteId} = useParams();
@@ -135,10 +136,18 @@ const ViewQuotes = () => {
         const loadingInterval = setInterval(() => {
             setLoadingSeconds(s => s + 1);
         }, 1000);
-        if (user) {
-            fetchQuotes();
+        if (storedQuotes?.length > 0) {
+            const locStoredQuotes = [...storedQuotes];
+            shuffleArray(locStoredQuotes);
+            setAllQuotes(locStoredQuotes);
+            setQuotes(locStoredQuotes);
+            setCurrentQuote(locStoredQuotes[0]);
+            setIsLoading(false);
+        } else {
+            if (user) {
+                fetchQuotes();
+            }
         }
-
         return () => clearInterval(loadingInterval);
     }, [user]);
 
@@ -197,6 +206,12 @@ const ViewQuotes = () => {
 
     const handleChangeIndex = async (toIndex: number) => {
         setCurrentIndex(toIndex);
+        if (quotes[toIndex].quoteTx) {
+            setCurrentQuote(quotes[toIndex]);
+            // Scroll to top when new quote is loaded
+            window.scrollTo(0, 0);
+            return;
+        }
         setIsLoading(true);
 
         try {

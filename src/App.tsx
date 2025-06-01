@@ -79,7 +79,7 @@ const AppContent = () => {
                         element={
                             <ProtectedRoute>
                                 {isGuestUser ? (
-                                    <Navigate to="/browseBible\" replace/>
+                                    <Navigate to="/browseBible" replace/>
                                 ) : (
                                     <AddQuote/>
                                 )}
