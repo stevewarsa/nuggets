@@ -8,7 +8,15 @@ import {shuffleArray} from '../models/passage-utils';
 import {useAppSelector, useAppDispatch} from '../store/hooks';
 import {setTopics, setTopicsLoading, setTopicsError} from '../store/topicSlice';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import {faFilter, faSearch, faTags, faTimesCircle, faPencilAlt} from '@fortawesome/free-solid-svg-icons';
+import {
+    faFilter,
+    faSearch,
+    faTags,
+    faTimesCircle,
+    faPencilAlt,
+    faCopy,
+    faArrowUp
+} from '@fortawesome/free-solid-svg-icons';
 import {useNavigate, useParams} from 'react-router-dom';
 
 const ViewQuotes = () => {
@@ -32,6 +40,7 @@ const ViewQuotes = () => {
     const [selectedTopicsToAdd, setSelectedTopicsToAdd] = useState<number[]>([]);
     const [isAddingTopics, setIsAddingTopics] = useState(false);
     const [showOnlyAssociatedTopics, setShowOnlyAssociatedTopics] = useState(true);
+    const [showFloatingButtons, setShowFloatingButtons] = useState(false);
 
     const user = useAppSelector(state => state.user.currentUser);
     const topics = useAppSelector(state => state.topic.topics);
@@ -41,6 +50,38 @@ const ViewQuotes = () => {
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
     const {quoteId} = useParams();
+
+    useEffect(() => {
+        const handleScroll = () => {
+            setShowFloatingButtons(window.scrollY > 100);
+        };
+
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
+
+    const scrollToTop = () => {
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
+    };
+
+    const copyCurrentQuote = async () => {
+        if (currentQuote?.quoteTx) {
+            try {
+                await navigator.clipboard.writeText(currentQuote.quoteTx);
+                setToastMessage('Quote copied to clipboard!');
+                setToastBg('#28a745');
+                setShowToast(true);
+            } catch (err) {
+                console.error('Failed to copy text:', err);
+                setToastMessage('Failed to copy text');
+                setToastBg('#dc3545');
+                setShowToast(true);
+            }
+        }
+    };
 
     // Calculate topic counts from current quotes
     const topicCounts = useMemo(() => {
@@ -447,7 +488,7 @@ const ViewQuotes = () => {
     if (isLoading && !currentQuote) {
         return (
             <Container className="p-4 text-white text-center">
-                <Spinner animation="border" role="status" className="me-2"/>
+                <Spinner animation="border" role="status\" className="me-2"/>
                 <span>Loading quotes... ({loadingSeconds} seconds)</span>
             </Container>
         );
@@ -547,7 +588,7 @@ const ViewQuotes = () => {
 
             {isLoading ? (
                 <div className="text-white text-center mt-4">
-                    <Spinner animation="border" role="status" className="me-2"/>
+                    <Spinner animation="border" role="status\" className="me-2"/>
                     <span>Loading quote... ({loadingSeconds} seconds)</span>
                 </div>
             ) : (
@@ -594,6 +635,37 @@ const ViewQuotes = () => {
                         </Collapse>
                     </div>
                 </Container>
+            )}
+
+            {/* Add floating buttons */}
+            {showFloatingButtons && (
+                <div
+                    style={{
+                        position: 'fixed',
+                        bottom: '20px',
+                        right: '20px',
+                        display: 'flex',
+                        gap: '10px',
+                        zIndex: 1000
+                    }}
+                >
+                    <Button
+                        variant="primary"
+                        size="lg"
+                        onClick={copyCurrentQuote}
+                        style={{borderRadius: '50%', width: '50px', height: '50px'}}
+                    >
+                        <FontAwesomeIcon icon={faCopy}/>
+                    </Button>
+                    <Button
+                        variant="secondary"
+                        size="lg"
+                        onClick={scrollToTop}
+                        style={{borderRadius: '50%', width: '50px', height: '50px'}}
+                    >
+                        <FontAwesomeIcon icon={faArrowUp}/>
+                    </Button>
+                </div>
             )}
 
             {/* Edit Quote Modal */}
