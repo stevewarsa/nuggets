@@ -199,7 +199,11 @@ const Prayers: React.FC = () => {
                                     <h5 className="mb-0">
                                         {expandedPrayers.has(prayer.prayerId || 0) ? '▼' : '▶'} {prayer.prayerTitleTx}
                                     </h5>
-                                    <div>
+                                </div>
+                            </Card.Header>
+                            {expandedPrayers.has(prayer.prayerId || 0) && (
+                                <Card.Body>
+                                    <div className="d-flex justify-content-end mb-3">
                                         <Button
                                             variant="link"
                                             className="text-light me-2 p-0"
@@ -224,12 +228,6 @@ const Prayers: React.FC = () => {
                                         >
                                             <FontAwesomeIcon icon={faTrash}/>
                                         </Button>
-                                    </div>
-                                </div>
-                            </Card.Header>
-                            {expandedPrayers.has(prayer.prayerId || 0) && (
-                                <Card.Body>
-                                    <div className="d-flex justify-content-end mb-3">
                                         <Button
                                             variant="link"
                                             className="text-success me-2 p-0"
