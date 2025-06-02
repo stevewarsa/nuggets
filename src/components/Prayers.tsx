@@ -1,31 +1,29 @@
 import React, {useState, useEffect} from 'react';
-import {
-    Container,
-    Card,
-    Button,
-    Modal,
-    Form,
-    Spinner,
-    Toast,
-} from 'react-bootstrap';
-import {useAppSelector} from '../store/hooks';
+import {Container, Card, Button, Modal, Form, Spinner, Toast} from 'react-bootstrap';
+import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
+import {faPlus, faPencilAlt, faTrash} from '@fortawesome/free-solid-svg-icons';
 import {bibleService} from '../services/bible-service';
-import {Prayer, PrayerSession} from '../models/prayer';
-import {format} from 'date-fns';
+import {useAppSelector} from '../store/hooks';
+
+interface Prayer {
+    prayerId?: number;
+    userId: string;
+    prayerTitleTx: string;
+    prayerDetailsTx: string;
+    prayerSubjectPersonName: string;
+    archiveFl: string;
+}
 
 const Prayers: React.FC = () => {
     const [prayers, setPrayers] = useState<Prayer[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
-    const [showAddModal, setShowAddModal] = useState(false);
-    const [showHistoryModal, setShowHistoryModal] = useState(false);
-    const [showPrayModal, setShowPrayModal] = useState(false);
-    const [showArchiveModal, setShowArchiveModal] = useState(false);
+    const [isLoading, setIsLoading] = useState<boolean>(true);
+    const [showAddModal, setShowAddModal] = useState<boolean>(false);
+    const [showArchiveModal, setShowArchiveModal] = useState<boolean>(false);
     const [selectedPrayer, setSelectedPrayer] = useState<Prayer | null>(null);
-    const [prayerHistory, setPrayerHistory] = useState<PrayerSession[]>([]);
-    const [prayerNote, setPrayerNote] = useState('');
-    const [showToast, setShowToast] = useState(false);
-    const [toastMessage, setToastMessage] = useState('');
-    const [toastBg, setToastBg] = useState('#28a745');
+    const [showToast, setShowToast] = useState<boolean>(false);
+    const [toastMessage, setToastMessage] = useState<string>('');
+    const [toastBg, setToastBg] = useState<string>('#28a745');
+    const [expandedPrayers, setExpandedPrayers] = useState<Set<number>>(new Set());
     const [editingPrayer, setEditingPrayer] = useState<Prayer>({
         userId: '',
         prayerTitleTx: '',
@@ -34,7 +32,7 @@ const Prayers: React.FC = () => {
         archiveFl: 'N'
     });
 
-    const user = useAppSelector((state) => state.user.currentUser);
+    const user = useAppSelector(state => state.user.currentUser);
 
     useEffect(() => {
         fetchPrayers();
@@ -45,14 +43,29 @@ const Prayers: React.FC = () => {
         try {
             setIsLoading(true);
             const prayerList = await bibleService.getAllPrayers(user);
-            // Filter out archived prayers
-            setPrayers(prayerList.filter(prayer => prayer.archiveFl === 'N'));
+            // Filter out archived prayers and sort by prayerId descending
+            setPrayers(prayerList
+                .filter(prayer => prayer.archiveFl === 'N')
+                .sort((a, b) => (b.prayerId || 0) - (a.prayerId || 0))
+            );
         } catch (error) {
             console.error('Error fetching prayers:', error);
             showToastMessage('Error fetching prayers', true);
         } finally {
             setIsLoading(false);
         }
+    };
+
+    const togglePrayerExpansion = (prayerId: number) => {
+        setExpandedPrayers(prev => {
+            const newSet = new Set(prev);
+            if (newSet.has(prayerId)) {
+                newSet.delete(prayerId);
+            } else {
+                newSet.add(prayerId);
+            }
+            return newSet;
+        });
     };
 
     const showToastMessage = (message: string, isError: boolean = false) => {
@@ -83,39 +96,6 @@ const Prayers: React.FC = () => {
         } catch (error) {
             console.error('Error saving prayer:', error);
             showToastMessage('Error saving prayer', true);
-        }
-    };
-
-    const handleViewHistory = async (prayer: Prayer) => {
-        try {
-            const history = await bibleService.getAllPrayerSessions(user);
-            setPrayerHistory(history.filter((h) => h.prayerId === prayer.prayerId));
-            setSelectedPrayer(prayer);
-            setShowHistoryModal(true);
-        } catch (error) {
-            console.error('Error fetching prayer history:', error);
-            showToastMessage('Error fetching prayer history', true);
-        }
-    };
-
-    const handlePray = async () => {
-        if (!selectedPrayer?.prayerId || !user) return;
-        try {
-            const result = await bibleService.addPrayerSession(
-                selectedPrayer.prayerId,
-                user,
-                prayerNote.trim() || null
-            );
-            if (result === 'error') {
-                showToastMessage('Failed to record prayer session', true);
-            } else {
-                showToastMessage('Prayer session recorded successfully');
-                setShowPrayModal(false);
-                setPrayerNote('');
-            }
-        } catch (error) {
-            console.error('Error recording prayer session:', error);
-            showToastMessage('Error recording prayer session', true);
         }
     };
 
@@ -162,6 +142,7 @@ const Prayers: React.FC = () => {
                         setShowAddModal(true);
                     }}
                 >
+                    <FontAwesomeIcon icon={faPlus} className="me-2"/>
                     Add Prayer
                 </Button>
             </div>
@@ -170,60 +151,51 @@ const Prayers: React.FC = () => {
                 {prayers.map((prayer) => (
                     <div key={prayer.prayerId} className="col-12">
                         <Card bg="dark" text="white">
-                            <Card.Header className="d-flex justify-content-between align-items-center">
-                                <h5 className="mb-0">{prayer.prayerTitleTx}</h5>
-                                <div>
-                                    <Button
-                                        variant="outline-light"
-                                        size="sm"
-                                        className="me-2"
-                                        onClick={() => {
-                                            setEditingPrayer(prayer);
-                                            setShowAddModal(true);
-                                        }}
-                                    >
-                                        Edit
-                                    </Button>
-                                    <Button
-                                        variant="outline-danger"
-                                        size="sm"
-                                        onClick={() => {
-                                            setSelectedPrayer(prayer);
-                                            setShowArchiveModal(true);
-                                        }}
-                                    >
-                                        Archive...
-                                    </Button>
+                            <Card.Header>
+                                <div
+                                    className="d-flex justify-content-between align-items-center cursor-pointer"
+                                    onClick={() => prayer.prayerId && togglePrayerExpansion(prayer.prayerId)}
+                                    style={{cursor: 'pointer'}}
+                                >
+                                    <h5 className="mb-0">
+                                        {expandedPrayers.has(prayer.prayerId || 0) ? '▼' : '▶'} {prayer.prayerTitleTx}
+                                    </h5>
+                                    <div>
+                                        <Button
+                                            variant="link"
+                                            className="text-light me-2 p-0"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setEditingPrayer(prayer);
+                                                setShowAddModal(true);
+                                            }}
+                                        >
+                                            <FontAwesomeIcon icon={faPencilAlt}/>
+                                        </Button>
+                                        <Button
+                                            variant="link"
+                                            className="text-danger p-0"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setSelectedPrayer(prayer);
+                                                setShowArchiveModal(true);
+                                            }}
+                                        >
+                                            <FontAwesomeIcon icon={faTrash}/>
+                                        </Button>
+                                    </div>
                                 </div>
                             </Card.Header>
-                            <Card.Body>
-                                <Card.Subtitle className="mb-2 text-muted">
-                                    Pray for: {prayer.prayerSubjectPersonName}
-                                </Card.Subtitle>
-                                <Card.Text style={{whiteSpace: 'pre-line'}}>
-                                    {prayer.prayerDetailsTx}
-                                </Card.Text>
-                                <div className="d-flex justify-content-end">
-                                    <Button
-                                        variant="outline-light"
-                                        size="sm"
-                                        className="me-2"
-                                        onClick={() => handleViewHistory(prayer)}
-                                    >
-                                        View History
-                                    </Button>
-                                    <Button
-                                        variant="primary"
-                                        size="sm"
-                                        onClick={() => {
-                                            setSelectedPrayer(prayer);
-                                            setShowPrayModal(true);
-                                        }}
-                                    >
-                                        Pray
-                                    </Button>
-                                </div>
-                            </Card.Body>
+                            {expandedPrayers.has(prayer.prayerId || 0) && (
+                                <Card.Body>
+                                    <Card.Subtitle className="mb-2 text-muted">
+                                        Pray for: {prayer.prayerSubjectPersonName}
+                                    </Card.Subtitle>
+                                    <Card.Text style={{whiteSpace: 'pre-line'}}>
+                                        {prayer.prayerDetailsTx}
+                                    </Card.Text>
+                                </Card.Body>
+                            )}
                         </Card>
                     </div>
                 ))}
@@ -293,83 +265,6 @@ const Prayers: React.FC = () => {
                         disabled={!editingPrayer.prayerTitleTx.trim()}
                     >
                         {editingPrayer.prayerId ? 'Save Changes' : 'Add Prayer'}
-                    </Button>
-                </Modal.Footer>
-            </Modal>
-
-            {/* Prayer History Modal */}
-            <Modal
-                show={showHistoryModal}
-                onHide={() => setShowHistoryModal(false)}
-                centered
-                size="lg"
-            >
-                <Modal.Header closeButton className="bg-dark text-white">
-                    <Modal.Title>Prayer History</Modal.Title>
-                </Modal.Header>
-                <Modal.Body className="bg-dark text-white">
-                    {prayerHistory.length === 0 ? (
-                        <p className="text-center">No prayer history available.</p>
-                    ) : (
-                        <div className="list-group">
-                            {prayerHistory.map((session, index) => (
-                                <div
-                                    key={index}
-                                    className="list-group-item bg-dark text-white border-secondary"
-                                >
-                                    <div className="d-flex justify-content-between align-items-start">
-                                        <div>
-                                            <div className="fw-bold">
-                                                {format(new Date(session.dateTime), 'PPpp')}
-                                            </div>
-                                            <div className="text-muted">
-                                                Prayed by: {session.userId}
-                                            </div>
-                                        </div>
-                                    </div>
-                                    {session.prayerNoteTx && (
-                                        <div className="mt-2">
-                                            <small className="text-muted">Note:</small>
-                                            <p className="mb-0">{session.prayerNoteTx}</p>
-                                        </div>
-                                    )}
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                </Modal.Body>
-            </Modal>
-
-            {/* Record Prayer Modal */}
-            <Modal
-                show={showPrayModal}
-                onHide={() => setShowPrayModal(false)}
-                centered
-            >
-                <Modal.Header closeButton className="bg-dark text-white">
-                    <Modal.Title>Record Prayer</Modal.Title>
-                </Modal.Header>
-                <Modal.Body className="bg-dark text-white">
-                    <Form>
-                        <Form.Group>
-                            <Form.Label>Prayer Note (optional)</Form.Label>
-                            <Form.Control
-                                as="textarea"
-                                rows={4}
-                                value={prayerNote}
-                                onChange={(e) => setPrayerNote(e.target.value)}
-                                placeholder="Add any notes about this prayer session..."
-                                className="bg-dark text-white"
-                            />
-                        </Form.Group>
-                    </Form>
-                </Modal.Body>
-                <Modal.Footer className="bg-dark text-white">
-                    <Button variant="secondary" onClick={() => setShowPrayModal(false)}>
-                        Cancel
-                    </Button>
-                    <Button variant="primary" onClick={handlePray}>
-                        Record Prayer
                     </Button>
                 </Modal.Footer>
             </Modal>

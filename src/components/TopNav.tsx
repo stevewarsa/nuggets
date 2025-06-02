@@ -86,6 +86,11 @@ const TopNav = () => {
                                     View Quotes
                                 </Nav.Link>
                             )}
+                            {location.pathname !== '/prayers' && (
+                                <Nav.Link onClick={() => handleNavigation('/prayers')}>
+                                    Prayers
+                                </Nav.Link>
+                            )}
                             {!isGuestUser && location.pathname !== '/addQuote' && (
                                 <Nav.Link onClick={() => handleNavigation('/addQuote')}>
                                     Add Quote
@@ -142,11 +147,6 @@ const TopNav = () => {
                             {location.pathname !== '/memoryPassages' && (
                                 <Nav.Link onClick={() => handleNavigation('/memoryPassages')}>
                                     My Memory Passages
-                                </Nav.Link>
-                            )}
-                            {location.pathname !== '/prayers' && (
-                                <Nav.Link onClick={() => handleNavigation('/prayers')}>
-                                    Prayers
                                 </Nav.Link>
                             )}
                             {location.pathname !== '/login' && (
