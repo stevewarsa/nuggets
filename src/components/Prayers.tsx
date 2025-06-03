@@ -206,7 +206,7 @@ const Prayers: React.FC = () => {
                                     <div className="d-flex justify-content-end mb-3">
                                         <Button
                                             variant="link"
-                                            className="text-light me-2 p-0"
+                                            className="text-light me-3 p-2"
                                             onClick={(e) => {
                                                 e.stopPropagation();
                                                 setEditingPrayer(prayer);
@@ -218,7 +218,7 @@ const Prayers: React.FC = () => {
                                         </Button>
                                         <Button
                                             variant="link"
-                                            className="text-danger p-0"
+                                            className="text-danger me-3 p-2"
                                             onClick={(e) => {
                                                 e.stopPropagation();
                                                 setSelectedPrayer(prayer);
@@ -230,7 +230,7 @@ const Prayers: React.FC = () => {
                                         </Button>
                                         <Button
                                             variant="link"
-                                            className="text-success me-2 p-0"
+                                            className="text-success me-3 p-2"
                                             onClick={() => {
                                                 setSelectedPrayer(prayer);
                                                 setShowPrayModal(true);
@@ -241,7 +241,7 @@ const Prayers: React.FC = () => {
                                         </Button>
                                         <Button
                                             variant="link"
-                                            className="text-info me-2 p-0"
+                                            className="text-info me-3 p-2"
                                             onClick={() => handleViewHistory(prayer)}
                                             title="View History"
                                         >
