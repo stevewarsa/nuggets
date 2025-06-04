@@ -196,9 +196,9 @@ const Prayers: React.FC = () => {
                                     onClick={() => prayer.prayerId && togglePrayerExpansion(prayer.prayerId)}
                                     style={{cursor: 'pointer'}}
                                 >
-                                    <h5 className="mb-0">
+                                    <h3 className="mb-0">
                                         {expandedPrayers.has(prayer.prayerId || 0) ? '▼' : '▶'} {prayer.prayerTitleTx}
-                                    </h5>
+                                    </h3>
                                 </div>
                             </Card.Header>
                             {expandedPrayers.has(prayer.prayerId || 0) && (
@@ -214,7 +214,7 @@ const Prayers: React.FC = () => {
                                             }}
                                             title="Edit"
                                         >
-                                            <FontAwesomeIcon icon={faPencilAlt}/>
+                                            <FontAwesomeIcon size="2x" icon={faPencilAlt}/>
                                         </Button>
                                         <Button
                                             variant="link"
@@ -226,7 +226,7 @@ const Prayers: React.FC = () => {
                                             }}
                                             title="Archive"
                                         >
-                                            <FontAwesomeIcon icon={faTrash}/>
+                                            <FontAwesomeIcon size="2x" icon={faTrash}/>
                                         </Button>
                                         <Button
                                             variant="link"
@@ -237,7 +237,7 @@ const Prayers: React.FC = () => {
                                             }}
                                             title="Record Prayer"
                                         >
-                                            <FontAwesomeIcon icon={faPray}/>
+                                            <FontAwesomeIcon size="2x" icon={faPray}/>
                                         </Button>
                                         <Button
                                             variant="link"
@@ -245,13 +245,13 @@ const Prayers: React.FC = () => {
                                             onClick={() => handleViewHistory(prayer)}
                                             title="View History"
                                         >
-                                            <FontAwesomeIcon icon={faHistory}/>
+                                            <FontAwesomeIcon size="2x" icon={faHistory}/>
                                         </Button>
                                     </div>
                                     <Card.Subtitle className="mb-2 text-muted">
                                         Pray for: {prayer.prayerSubjectPersonName}
                                     </Card.Subtitle>
-                                    <Card.Text style={{whiteSpace: 'pre-line'}}>
+                                    <Card.Text className="lead" style={{whiteSpace: 'pre-line'}}>
                                         {prayer.prayerDetailsTx}
                                     </Card.Text>
                                 </Card.Body>
