@@ -86,7 +86,7 @@ const TopNav = () => {
                                     View Quotes
                                 </Nav.Link>
                             )}
-                            {location.pathname !== '/prayers' && (
+                            {isMainUser && location.pathname !== '/prayers' && (
                                 <Nav.Link onClick={() => handleNavigation('/prayers')}>
                                     Prayers
                                 </Nav.Link>

@@ -190,7 +190,11 @@ const AppContent = () => {
                         path="/prayers"
                         element={
                             <ProtectedRoute>
-                                <Prayers/>
+                                {isGuestUser ? (
+                                    <Navigate to="/browseBible" replace/>
+                                ) : (
+                                    <Prayers/>
+                                )}
                             </ProtectedRoute>
                         }
                     />
