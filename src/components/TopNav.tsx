@@ -5,6 +5,7 @@ import {useAppSelector} from '../store/hooks';
 import {GUEST_USER} from '../models/constants';
 import {bibleService} from '../services/bible-service';
 import GoToPassageByRef from './GoToPassageByRef';
+import AddEditPrayerModal from './AddEditPrayerModal';
 
 const TopNav = () => {
     const [expanded, setExpanded] = useState(false);
@@ -12,6 +13,7 @@ const TopNav = () => {
     const [toastMessage, setToastMessage] = useState('');
     const [toastBg, setToastBg] = useState('#28a745');
     const [showGoToPassage, setShowGoToPassage] = useState(false);
+    const [showAddPrayerModal, setShowAddPrayerModal] = useState(false);
 
     const navigate = useNavigate();
     const location = useLocation();
@@ -51,6 +53,18 @@ const TopNav = () => {
         }
     };
 
+    const handleAddPrayer = () => {
+        setExpanded(false);
+        setShowAddPrayerModal(true);
+    };
+
+    const handlePrayerSaved = () => {
+        // Show success message
+        setToastMessage('Prayer added successfully!');
+        setToastBg('#28a745');
+        setShowToast(true);
+    };
+
     return (
         <>
             <Navbar
@@ -86,11 +100,14 @@ const TopNav = () => {
                                     View Quotes
                                 </Nav.Link>
                             )}
-                            {isMainUser && location.pathname !== '/prayers' && (
+                            {location.pathname !== '/prayers' && (
                                 <Nav.Link onClick={() => handleNavigation('/prayers')}>
                                     Prayers
                                 </Nav.Link>
                             )}
+                            {isMainUser && <Nav.Link onClick={handleAddPrayer}>
+                                Add Prayer
+                            </Nav.Link>}
                             {!isGuestUser && location.pathname !== '/addQuote' && (
                                 <Nav.Link onClick={() => handleNavigation('/addQuote')}>
                                     Add Quote
@@ -163,6 +180,12 @@ const TopNav = () => {
                 show={showGoToPassage}
                 onHide={() => setShowGoToPassage(false)}
                 onNavigate={handleNavigation}
+            />
+
+            <AddEditPrayerModal
+                show={showAddPrayerModal}
+                onHide={() => setShowAddPrayerModal(false)}
+                onPrayerSaved={handlePrayerSaved}
             />
 
             <Toast
