@@ -355,7 +355,7 @@ const BiblePassage: React.FC<BiblePassageProps> = ({
                 <Modal.Header closeButton>
                     <Modal.Title>Select Verses</Modal.Title>
                 </Modal.Header>
-                <Modal.Body>
+                <Modal.Body style={{position: 'relative', maxHeight: '60vh', overflowY: 'auto'}}>
                     <p className="text-muted mb-3">
                         Select one verse for a single verse, or two verses to define a range.
                     </p>
