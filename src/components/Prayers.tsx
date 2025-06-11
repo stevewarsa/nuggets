@@ -42,6 +42,7 @@ const Prayers: React.FC = () => {
     const [editingPrayer, setEditingPrayer] = useState<Prayer | null>(null);
     const [prayerHistory, setPrayerHistory] = useState<PrayerSession[]>([]);
     const [prayerNote, setPrayerNote] = useState('');
+    const [isRecordingPrayer, setIsRecordingPrayer] = useState(false);
     const [showToast, setShowToast] = useState(false);
     const [toastMessage, setToastMessage] = useState('');
     const [toastBg, setToastBg] = useState('#28a745');
@@ -141,6 +142,8 @@ const Prayers: React.FC = () => {
 
     const handlePray = async () => {
         if (!selectedPrayer?.prayerId || !user) return;
+
+        setIsRecordingPrayer(true);
         try {
             const result = await bibleService.addPrayerSession(
                 selectedPrayer.prayerId,
@@ -157,6 +160,8 @@ const Prayers: React.FC = () => {
         } catch (error) {
             console.error('Error recording prayer session:', error);
             showToastMessage('Error recording prayer session', true);
+        } finally {
+            setIsRecordingPrayer(false);
         }
     };
 
@@ -327,16 +332,39 @@ const Prayers: React.FC = () => {
                                 onChange={(e) => setPrayerNote(e.target.value)}
                                 placeholder="Add any notes about this prayer session..."
                                 className="bg-dark text-white"
+                                disabled={isRecordingPrayer}
                             />
                         </Form.Group>
                     </Form>
                 </Modal.Body>
                 <Modal.Footer className="bg-dark text-white">
-                    <Button variant="secondary" onClick={() => setShowPrayModal(false)}>
+                    <Button
+                        variant="secondary"
+                        onClick={() => setShowPrayModal(false)}
+                        disabled={isRecordingPrayer}
+                    >
                         Cancel
                     </Button>
-                    <Button variant="primary" onClick={handlePray}>
-                        Record Prayer
+                    <Button
+                        variant="primary"
+                        onClick={handlePray}
+                        disabled={isRecordingPrayer}
+                    >
+                        {isRecordingPrayer ? (
+                            <>
+                                <Spinner
+                                    as="span"
+                                    animation="border"
+                                    size="sm"
+                                    role="status"
+                                    aria-hidden="true"
+                                    className="me-2"
+                                />
+                                Recording...
+                            </>
+                        ) : (
+                            'Record Prayer'
+                        )}
                     </Button>
                 </Modal.Footer>
             </Modal>
