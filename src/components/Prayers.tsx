@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useMemo} from 'react';
 import {
     Container,
     Card,
@@ -21,6 +21,7 @@ import {useAppSelector} from '../store/hooks';
 import {PrayerSession} from '../models/prayer.ts';
 import {format} from 'date-fns';
 import AddEditPrayerModal from './AddEditPrayerModal';
+import {shuffleArray} from '../models/passage-utils';
 
 interface Prayer {
     prayerId?: number;
@@ -52,8 +53,24 @@ const Prayers: React.FC = () => {
 
     const user = useAppSelector((state) => state.user.currentUser);
 
+    // Calculate which prayers have been prayed for today based on prayerHistory
+    const prayedTodaySet = useMemo(() => {
+        const today = format(new Date(), 'yyyy-MM-dd');
+        const prayedTodayIds = new Set<number>();
+
+        prayerHistory.forEach(session => {
+            const sessionDate = format(new Date(session.dateTime), 'yyyy-MM-dd');
+            if (sessionDate === today) {
+                prayedTodayIds.add(session.prayerId);
+            }
+        });
+
+        return prayedTodayIds;
+    }, [prayerHistory]);
+
     useEffect(() => {
         fetchPrayers();
+        fetchPrayerSessions();
     }, [user]);
 
     const fetchPrayers = async () => {
@@ -62,16 +79,28 @@ const Prayers: React.FC = () => {
             setIsLoading(true);
             const prayerList = await bibleService.getAllPrayers(user);
             // Filter out archived prayers and sort by prayerId descending
-            setPrayers(
-                prayerList
-                    .filter((prayer) => prayer.archiveFl === 'N')
-                    .sort((a, b) => (b.prayerId || 0) - (a.prayerId || 0))
-            );
+            const filteredPrayers = prayerList
+                .filter((prayer) => prayer.archiveFl === 'N')
+                .sort((a, b) => (b.prayerId || 0) - (a.prayerId || 0));
+
+            // Shuffle the prayers list for random order
+            shuffleArray(filteredPrayers);
+            setPrayers(filteredPrayers);
         } catch (error) {
             console.error('Error fetching prayers:', error);
             showToastMessage('Error fetching prayers', true);
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    const fetchPrayerSessions = async () => {
+        if (!user) return;
+        try {
+            const sessions = await bibleService.getAllPrayerSessions(user);
+            setPrayerHistory(sessions);
+        } catch (error) {
+            console.error('Error fetching prayer sessions:', error);
         }
     };
 
@@ -110,12 +139,13 @@ const Prayers: React.FC = () => {
 
     const handleViewHistory = async (prayer: Prayer) => {
         try {
-            const history = await bibleService.getAllPrayerSessions(user);
-            setPrayerHistory(history.filter((h) => h.prayerId === prayer.prayerId));
+            // Filter existing prayerHistory for this specific prayer
+            const filteredHistory = prayerHistory.filter((h) => h.prayerId === prayer.prayerId);
+            setPrayerHistory(filteredHistory);
             setSelectedPrayer(prayer);
             setShowHistoryModal(true);
         } catch (error) {
-            console.error('Error fetching prayer history:', error);
+            console.error('Error filtering prayer history:', error);
             showToastMessage('Error fetching prayer history', true);
         }
     };
@@ -154,6 +184,27 @@ const Prayers: React.FC = () => {
                 showToastMessage('Failed to record prayer session', true);
             } else {
                 showToastMessage('Prayer session recorded successfully');
+
+                // Create new prayer session entry and add it to prayerHistory
+                const newSession: PrayerSession = {
+                    dateTime: new Date().toISOString(),
+                    userId: user,
+                    prayerId: selectedPrayer.prayerId,
+                    prayerNoteTx: prayerNote.trim() || null
+                };
+
+                // Update prayerHistory state with the new session
+                setPrayerHistory(prev => [newSession, ...prev]);
+
+                // Collapse the prayer card after recording
+                if (selectedPrayer.prayerId) {
+                    setExpandedPrayers(prev => {
+                        const newSet = new Set(prev);
+                        newSet.delete(selectedPrayer.prayerId!);
+                        return newSet;
+                    });
+                }
+
                 setShowPrayModal(false);
                 setPrayerNote('');
             }
@@ -196,8 +247,20 @@ const Prayers: React.FC = () => {
                                     }
                                     style={{cursor: 'pointer'}}
                                 >
-                                    <h3 className="mb-0">
-                                        {expandedPrayers.has(prayer.prayerId || 0) ? '▼' : '▶'}{' '}
+                                    <h3 className="mb-0 d-flex align-items-center">
+                                        <span
+                                            className="me-2 px-2 py-1 rounded"
+                                            style={{
+                                                backgroundColor: prayer.prayerId && prayedTodaySet.has(prayer.prayerId)
+                                                    ? '#28a745'
+                                                    : 'transparent',
+                                                color: prayer.prayerId && prayedTodaySet.has(prayer.prayerId)
+                                                    ? 'white'
+                                                    : 'inherit'
+                                            }}
+                                        >
+                                            {expandedPrayers.has(prayer.prayerId || 0) ? '▼' : '▶'}
+                                        </span>
                                         {prayer.prayerTitleTx}
                                     </h3>
                                 </div>
