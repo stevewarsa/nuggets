@@ -19,7 +19,7 @@ import {
 import {bibleService} from '../services/bible-service';
 import {useAppSelector} from '../store/hooks';
 import {PrayerSession} from '../models/prayer.ts';
-import {format} from 'date-fns';
+import {format, parseISO} from 'date-fns';
 import AddEditPrayerModal from './AddEditPrayerModal';
 import {shuffleArray} from '../models/passage-utils';
 
@@ -59,7 +59,7 @@ const Prayers: React.FC = () => {
         const prayedTodayIds = new Set<number>();
 
         prayerHistory.forEach(session => {
-            const sessionDate = format(new Date(session.dateTime), 'yyyy-MM-dd');
+            const sessionDate = format(parseISO(session.dateTime), 'yyyy-MM-dd');
             if (sessionDate === today) {
                 prayedTodayIds.add(session.prayerId);
             }
