@@ -1,11 +1,25 @@
 import React, {useEffect, useMemo, useState} from 'react';
-import {Button, Card, Container, Form, InputGroup, Pagination, Spinner, Toast} from 'react-bootstrap';
+import {
+    Button,
+    Card,
+    Container,
+    Form,
+    InputGroup,
+    Pagination,
+    Spinner,
+    Toast,
+} from 'react-bootstrap';
 import {bibleService} from '../services/bible-service';
 import {useAppDispatch, useAppSelector} from '../store/hooks';
-import {useNavigate} from "react-router-dom";
-import {setQuotes, setQuotesError, setQuotesLoading} from '../store/quoteSlice';
+import {useNavigate} from 'react-router-dom';
+import {
+    setQuotes,
+    setQuotesError,
+    setQuotesLoading,
+} from '../store/quoteSlice';
+import {setSearchResults} from '../store/searchSlice';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import {faTimes} from '@fortawesome/free-solid-svg-icons';
+import {faTimes, faEye} from '@fortawesome/free-solid-svg-icons';
 
 const QUOTES_PER_PAGE = 4;
 const MAX_VISIBLE_PAGES = 5; // Number of page numbers to show at once
@@ -21,8 +35,8 @@ const SearchQuotes: React.FC = () => {
     const navigate = useNavigate();
 
     const dispatch = useAppDispatch();
-    const user = useAppSelector(state => state.user.currentUser);
-    const {quotes, loading, error} = useAppSelector(state => state.quote);
+    const user = useAppSelector((state) => state.user.currentUser);
+    const {quotes, loading, error} = useAppSelector((state) => state.quote);
 
     // Scroll to top when page changes
     useEffect(() => {
@@ -53,14 +67,17 @@ const SearchQuotes: React.FC = () => {
             return quotes;
         }
 
-        const searchWords = searchTerm.toLowerCase().split(' ').filter(word => word.length > 0);
+        const searchWords = searchTerm
+            .toLowerCase()
+            .split(' ')
+            .filter((word) => word.length > 0);
 
-        return quotes.filter(quote => {
+        return quotes.filter((quote) => {
             if (!quote.quoteTx) return false;
 
             const quoteText = quote.quoteTx.toLowerCase();
             // Match only if ALL of the search words are found in the quote
-            return searchWords.every(word => quoteText.includes(word));
+            return searchWords.every((word) => quoteText.includes(word));
         });
     }, [searchTerm, quotes]);
 
@@ -90,7 +107,7 @@ const SearchQuotes: React.FC = () => {
     };
 
     const toggleQuoteExpansion = (quoteId: number) => {
-        setExpandedQuotes(prev => {
+        setExpandedQuotes((prev) => {
             const newSet = new Set(prev);
             if (newSet.has(quoteId)) {
                 newSet.delete(quoteId);
@@ -104,17 +121,34 @@ const SearchQuotes: React.FC = () => {
     const highlightSearchTerms = (text: string) => {
         if (!searchTerm.trim()) return text;
 
-        const searchWords = searchTerm.toLowerCase().split(' ').filter(word => word.length > 0);
+        const searchWords = searchTerm
+            .toLowerCase()
+            .split(' ')
+            .filter((word) => word.length > 0);
         let highlightedText = text;
 
-        searchWords.forEach(word => {
+        searchWords.forEach((word) => {
             if (word.length > 0) {
                 const regex = new RegExp(`(${word})`, 'gi');
-                highlightedText = highlightedText.replace(regex, '<span style="background-color: yellow; color: black">$1</span>');
+                highlightedText = highlightedText.replace(
+                    regex,
+                    '<span style="background-color: yellow; color: black">$1</span>'
+                );
             }
         });
 
         return highlightedText;
+    };
+
+    const handleBrowseResults = () => {
+        // Store search results and term in Redux
+        dispatch(setSearchResults({
+            quotes: filteredQuotes,
+            searchTerm: searchTerm
+        }));
+
+        // Navigate to ViewQuotes
+        navigate('/viewQuotes');
     };
 
     const renderPagination = () => {
@@ -135,13 +169,16 @@ const SearchQuotes: React.FC = () => {
         items.push(
             <Pagination.Prev
                 key="prev"
-                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
                 disabled={currentPage === 1}
             />
         );
 
         // Calculate visible page range
-        let startPage = Math.max(1, currentPage - Math.floor(MAX_VISIBLE_PAGES / 2));
+        let startPage = Math.max(
+            1,
+            currentPage - Math.floor(MAX_VISIBLE_PAGES / 2)
+        );
         let endPage = Math.min(totalPages, startPage + MAX_VISIBLE_PAGES - 1);
 
         // Adjust start page if we're near the end
@@ -176,7 +213,7 @@ const SearchQuotes: React.FC = () => {
         items.push(
             <Pagination.Next
                 key="next"
-                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
                 disabled={currentPage === totalPages}
             />
         );
@@ -194,8 +231,8 @@ const SearchQuotes: React.FC = () => {
             <div className="d-flex flex-wrap justify-content-center align-items-center gap-3 mb-4">
                 <Pagination className="mb-0">{items}</Pagination>
                 <span className="text-white">
-                    Page {currentPage} of {totalPages}
-                </span>
+          Page {currentPage} of {totalPages}
+        </span>
             </div>
         );
     };
@@ -245,13 +282,29 @@ const SearchQuotes: React.FC = () => {
                         )}
                     </InputGroup>
                     <Form.Text className="text-white-50">
-                        Enter one or more words to search for. Quotes containing all of the words will be shown.
+                        Enter one or more words to search for. Quotes containing all of the
+                        words will be shown.
                     </Form.Text>
                 </Form.Group>
             </Form>
 
+            {/* Browse Results Button */}
+            {filteredQuotes.length > 0 && searchTerm.trim() && (
+                <div className="mb-3 d-flex justify-content-end">
+                    <Button
+                        variant="primary"
+                        onClick={handleBrowseResults}
+                        className="d-flex align-items-center"
+                    >
+                        <FontAwesomeIcon icon={faEye} className="me-2"/>
+                        Browse Results
+                    </Button>
+                </div>
+            )}
+
             <div className="mb-3 text-white">
-                Found {filteredQuotes.length} {filteredQuotes.length === 1 ? 'quote' : 'quotes'}
+                Found {filteredQuotes.length}{' '}
+                {filteredQuotes.length === 1 ? 'quote' : 'quotes'}
                 {searchTerm.trim() && ` containing all terms in "${searchTerm}"`}
             </div>
 
@@ -266,8 +319,11 @@ const SearchQuotes: React.FC = () => {
                                     __html: highlightSearchTerms(
                                         expandedQuotes.has(quote.quoteId)
                                             ? quote.quoteTx
-                                            : quote.quoteTx.slice(0, MAX_PREVIEW_LENGTH) + (quote.quoteTx.length > MAX_PREVIEW_LENGTH ? '...' : '')
-                                    )
+                                            : quote.quoteTx.slice(0, MAX_PREVIEW_LENGTH) +
+                                            (quote.quoteTx.length > MAX_PREVIEW_LENGTH
+                                                ? '...'
+                                                : '')
+                                    ),
                                 }}
                             />
                             {quote.quoteTx.length > MAX_PREVIEW_LENGTH && (

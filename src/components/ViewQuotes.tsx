@@ -7,6 +7,7 @@ import SwipeContainer from './SwipeContainer';
 import {shuffleArray} from '../models/passage-utils';
 import {useAppSelector, useAppDispatch} from '../store/hooks';
 import {setTopics, setTopicsLoading, setTopicsError} from '../store/topicSlice';
+import {clearSearchResults} from '../store/searchSlice';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {
     faFilter,
@@ -15,7 +16,8 @@ import {
     faTimesCircle,
     faPencilAlt,
     faCopy,
-    faArrowUp
+    faArrowUp,
+    faArrowLeft
 } from '@fortawesome/free-solid-svg-icons';
 import {useNavigate, useParams} from 'react-router-dom';
 
@@ -47,6 +49,7 @@ const ViewQuotes = () => {
     const topicsLoading = useAppSelector(state => state.topic.loading);
     const topicsError = useAppSelector(state => state.topic.error);
     const storedQuotes = useAppSelector((state) => state.quote.quotes);
+    const searchState = useAppSelector((state) => state.search);
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
     const {quoteId} = useParams();
@@ -81,6 +84,34 @@ const ViewQuotes = () => {
                 setShowToast(true);
             }
         }
+    };
+
+    const goBackToSearch = () => {
+        dispatch(clearSearchResults());
+        navigate('/searchQuotes');
+    };
+
+    // Function to highlight search terms in quote text
+    const highlightSearchTerms = (text: string) => {
+        if (!searchState.searchTerm.trim()) return text;
+
+        const searchWords = searchState.searchTerm
+            .toLowerCase()
+            .split(' ')
+            .filter((word) => word.length > 0);
+        let highlightedText = text;
+
+        searchWords.forEach((word) => {
+            if (word.length > 0) {
+                const regex = new RegExp(`(${word})`, 'gi');
+                highlightedText = highlightedText.replace(
+                    regex,
+                    '<span style="background-color: yellow; color: black">$1</span>'
+                );
+            }
+        });
+
+        return highlightedText;
     };
 
     // Calculate topic counts from current quotes
@@ -177,7 +208,16 @@ const ViewQuotes = () => {
         const loadingInterval = setInterval(() => {
             setLoadingSeconds(s => s + 1);
         }, 1000);
-        if (storedQuotes?.length > 0) {
+
+        // Check if we have search results to use
+        if (searchState.hasSearchResults && searchState.searchResults.length > 0) {
+            console.log('ViewQuotes: Using search results from Redux store');
+            const searchResults = [...searchState.searchResults];
+            setAllQuotes(searchResults);
+            setQuotes(searchResults);
+            setCurrentQuote(searchResults[0]);
+            setIsLoading(false);
+        } else if (storedQuotes?.length > 0) {
             const locStoredQuotes = [...storedQuotes];
             shuffleArray(locStoredQuotes);
             setAllQuotes(locStoredQuotes);
@@ -190,7 +230,7 @@ const ViewQuotes = () => {
             }
         }
         return () => clearInterval(loadingInterval);
-    }, [user]);
+    }, [user, searchState, storedQuotes]);
 
     useEffect(() => {
         // Fetch topics if they're not already in the store
@@ -557,6 +597,15 @@ const ViewQuotes = () => {
         });
     }
 
+    // Add "Back to Search" menu item if we're viewing search results
+    if (searchState.hasSearchResults) {
+        additionalMenus.unshift({
+            itemLabel: "Back to Search",
+            icon: faArrowLeft,
+            callbackFunction: goBackToSearch
+        });
+    }
+
     return (
         <SwipeContainer
             onSwipeLeft={() => handleToolbarClick('RIGHT')}
@@ -564,7 +613,12 @@ const ViewQuotes = () => {
         >
             <div className="d-flex justify-content-between align-items-center mb-3 px-3">
                 <div className="text-white">
-                    {quotes.length !== allQuotes.length && (
+                    {searchState.hasSearchResults && (
+                        <span className="me-2">
+                            Search Results for "{searchState.searchTerm}" ({quotes.length} quotes)
+                        </span>
+                    )}
+                    {quotes.length !== allQuotes.length && !searchState.hasSearchResults && (
                         <span className="me-2">
               Showing {quotes.length} of {allQuotes.length} quotes
                             {activeFilterCount > 0 && ` (${activeFilterCount} filters active)`}
@@ -595,7 +649,15 @@ const ViewQuotes = () => {
                 <Container className="p-4">
                     <div className="text-center mb-4">
                         <p className="quote-text">
-                            {currentQuote.quoteTx}
+                            {searchState.hasSearchResults ? (
+                                <span
+                                    dangerouslySetInnerHTML={{
+                                        __html: highlightSearchTerms(currentQuote.quoteTx)
+                                    }}
+                                />
+                            ) : (
+                                currentQuote.quoteTx
+                            )}
                         </p>
                     </div>
 
@@ -736,7 +798,7 @@ const ViewQuotes = () => {
                 <Modal.Body className="bg-dark text-white">
                     {topicsLoading ? (
                         <div className="text-center p-4">
-                            <Spinner animation="border" role="status" className="me-2"/>
+                            <Spinner animation="border" role="status\" className="me-2"/>
                             <span>Loading topics...</span>
                         </div>
                     ) : (
@@ -913,7 +975,7 @@ const ViewQuotes = () => {
                 <Modal.Body className="bg-dark text-white">
                     {topicsLoading ? (
                         <div className="text-center p-4">
-                            <Spinner animation="border" role="status" className="me-2"/>
+                            <Spinner animation="border" role="status\" className="me-2"/>
                             <span>Loading topics...</span>
                         </div>
                     ) : (
