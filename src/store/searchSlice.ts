@@ -1,5 +1,6 @@
 import {createSlice, PayloadAction} from '@reduxjs/toolkit';
 import {Quote} from '../models/quote';
+import {shuffleArray} from "../models/passage-utils.ts";
 
 interface SearchState {
     searchResults: Quote[];
@@ -18,7 +19,9 @@ export const searchSlice = createSlice({
     initialState,
     reducers: {
         setSearchResults: (state, action: PayloadAction<{ quotes: Quote[], searchTerm: string }>) => {
-            state.searchResults = action.payload.quotes;
+            const searchedQuotes = [...action.payload.quotes];
+            shuffleArray(searchedQuotes);
+            state.searchResults =  searchedQuotes;
             state.searchTerm = action.payload.searchTerm;
             state.hasSearchResults = true;
         },
