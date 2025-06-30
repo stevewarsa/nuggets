@@ -17,7 +17,7 @@ import {
     faPencilAlt,
     faCopy,
     faArrowUp,
-    faArrowLeft
+    faRemove
 } from '@fortawesome/free-solid-svg-icons';
 import {useNavigate, useParams} from 'react-router-dom';
 
@@ -86,9 +86,8 @@ const ViewQuotes = () => {
         }
     };
 
-    const goBackToSearch = () => {
+    const restoreFullQuoteList = () => {
         dispatch(clearSearchResults());
-        navigate('/searchQuotes');
     };
 
     // Function to highlight search terms in quote text
@@ -600,9 +599,9 @@ const ViewQuotes = () => {
     // Add "Back to Search" menu item if we're viewing search results
     if (searchState.hasSearchResults) {
         additionalMenus.unshift({
-            itemLabel: "Back to Search",
-            icon: faArrowLeft,
-            callbackFunction: goBackToSearch
+            itemLabel: "Clear Search Results",
+            icon: faRemove,
+            callbackFunction: restoreFullQuoteList
         });
     }
 
