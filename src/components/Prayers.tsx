@@ -68,6 +68,21 @@ const Prayers: React.FC = () => {
         return prayedTodayIds;
     }, [prayerHistory]);
 
+    // Calculate which prayers were prayed yesterday
+    const prayedYesterdaySet = useMemo(() => {
+        const yesterday = format(new Date(Date.now() - 24 * 60 * 60 * 1000), 'yyyy-MM-dd');
+        const prayedYesterdayIds = new Set<number>();
+
+        prayerHistory.forEach(session => {
+            const sessionDate = format(parseISO(session.dateTime), 'yyyy-MM-dd');
+            if (sessionDate === yesterday) {
+                prayedYesterdayIds.add(session.prayerId);
+            }
+        });
+
+        return prayedYesterdayIds;
+    }, [prayerHistory]);
+
     useEffect(() => {
         fetchPrayers();
         fetchPrayerSessions();
@@ -83,9 +98,22 @@ const Prayers: React.FC = () => {
                 .filter((prayer) => prayer.archiveFl === 'N')
                 .sort((a, b) => (b.prayerId || 0) - (a.prayerId || 0));
 
-            // Shuffle the prayers list for random order
-            shuffleArray(filteredPrayers);
-            setPrayers(filteredPrayers);
+            // Separate prayers into two groups: not prayed yesterday and others
+            const notPrayedYesterday = filteredPrayers.filter(prayer =>
+                !prayedYesterdaySet.has(prayer.prayerId || 0)
+            );
+            const prayedYesterday = filteredPrayers.filter(prayer =>
+                prayedYesterdaySet.has(prayer.prayerId || 0)
+            );
+
+            // Shuffle each group randomly
+            shuffleArray(notPrayedYesterday);
+            shuffleArray(prayedYesterday);
+
+            // Combine with not-prayed-yesterday prayers at the top
+            const sortedPrayers = [...notPrayedYesterday, ...prayedYesterday];
+
+            setPrayers(sortedPrayers);
         } catch (error) {
             console.error('Error fetching prayers:', error);
             showToastMessage('Error fetching prayers', true);
@@ -216,113 +244,113 @@ const Prayers: React.FC = () => {
         }
     };
 
-    if (isLoading) {
-        return (
-            <Container className="py-4 text-center text-white">
-                <Spinner animation="border" role="status"/>
-                <p className="mt-2">Loading prayers...</p>
-            </Container>
-        );
-    }
-
     return (
         <Container className="py-4">
-            <div className="d-flex justify-content-between align-items-center mb-4">
-                <h1 className="text-white">Prayers</h1>
-                <Button variant="primary" onClick={handleAddPrayer}>
-                    <FontAwesomeIcon icon={faPlus} className="me-2"/>
-                    Add Prayer
-                </Button>
-            </div>
-
-            <div className="row g-4">
-                {prayers.map((prayer) => (
-                    <div key={prayer.prayerId} className="col-12">
-                        <Card bg="dark" text="white">
-                            <Card.Header>
-                                <div
-                                    className="d-flex justify-content-between align-items-center cursor-pointer"
-                                    onClick={() =>
-                                        prayer.prayerId && togglePrayerExpansion(prayer.prayerId)
-                                    }
-                                    style={{cursor: 'pointer'}}
-                                >
-                                    <h3 className="mb-0 d-flex align-items-center">
-                                        <span
-                                            className="me-2 px-2 py-1 rounded"
-                                            style={{
-                                                backgroundColor: prayer.prayerId && prayedTodaySet.has(prayer.prayerId)
-                                                    ? '#28a745'
-                                                    : 'transparent',
-                                                color: prayer.prayerId && prayedTodaySet.has(prayer.prayerId)
-                                                    ? 'white'
-                                                    : 'inherit'
-                                            }}
-                                        >
-                                            {expandedPrayers.has(prayer.prayerId || 0) ? '▼' : '▶'}
-                                        </span>
-                                        {prayer.prayerTitleTx}
-                                    </h3>
-                                </div>
-                            </Card.Header>
-                            {expandedPrayers.has(prayer.prayerId || 0) && (
-                                <Card.Body>
-                                    <div className="d-flex justify-content-end mb-3">
-                                        <Button
-                                            variant="link"
-                                            className="text-light me-3 p-2"
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                handleEditPrayer(prayer);
-                                            }}
-                                            title="Edit"
-                                        >
-                                            <FontAwesomeIcon size="2x" icon={faPencilAlt}/>
-                                        </Button>
-                                        <Button
-                                            variant="link"
-                                            className="text-danger me-3 p-2"
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                setSelectedPrayer(prayer);
-                                                setShowArchiveModal(true);
-                                            }}
-                                            title="Archive"
-                                        >
-                                            <FontAwesomeIcon size="2x" icon={faTrash}/>
-                                        </Button>
-                                        <Button
-                                            variant="link"
-                                            className="text-success me-3 p-2"
-                                            onClick={() => {
-                                                setSelectedPrayer(prayer);
-                                                setShowPrayModal(true);
-                                            }}
-                                            title="Record Prayer"
-                                        >
-                                            <FontAwesomeIcon size="2x" icon={faPray}/>
-                                        </Button>
-                                        <Button
-                                            variant="link"
-                                            className="text-info me-3 p-2"
-                                            onClick={() => handleViewHistory(prayer)}
-                                            title="View History"
-                                        >
-                                            <FontAwesomeIcon size="2x" icon={faHistory}/>
-                                        </Button>
-                                    </div>
-                                    <Card.Subtitle className="mb-2 text-muted">
-                                        Pray for: {prayer.prayerSubjectPersonName}
-                                    </Card.Subtitle>
-                                    <Card.Text className="lead" style={{whiteSpace: 'pre-line'}}>
-                                        {prayer.prayerDetailsTx}
-                                    </Card.Text>
-                                </Card.Body>
-                            )}
-                        </Card>
+            {isLoading ? (
+                <div className="text-center text-white">
+                    <Spinner animation="border" role="status"/>
+                    <p className="mt-2">Loading prayers...</p>
+                </div>
+            ) : (
+                <>
+                    <div className="d-flex justify-content-between align-items-center mb-4">
+                        <h1 className="text-white">Prayers</h1>
+                        <Button variant="primary" onClick={handleAddPrayer}>
+                            <FontAwesomeIcon icon={faPlus} className="me-2"/>
+                            Add Prayer
+                        </Button>
                     </div>
-                ))}
-            </div>
+
+                    <div className="row g-4">
+                        {prayers.map((prayer) => (
+                            <div key={prayer.prayerId} className="col-12">
+                                <Card bg="dark" text="white">
+                                    <Card.Header>
+                                        <div
+                                            className="d-flex justify-content-between align-items-center cursor-pointer"
+                                            onClick={() =>
+                                                prayer.prayerId && togglePrayerExpansion(prayer.prayerId)
+                                            }
+                                            style={{cursor: 'pointer'}}
+                                        >
+                                            <h3 className="mb-0 d-flex align-items-center">
+                                                <span
+                                                    className="me-2 px-2 py-1 rounded"
+                                                    style={{
+                                                        backgroundColor: prayer.prayerId && prayedTodaySet.has(prayer.prayerId)
+                                                            ? '#28a745'
+                                                            : 'transparent',
+                                                        color: prayer.prayerId && prayedTodaySet.has(prayer.prayerId)
+                                                            ? 'white'
+                                                            : 'inherit'
+                                                    }}
+                                                >
+                                                    {expandedPrayers.has(prayer.prayerId || 0) ? '▼' : '▶'}
+                                                </span>
+                                                {prayer.prayerTitleTx}
+                                            </h3>
+                                        </div>
+                                    </Card.Header>
+                                    {expandedPrayers.has(prayer.prayerId || 0) && (
+                                        <Card.Body>
+                                            <div className="d-flex justify-content-end mb-3">
+                                                <Button
+                                                    variant="link"
+                                                    className="text-light me-3 p-2"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleEditPrayer(prayer);
+                                                    }}
+                                                    title="Edit"
+                                                >
+                                                    <FontAwesomeIcon size="2x" icon={faPencilAlt}/>
+                                                </Button>
+                                                <Button
+                                                    variant="link"
+                                                    className="text-danger me-3 p-2"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setSelectedPrayer(prayer);
+                                                        setShowArchiveModal(true);
+                                                    }}
+                                                    title="Archive"
+                                                >
+                                                    <FontAwesomeIcon size="2x" icon={faTrash}/>
+                                                </Button>
+                                                <Button
+                                                    variant="link"
+                                                    className="text-success me-3 p-2"
+                                                    onClick={() => {
+                                                        setSelectedPrayer(prayer);
+                                                        setShowPrayModal(true);
+                                                    }}
+                                                    title="Record Prayer"
+                                                >
+                                                    <FontAwesomeIcon size="2x" icon={faPray}/>
+                                                </Button>
+                                                <Button
+                                                    variant="link"
+                                                    className="text-info me-3 p-2"
+                                                    onClick={() => handleViewHistory(prayer)}
+                                                    title="View History"
+                                                >
+                                                    <FontAwesomeIcon size="2x" icon={faHistory}/>
+                                                </Button>
+                                            </div>
+                                            <Card.Subtitle className="mb-2 text-muted">
+                                                Pray for: {prayer.prayerSubjectPersonName}
+                                            </Card.Subtitle>
+                                            <Card.Text className="lead" style={{whiteSpace: 'pre-line'}}>
+                                                {prayer.prayerDetailsTx}
+                                            </Card.Text>
+                                        </Card.Body>
+                                    )}
+                                </Card>
+                            </div>
+                        ))}
+                    </div>
+                </>
+            )}
 
             {/* Add/Edit Prayer Modal */}
             <AddEditPrayerModal
@@ -355,7 +383,7 @@ const Prayers: React.FC = () => {
                                     <div className="d-flex justify-content-between align-items-start">
                                         <div>
                                             <div className="fw-bold">
-                                                {format(new Date(session.dateTime), 'PPpp')}
+                                                {format(parseISO(session.dateTime), 'PPpp')}
                                             </div>
                                             <div className="text-muted">
                                                 Prayed by: {session.userId}
