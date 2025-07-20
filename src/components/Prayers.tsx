@@ -225,6 +225,9 @@ const Prayers: React.FC = () => {
 
                 // Update prayerHistory state with the new session
                 setPrayerHistory(prev => [newSession, ...prev]);
+                const locPrayedToday = new Set(prayedTodaySet);
+                locPrayedToday.add(newSession.prayerId);
+                setPrayedTodaySet(locPrayedToday);
 
                 // Collapse the prayer card after recording
                 if (selectedPrayer.prayerId) {
