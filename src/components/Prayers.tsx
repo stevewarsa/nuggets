@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useMemo} from 'react';
+import React, {useState, useEffect} from 'react';
 import {
     Container,
     Card,
@@ -19,7 +19,7 @@ import {
 import {bibleService} from '../services/bible-service';
 import {useAppSelector} from '../store/hooks';
 import {PrayerSession} from '../models/prayer.ts';
-import {format, parseISO} from 'date-fns';
+import {format, parseISO, subDays} from 'date-fns';
 import AddEditPrayerModal from './AddEditPrayerModal';
 import {shuffleArray} from '../models/passage-utils';
 
@@ -47,14 +47,14 @@ const Prayers: React.FC = () => {
     const [showToast, setShowToast] = useState(false);
     const [toastMessage, setToastMessage] = useState('');
     const [toastBg, setToastBg] = useState('#28a745');
-    const [expandedPrayers, setExpandedPrayers] = useState<Set<number>>(
-        new Set()
-    );
+    const [expandedPrayers, setExpandedPrayers] = useState<Set<number>>(new Set());
+    const [prayedYesterdaySet, setPrayedYesterdaySet] = useState<Set<number>>(new Set());
+    const [prayedTodaySet, setPrayedTodaySet] = useState<Set<number>>(new Set());
 
     const user = useAppSelector((state) => state.user.currentUser);
 
     // Calculate which prayers have been prayed for today based on prayerHistory
-    const prayedTodaySet = useMemo(() => {
+    const findPrayedTodaySet = (prayerHistory: PrayerSession[]) => {
         const today = format(new Date(), 'yyyy-MM-dd');
         const prayedTodayIds = new Set<number>();
 
@@ -66,70 +66,66 @@ const Prayers: React.FC = () => {
         });
 
         return prayedTodayIds;
-    }, [prayerHistory]);
+    };
 
     // Calculate which prayers were prayed yesterday
-    const prayedYesterdaySet = useMemo(() => {
-        const yesterday = format(new Date(Date.now() - 24 * 60 * 60 * 1000), 'yyyy-MM-dd');
+    const findPrayedYesterday = (prayerHistory: PrayerSession[]) => {
+        const yesterday = subDays(new Date(), 1);
+        const formattedYesterday = format(yesterday, 'yyyy-MM-dd');
         const prayedYesterdayIds = new Set<number>();
 
         prayerHistory.forEach(session => {
             const sessionDate = format(parseISO(session.dateTime), 'yyyy-MM-dd');
-            if (sessionDate === yesterday) {
+            if (sessionDate === formattedYesterday) {
                 prayedYesterdayIds.add(session.prayerId);
             }
         });
 
         return prayedYesterdayIds;
-    }, [prayerHistory]);
+    };
 
     useEffect(() => {
-        fetchPrayers();
-        fetchPrayerSessions();
-    }, [user]);
-
-    const fetchPrayers = async () => {
-        if (!user) return;
+        if (!user) {
+            return;
+        }
         try {
             setIsLoading(true);
-            const prayerList = await bibleService.getAllPrayers(user);
-            // Filter out archived prayers and sort by prayerId descending
-            const filteredPrayers = prayerList
-                .filter((prayer) => prayer.archiveFl === 'N')
-                .sort((a, b) => (b.prayerId || 0) - (a.prayerId || 0));
-
-            // Separate prayers into two groups: not prayed yesterday and others
-            const notPrayedYesterday = filteredPrayers.filter(prayer =>
-                !prayedYesterdaySet.has(prayer.prayerId || 0)
-            );
-            const prayedYesterday = filteredPrayers.filter(prayer =>
-                prayedYesterdaySet.has(prayer.prayerId || 0)
-            );
-
-            // Shuffle each group randomly
-            shuffleArray(notPrayedYesterday);
-            shuffleArray(prayedYesterday);
-
-            // Combine with not-prayed-yesterday prayers at the top
-            const sortedPrayers = [...notPrayedYesterday, ...prayedYesterday];
-
-            setPrayers(sortedPrayers);
+            Promise.all([
+                bibleService.getAllPrayers(user),
+                bibleService.getAllPrayerSessions(user)
+            ]).then(results => {
+                setPrayerHistory(results[1]);
+                setPrayedYesterdaySet(findPrayedYesterday(results[1]));
+                setPrayedTodaySet(findPrayedTodaySet(results[1]));
+                processPrayers(results[0]);
+            });
         } catch (error) {
             console.error('Error fetching prayers:', error);
             showToastMessage('Error fetching prayers', true);
         } finally {
             setIsLoading(false);
         }
-    };
 
-    const fetchPrayerSessions = async () => {
-        if (!user) return;
-        try {
-            const sessions = await bibleService.getAllPrayerSessions(user);
-            setPrayerHistory(sessions);
-        } catch (error) {
-            console.error('Error fetching prayer sessions:', error);
-        }
+    }, [user]);
+
+    const processPrayers = (prayerList: Prayer[]) => {
+        // Filter out archived prayers and sort by prayerId descending
+        const filteredPrayers = prayerList
+            .filter((prayer) => prayer.archiveFl === 'N')
+            .sort((a, b) => (b.prayerId || 0) - (a.prayerId || 0));
+
+        // Separate prayers into two groups: not prayed yesterday and others
+        const notPrayedYesterday = filteredPrayers.filter(p => !prayedYesterdaySet.has(p.prayerId));
+        const prayedYesterday = filteredPrayers.filter(p => prayedYesterdaySet.has(p.prayerId));
+
+        // Shuffle each group randomly
+        shuffleArray(notPrayedYesterday);
+        shuffleArray(prayedYesterday);
+
+        // Combine with not-prayed-yesterday prayers at the top
+        const sortedPrayers = [...notPrayedYesterday, ...prayedYesterday];
+
+        setPrayers(sortedPrayers);
     };
 
     const togglePrayerExpansion = (prayerId: number) => {
@@ -160,9 +156,15 @@ const Prayers: React.FC = () => {
         setShowAddEditModal(true);
     };
 
-    const handlePrayerSaved = () => {
-        // Refresh the prayers list
-        fetchPrayers();
+    const handlePrayerSaved = (prayer: Prayer) => {
+        let localPrayers = [...prayers];
+        const existingPrayerIndex = prayers.findIndex(p => p.prayerId === prayer.prayerId);
+        if (existingPrayerIndex >= 0) {
+            localPrayers[existingPrayerIndex] = prayer;
+        } else {
+            localPrayers.push(prayer);
+        }
+        setPrayers(localPrayers);
     };
 
     const handleViewHistory = async (prayer: Prayer) => {
@@ -187,7 +189,7 @@ const Prayers: React.FC = () => {
             );
             if (result === 'success') {
                 showToastMessage('Prayer archived successfully');
-                fetchPrayers(); // Refresh the prayer list
+                setPrayers(prev => prev.filter(p => p.prayerId !== selectedPrayer.prayerId));
             } else {
                 showToastMessage('Failed to archive prayer', true);
             }
