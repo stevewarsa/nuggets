@@ -10,6 +10,8 @@ import {
 import {StringUtils} from './string.utils';
 import {bookAbbrev, booksByNum, getMaxChapterByBook, getMaxVerse, TRANSLATION} from './constants';
 import {Passage} from './passage';
+import {Prayer, PrayerSession} from "./prayer";
+import {isBefore, parse, parseISO} from "date-fns";
 
 export const RAND: string = 'rand';
 export const BY_FREQ: string = 'by_freq';
@@ -225,6 +227,81 @@ export const getFrequencyGroups = (
     }
 
     return frequencyGroups;
+};
+
+export const getPrayerSessionsByDate = (
+    prayerSessions: PrayerSession[]
+): { [key: string]: number[] } => {
+    const prayerSessionsByDate: { [dateStr: string]: number[] } = {};
+
+    for (const prayerSession of prayerSessions) {
+        const dateStr = prayerSession.dateTime;
+        if (!prayerSessionsByDate[dateStr]) {
+            prayerSessionsByDate[dateStr] = [];
+        }
+        prayerSessionsByDate[dateStr].push(prayerSession.prayerId);
+    }
+    Object.keys(prayerSessionsByDate).forEach(dt => {
+        shuffleArray(prayerSessionsByDate[dt])
+    });
+    return prayerSessionsByDate;
+};
+
+export const getPrayerIdsSortedByLeastRecentPrayerDate = (
+    prayerSessions: PrayerSession[]
+): number[] => {
+    const prayerIdToEarliestDate: Map<number, Date> = new Map();
+
+    for (const session of prayerSessions) {
+        const sessionDate = parseISO(session.dateTime);
+        const existingDate = prayerIdToEarliestDate.get(session.prayerId);
+
+        if (!existingDate || isBefore(sessionDate, existingDate)) {
+            prayerIdToEarliestDate.set(session.prayerId, sessionDate);
+        }
+    }
+
+    return Array.from(prayerIdToEarliestDate.entries())
+        .sort((a, b) => b[1].getTime() - a[1].getTime())
+        .map(([prayerId]) => prayerId);
+};
+
+export const updateLastPracticedDate = (
+    prayerSessions: PrayerSession[], prayers: Prayer[]
+) => {
+    const prayersById: { [prayerId: number]: Prayer } = {};
+    prayers.forEach(p => prayersById[p.prayerId] = p);
+
+    for (const session of prayerSessions) {
+        const currPrayer: Prayer = prayersById[session.prayerId];
+        if (!currPrayer) {
+            continue;
+        }
+        const sessionDate = parseISO(session.dateTime);
+        if (!currPrayer.mostRecentPrayerDate) {
+            currPrayer.mostRecentPrayerDate = session.dateTime;
+        } else {
+            const currPrayerLastPrayedDate = parseISO(currPrayer.mostRecentPrayerDate);
+            if (isBefore(currPrayerLastPrayedDate, sessionDate)) {
+                currPrayer.mostRecentPrayerDate = session.dateTime;
+            }
+        }
+    }
+    prayers.sort((a, b) => {
+        const dateA = a.mostRecentPrayerDate
+            ? parse(a.mostRecentPrayerDate, 'yyyy-MM-dd', new Date())
+            : null;
+        const dateB = b.mostRecentPrayerDate
+            ? parse(b.mostRecentPrayerDate, 'yyyy-MM-dd', new Date())
+            : null;
+
+        if (!dateA && !dateB) return 0;
+        if (!dateA) return -1; // a comes first
+        if (!dateB) return 1;  // b comes first
+
+        return dateA.getTime() - dateB.getTime();
+    });
+    console.log("passage-utils.updateLastPracticedDate - Here is the list of sorted prayers:", prayers);
 };
 
 export const handleCopyVerseRange = async (

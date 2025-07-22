@@ -18,19 +18,10 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import {bibleService} from '../services/bible-service';
 import {useAppSelector} from '../store/hooks';
-import {PrayerSession} from '../models/prayer.ts';
-import {format, parseISO, subDays} from 'date-fns';
+import {Prayer, PrayerSession} from '../models/prayer.ts';
+import {format, parseISO} from 'date-fns';
 import AddEditPrayerModal from './AddEditPrayerModal';
-import {shuffleArray} from '../models/passage-utils';
-
-interface Prayer {
-    prayerId?: number;
-    userId: string;
-    prayerTitleTx: string;
-    prayerDetailsTx: string;
-    prayerSubjectPersonName: string;
-    archiveFl: string;
-}
+import {updateLastPracticedDate} from '../models/passage-utils';
 
 const Prayers: React.FC = () => {
     const [prayers, setPrayers] = useState<Prayer[]>([]);
@@ -42,47 +33,16 @@ const Prayers: React.FC = () => {
     const [selectedPrayer, setSelectedPrayer] = useState<Prayer | null>(null);
     const [editingPrayer, setEditingPrayer] = useState<Prayer | null>(null);
     const [prayerHistory, setPrayerHistory] = useState<PrayerSession[]>([]);
+    const [filteredPrayerHistory, setFilteredPrayerHistory] = useState<PrayerSession[]>([]);
     const [prayerNote, setPrayerNote] = useState('');
     const [isRecordingPrayer, setIsRecordingPrayer] = useState(false);
     const [showToast, setShowToast] = useState(false);
     const [toastMessage, setToastMessage] = useState('');
     const [toastBg, setToastBg] = useState('#28a745');
     const [expandedPrayers, setExpandedPrayers] = useState<Set<number>>(new Set());
-    const [prayedYesterdaySet, setPrayedYesterdaySet] = useState<Set<number>>(new Set());
     const [prayedTodaySet, setPrayedTodaySet] = useState<Set<number>>(new Set());
 
     const user = useAppSelector((state) => state.user.currentUser);
-
-    // Calculate which prayers have been prayed for today based on prayerHistory
-    const findPrayedTodaySet = (prayerHistory: PrayerSession[]) => {
-        const today = format(new Date(), 'yyyy-MM-dd');
-        const prayedTodayIds = new Set<number>();
-
-        prayerHistory.forEach(session => {
-            const sessionDate = format(parseISO(session.dateTime), 'yyyy-MM-dd');
-            if (sessionDate === today) {
-                prayedTodayIds.add(session.prayerId);
-            }
-        });
-
-        return prayedTodayIds;
-    };
-
-    // Calculate which prayers were prayed yesterday
-    const findPrayedYesterday = (prayerHistory: PrayerSession[]) => {
-        const yesterday = subDays(new Date(), 1);
-        const formattedYesterday = format(yesterday, 'yyyy-MM-dd');
-        const prayedYesterdayIds = new Set<number>();
-
-        prayerHistory.forEach(session => {
-            const sessionDate = format(parseISO(session.dateTime), 'yyyy-MM-dd');
-            if (sessionDate === formattedYesterday) {
-                prayedYesterdayIds.add(session.prayerId);
-            }
-        });
-
-        return prayedYesterdayIds;
-    };
 
     useEffect(() => {
         if (!user) {
@@ -95,9 +55,7 @@ const Prayers: React.FC = () => {
                 bibleService.getAllPrayerSessions(user)
             ]).then(results => {
                 setPrayerHistory(results[1]);
-                setPrayedYesterdaySet(findPrayedYesterday(results[1]));
-                setPrayedTodaySet(findPrayedTodaySet(results[1]));
-                processPrayers(results[0]);
+                processPrayers(results[0], results[1]);
             });
         } catch (error) {
             console.error('Error fetching prayers:', error);
@@ -108,24 +66,19 @@ const Prayers: React.FC = () => {
 
     }, [user]);
 
-    const processPrayers = (prayerList: Prayer[]) => {
-        // Filter out archived prayers and sort by prayerId descending
-        const filteredPrayers = prayerList
-            .filter((prayer) => prayer.archiveFl === 'N')
-            .sort((a, b) => (b.prayerId || 0) - (a.prayerId || 0));
-
-        // Separate prayers into two groups: not prayed yesterday and others
-        const notPrayedYesterday = filteredPrayers.filter(p => !prayedYesterdaySet.has(p.prayerId));
-        const prayedYesterday = filteredPrayers.filter(p => prayedYesterdaySet.has(p.prayerId));
-
-        // Shuffle each group randomly
-        shuffleArray(notPrayedYesterday);
-        shuffleArray(prayedYesterday);
-
-        // Combine with not-prayed-yesterday prayers at the top
-        const sortedPrayers = [...notPrayedYesterday, ...prayedYesterday];
-
-        setPrayers(sortedPrayers);
+    const processPrayers = (prayerList: Prayer[], prayerSessions: PrayerSession[]) => {
+        updateLastPracticedDate(prayerSessions, prayerList);
+        const prayedTodayIds = new Set<number>();
+        const today = format(new Date(), 'yyyy-MM-dd');
+        console.log("Prayers.processPrayers - Here is today's date: " + today);
+        prayerList.forEach(p => {
+            if (p.mostRecentPrayerDate === today) {
+                prayedTodayIds.add(p.prayerId);
+            }
+        });
+        console.log("Prayers.processPrayers - Here is the Set of prayedTodayIds:", prayedTodayIds);
+        setPrayers(prayerList.filter(p => p.archiveFl === "N"));
+        setPrayedTodaySet(prayedTodayIds);
     };
 
     const togglePrayerExpansion = (prayerId: number) => {
@@ -171,7 +124,7 @@ const Prayers: React.FC = () => {
         try {
             // Filter existing prayerHistory for this specific prayer
             const filteredHistory = prayerHistory.filter((h) => h.prayerId === prayer.prayerId);
-            setPrayerHistory(filteredHistory);
+            setFilteredPrayerHistory(filteredHistory);
             setSelectedPrayer(prayer);
             setShowHistoryModal(true);
         } catch (error) {
@@ -368,7 +321,10 @@ const Prayers: React.FC = () => {
             {/* Prayer History Modal */}
             <Modal
                 show={showHistoryModal}
-                onHide={() => setShowHistoryModal(false)}
+                onHide={() => {
+                    setShowHistoryModal(false);
+                    setFilteredPrayerHistory([]);
+                }}
                 centered
                 size="lg"
             >
@@ -376,11 +332,11 @@ const Prayers: React.FC = () => {
                     <Modal.Title>Prayer History</Modal.Title>
                 </Modal.Header>
                 <Modal.Body className="bg-dark text-white">
-                    {prayerHistory.length === 0 ? (
+                    {filteredPrayerHistory.length === 0 ? (
                         <p className="text-center">No prayer history available.</p>
                     ) : (
                         <div className="list-group">
-                            {prayerHistory.map((session, index) => (
+                            {filteredPrayerHistory.map((session, index) => (
                                 <div
                                     key={index}
                                     className="list-group-item bg-dark text-white border-secondary"

@@ -5,6 +5,7 @@ export interface Prayer {
     prayerDetailsTx: string;
     prayerSubjectPersonName: string;
     archiveFl: string;
+    mostRecentPrayerDate: string;
 }
 
 export interface PrayerSession {

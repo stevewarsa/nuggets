@@ -8,15 +8,7 @@ import {
 } from 'react-bootstrap';
 import {bibleService} from '../services/bible-service';
 import {useAppSelector} from '../store/hooks';
-
-interface Prayer {
-    prayerId?: number;
-    userId: string;
-    prayerTitleTx: string;
-    prayerDetailsTx: string;
-    prayerSubjectPersonName: string;
-    archiveFl: string;
-}
+import {Prayer} from "../models/prayer.ts";
 
 interface AddEditPrayerModalProps {
     show: boolean;
@@ -37,6 +29,7 @@ const AddEditPrayerModal: React.FC<AddEditPrayerModalProps> = ({
         prayerDetailsTx: '',
         prayerSubjectPersonName: '',
         archiveFl: 'N',
+        mostRecentPrayerDate: undefined
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [showToast, setShowToast] = useState(false);
@@ -59,6 +52,7 @@ const AddEditPrayerModal: React.FC<AddEditPrayerModalProps> = ({
                     prayerDetailsTx: '',
                     prayerSubjectPersonName: '',
                     archiveFl: 'N',
+                    mostRecentPrayerDate: undefined
                 });
             }
         }
