@@ -1,24 +1,46 @@
 import React, {useState, useEffect, useMemo} from 'react';
-import {Container, Form, InputGroup, Spinner, Collapse, Button, Toast} from 'react-bootstrap';
+import {
+    Container,
+    Form,
+    InputGroup,
+    Spinner,
+    Collapse,
+    Button,
+    Toast,
+} from 'react-bootstrap';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import {faChevronDown, faChevronRight, faCopy, faSearch, faTimes} from '@fortawesome/free-solid-svg-icons';
+import {
+    faChevronDown,
+    faChevronRight,
+    faCopy,
+    faSearch,
+    faTimes,
+} from '@fortawesome/free-solid-svg-icons';
 import {useAppSelector} from '../store/hooks';
 import {bibleService} from '../services/bible-service';
 import {Passage} from '../models/passage';
-import {getPassageReference, handleCopyPassage} from '../models/passage-utils';
+import {
+    getPassageReference,
+    handleCopyPassage,
+} from '../models/passage-utils';
+import {useToast} from '../hooks/useToast';
 
 const MemoryPassages: React.FC = () => {
     const [passages, setPassages] = useState<Passage[]>([]);
-    const [expandedPassages, setExpandedPassages] = useState<Set<number>>(new Set());
-    const [passageTexts, setPassageTexts] = useState<Map<number, string>>(new Map());
+    const [expandedPassages, setExpandedPassages] = useState<Set<number>>(
+        new Set()
+    );
+    const [passageTexts, setPassageTexts] = useState<Map<number, string>>(
+        new Map()
+    );
     const [isLoading, setIsLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
-    const [loadingPassageIds, setLoadingPassageIds] = useState<Set<number>>(new Set());
-    const [showToast, setShowToast] = useState(false);
-    const [toastMessage, setToastMessage] = useState('');
-    const [toastBg, setToastBg] = useState('#28a745');
+    const [loadingPassageIds, setLoadingPassageIds] = useState<Set<number>>(
+        new Set()
+    );
+    const {showToast, toastProps, toastMessage} = useToast();
 
-    const user = useAppSelector(state => state.user.currentUser);
+    const user = useAppSelector((state) => state.user.currentUser);
 
     useEffect(() => {
         const fetchPassages = async () => {
@@ -26,7 +48,7 @@ const MemoryPassages: React.FC = () => {
                 setIsLoading(true);
                 const [memoryPassages, overrides] = await Promise.all([
                     bibleService.getMemoryPassageList(user),
-                    bibleService.getMemoryPassageTextOverrides(user)
+                    bibleService.getMemoryPassageTextOverrides(user),
                 ]);
 
                 // Sort passages by book ID, chapter, and verse
@@ -40,13 +62,13 @@ const MemoryPassages: React.FC = () => {
 
                 // Initialize passage texts with overrides
                 const initialTexts = new Map<number, string>();
-                overrides.forEach(override => {
+                overrides.forEach((override) => {
                     if (override.verses && override.verses.length > 0) {
                         const text = override.verses
-                            .map(verse =>
-                                verse.verseParts
-                                    ?.map(part => part.verseText)
-                                    .join(' ') ?? ''
+                            .map(
+                                (verse) =>
+                                    verse.verseParts?.map((part) => part.verseText).join(' ') ??
+                                    ''
                             )
                             .join(' ');
                         initialTexts.set(override.passageId, text);
@@ -68,7 +90,7 @@ const MemoryPassages: React.FC = () => {
     const filteredPassages = useMemo(() => {
         if (!searchTerm.trim()) return passages;
 
-        return passages.filter(passage => {
+        return passages.filter((passage) => {
             const reference = getPassageReference(passage, false).toLowerCase();
             return reference.includes(searchTerm.toLowerCase());
         });
@@ -85,10 +107,10 @@ const MemoryPassages: React.FC = () => {
 
         // If we don't have the text yet, fetch it
         if (!passageTexts.has(passageId)) {
-            const passage = passages.find(p => p.passageId === passageId);
+            const passage = passages.find((p) => p.passageId === passageId);
             if (!passage) return;
 
-            setLoadingPassageIds(prev => new Set(prev).add(passageId));
+            setLoadingPassageIds((prev) => new Set(prev).add(passageId));
 
             try {
                 const passageWithText = await bibleService.getPassageText(
@@ -101,19 +123,21 @@ const MemoryPassages: React.FC = () => {
                 );
 
                 // Add null checks for verses and verseParts
-                const text = passageWithText?.verses
-                    ?.map(verse =>
-                        verse?.verseParts
-                            ?.map(part => part?.verseText ?? '')
-                            .join(' ') ?? ''
-                    )
-                    .join(' ') ?? '';
+                const text =
+                    passageWithText?.verses
+                        ?.map(
+                            (verse) =>
+                                verse?.verseParts
+                                    ?.map((part) => part?.verseText ?? '')
+                                    .join(' ') ?? ''
+                        )
+                        .join(' ') ?? '';
 
-                setPassageTexts(prev => new Map(prev).set(passageId, text));
+                setPassageTexts((prev) => new Map(prev).set(passageId, text));
             } catch (error) {
                 console.error('Error fetching passage text:', error);
             } finally {
-                setLoadingPassageIds(prev => {
+                setLoadingPassageIds((prev) => {
                     const newSet = new Set(prev);
                     newSet.delete(passageId);
                     return newSet;
@@ -163,7 +187,10 @@ const MemoryPassages: React.FC = () => {
 
             <ol className="list-group">
                 {filteredPassages.map((passage) => (
-                    <li key={passage.passageId} className="list-group-item bg-dark text-white border-secondary mb-2">
+                    <li
+                        key={passage.passageId}
+                        className="list-group-item bg-dark text-white border-secondary mb-2"
+                    >
                         <div className="d-flex align-items-center">
                             <Button
                                 variant="link"
@@ -171,16 +198,16 @@ const MemoryPassages: React.FC = () => {
                                 onClick={() => togglePassage(passage.passageId)}
                             >
                                 <FontAwesomeIcon
-                                    icon={expandedPassages.has(passage.passageId) ? faChevronDown : faChevronRight}
+                                    icon={
+                                        expandedPassages.has(passage.passageId)
+                                            ? faChevronDown
+                                            : faChevronRight
+                                    }
                                 />
                             </Button>
                             <span>{getPassageReference(passage, false)}</span>
                             {loadingPassageIds.has(passage.passageId) && (
-                                <Spinner
-                                    animation="border"
-                                    size="sm"
-                                    className="ms-2"
-                                />
+                                <Spinner animation="border" size="sm" className="ms-2"/>
                             )}
                         </div>
                         <Collapse in={expandedPassages.has(passage.passageId)}>
@@ -192,15 +219,17 @@ const MemoryPassages: React.FC = () => {
                                         size="lg"
                                         className="text-white p-0 ms-2 me-2"
                                         onClick={() => {
-                                            handleCopyPassage(passage, passageTexts.get(passage.passageId)).then(success => {
+                                            handleCopyPassage(
+                                                passage,
+                                                passageTexts.get(passage.passageId)
+                                            ).then((success) => {
                                                 if (success) {
-                                                    setToastMessage('Passage copied to clipboard!');
-                                                    setToastBg('#28a745');
-                                                    setShowToast(true);
+                                                    showToast({
+                                                        message: 'Passage copied to clipboard!',
+                                                        variant: 'success'
+                                                    });
                                                 } else {
-                                                    setToastMessage('Failed to copy text');
-                                                    setToastBg('#dc3545');
-                                                    setShowToast(true);
+                                                    showToast({message: 'Failed to copy text', variant: 'error'});
                                                 }
                                             });
                                         }}
@@ -216,22 +245,13 @@ const MemoryPassages: React.FC = () => {
 
             {filteredPassages.length === 0 && (
                 <p className="text-center text-white">
-                    {searchTerm ? 'No passages match your search.' : 'No memory passages found.'}
+                    {searchTerm
+                        ? 'No passages match your search.'
+                        : 'No memory passages found.'}
                 </p>
             )}
             <Toast
-                onClose={() => setShowToast(false)}
-                show={showToast}
-                delay={3000}
-                autohide
-                style={{
-                    position: 'fixed',
-                    top: 20,
-                    left: 20,
-                    //right: 20,
-                    background: toastBg,
-                    color: 'white',
-                }}
+                {...toastProps}
             >
                 <Toast.Body>{toastMessage}</Toast.Body>
             </Toast>

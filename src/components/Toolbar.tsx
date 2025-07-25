@@ -1,4 +1,12 @@
-import {Col, Container, Row, Form, Toast, DropdownButton, Dropdown} from 'react-bootstrap';
+import {
+    Col,
+    Container,
+    Row,
+    Form,
+    Toast,
+    DropdownButton,
+    Dropdown,
+} from 'react-bootstrap';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {
     faArrowLeft,
@@ -9,11 +17,11 @@ import {
     faArrowUp,
     faArrowDown,
     faEllipsisV,
-    IconDefinition
+    IconDefinition,
 } from '@fortawesome/free-solid-svg-icons';
 import {translationsShortNms} from '../models/constants';
-import {useState} from 'react';
 import {getPassageReference} from '../models/passage-utils';
+import {useToast} from '../hooks/useToast';
 
 interface MenuItem {
     itemLabel: string;
@@ -60,9 +68,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
                                              onCopy,
                                              additionalMenus = [],
                                          }) => {
-    const [showToast, setShowToast] = useState(false);
-    const [toastMessage, setToastMessage] = useState('');
-    const [toastBg, setToastBg] = useState('#28a745');
+    const {showToast, toastProps, toastMessage} = useToast();
 
     const handleCopy = async () => {
         if (onCopy) {
@@ -72,9 +78,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
 
         if (currentPassage) {
             if (!currentPassage.verses || currentPassage.verses.length === 0) {
-                setToastMessage('Please wait for verses to load...');
-                setToastBg('#ffc107');
-                setShowToast(true);
+                showToast({message: 'Please wait for verses to load...', variant: 'warning'});
                 return;
             }
 
@@ -84,14 +88,10 @@ const Toolbar: React.FC<ToolbarProps> = ({
 
             try {
                 await navigator.clipboard.writeText(textToCopy);
-                setToastMessage('Passage copied to clipboard!');
-                setToastBg('#28a745');
-                setShowToast(true);
+                showToast({message: 'Passage copied to clipboard!', variant: 'success'});
             } catch (err) {
                 console.error('Failed to copy text:', err);
-                setToastMessage('Failed to copy text');
-                setToastBg('#dc3545');
-                setShowToast(true);
+                showToast({message: 'Failed to copy text', variant: 'error'});
             }
         }
     };
@@ -212,17 +212,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
             )}
 
             <Toast
-                onClose={() => setShowToast(false)}
-                show={showToast}
-                delay={3000}
-                autohide
-                style={{
-                    position: 'fixed',
-                    top: 20,
-                    left: 20,
-                    background: toastBg,
-                    color: 'white',
-                }}
+                {...toastProps}
             >
                 <Toast.Body>{toastMessage}</Toast.Body>
             </Toast>

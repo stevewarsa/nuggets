@@ -20,6 +20,7 @@ import {
 import {setSearchResults} from '../store/searchSlice';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {faTimes, faEye} from '@fortawesome/free-solid-svg-icons';
+import {useToast} from '../hooks/useToast';
 
 const QUOTES_PER_PAGE = 4;
 const MAX_VISIBLE_PAGES = 5; // Number of page numbers to show at once
@@ -27,12 +28,10 @@ const MAX_PREVIEW_LENGTH = 100;
 
 const SearchQuotes: React.FC = () => {
     const [searchTerm, setSearchTerm] = useState<string>('');
-    const [showToast, setShowToast] = useState<boolean>(false);
-    const [toastMessage, setToastMessage] = useState<string>('');
-    const [toastBg, setToastBg] = useState<string>('#28a745');
     const [currentPage, setCurrentPage] = useState(1);
     const [expandedQuotes, setExpandedQuotes] = useState<Set<number>>(new Set());
     const navigate = useNavigate();
+    const {showToast, toastProps, toastMessage} = useToast();
 
     const dispatch = useAppDispatch();
     const user = useAppSelector((state) => state.user.currentUser);
@@ -95,14 +94,10 @@ const SearchQuotes: React.FC = () => {
     const handleCopyQuote = async (quoteText: string) => {
         try {
             await navigator.clipboard.writeText(quoteText);
-            setToastMessage('Quote copied to clipboard!');
-            setToastBg('#28a745');
-            setShowToast(true);
+            showToast({message: 'Quote copied to clipboard!', variant: 'success'});
         } catch (err) {
             console.error('Failed to copy text:', err);
-            setToastMessage('Failed to copy text');
-            setToastBg('#dc3545');
-            setShowToast(true);
+            showToast({message: 'Failed to copy text', variant: 'error'});
         }
     };
 
@@ -142,10 +137,12 @@ const SearchQuotes: React.FC = () => {
 
     const handleBrowseResults = () => {
         // Store search results and term in Redux
-        dispatch(setSearchResults({
-            quotes: filteredQuotes,
-            searchTerm: searchTerm
-        }));
+        dispatch(
+            setSearchResults({
+                quotes: filteredQuotes,
+                searchTerm: searchTerm,
+            })
+        );
 
         // Navigate to ViewQuotes
         navigate('/viewQuotes');
@@ -366,17 +363,7 @@ const SearchQuotes: React.FC = () => {
             )}
 
             <Toast
-                onClose={() => setShowToast(false)}
-                show={showToast}
-                delay={3000}
-                autohide
-                style={{
-                    position: 'fixed',
-                    top: 20,
-                    left: 20,
-                    background: toastBg,
-                    color: 'white',
-                }}
+                {...toastProps}
             >
                 <Toast.Body>{toastMessage}</Toast.Body>
             </Toast>

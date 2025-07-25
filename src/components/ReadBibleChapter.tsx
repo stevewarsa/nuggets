@@ -5,7 +5,12 @@ import BiblePassage from './BiblePassage';
 import Toolbar from './Toolbar';
 import {Passage} from '../models/passage';
 import {bibleService} from '../services/bible-service';
-import {booksByNum, GUEST_USER, getMaxChapterByBook, getMaxVerse} from '../models/constants';
+import {
+    booksByNum,
+    GUEST_USER,
+    getMaxChapterByBook,
+    getMaxVerse,
+} from '../models/constants';
 import {
     getUnformattedPassageTextNoVerseNumbers,
     getNextBook,
@@ -16,39 +21,44 @@ import {
     OPEN_INTERLINEAR,
     openInterlinearLink,
     handleCopyVerseRange,
-    ADD_TO_NUGGETS
+    ADD_TO_NUGGETS,
 } from '../models/passage-utils';
 import SwipeContainer from './SwipeContainer';
 import {useAppSelector} from '../store/hooks';
 import {useBiblePassages} from '../hooks/useBiblePassages';
 import {faHighlighter, faEraser} from '@fortawesome/free-solid-svg-icons';
+import {useToast} from '../hooks/useToast';
 
 const ReadBibleChapter = () => {
     const {translation, book, chapter, scrollToVerse} = useParams();
     const navigate = useNavigate();
     const [passage, setPassage] = useState<Passage | null>(null);
-    const [currentTranslation, setCurrentTranslation] = useState(translation || 'niv');
+    const [currentTranslation, setCurrentTranslation] = useState(
+        translation || 'niv'
+    );
     const [showVerseModal, setShowVerseModal] = useState(false);
     const [addToMemoryMode, setAddToMemoryMode] = useState(false);
     const [addToNuggetsMode, setAddToNuggetsMode] = useState(false);
     const [copyMode, setCopyMode] = useState(false);
     const [bibleHubMode, setBibleHubMode] = useState(false);
     const [interLinearMode, setInterLinearMode] = useState(false);
-    const [showToast, setShowToast] = useState(false);
-    const [toastMessage, setToastMessage] = useState('');
-    const [toastBg, setToastBg] = useState('#28a745');
     const [highlightedVerses, setHighlightedVerses] = useState<number[]>([]);
     const [isHighlightMode, setIsHighlightMode] = useState(false);
+    const {showToast, toastProps, toastMessage} = useToast();
 
-    const user = useAppSelector(state => state.user.currentUser);
+    const user = useAppSelector((state) => state.user.currentUser);
     const isGuestUser = user === GUEST_USER;
 
     // Use the useBiblePassages hook to get access to nuggets
-    const {state: {allPassages}} = useBiblePassages();
+    const {
+        state: {allPassages},
+    } = useBiblePassages();
 
     useEffect(() => {
         if (!translation || !book || !chapter) return;
-        const bookId = Object.entries(booksByNum).find(([_, name]) => name === book)?.[0];
+        const bookId = Object.entries(booksByNum).find(
+            ([_, name]) => name === book
+        )?.[0];
 
         if (!bookId) {
             console.error('Could not find bookId for book:', book);
@@ -71,7 +81,7 @@ const ReadBibleChapter = () => {
             passageRefAppendLetter: '',
             verses: [],
             topics: [],
-            explanation: ''
+            explanation: '',
         };
         setPassage(newPassage);
     }, [translation, book, chapter]);
@@ -81,12 +91,13 @@ const ReadBibleChapter = () => {
         if (isHighlightMode && passage) {
             // Find all nuggets that match current book and chapter
             const matchingNuggets = allPassages.filter(
-                nugget => nugget.bookId === passage.bookId && nugget.chapter === passage.chapter
+                (nugget) =>
+                    nugget.bookId === passage.bookId && nugget.chapter === passage.chapter
             );
 
             // Get all verses that are part of nuggets
             const versesToHighlight = new Set<number>();
-            matchingNuggets.forEach(nugget => {
+            matchingNuggets.forEach((nugget) => {
                 for (let verse = nugget.startVerse; verse <= nugget.endVerse; verse++) {
                     versesToHighlight.add(verse);
                 }
@@ -107,7 +118,11 @@ const ReadBibleChapter = () => {
         if (direction === 'RIGHT') {
             if (currentChapter < maxChapter) {
                 // Move to next chapter in current book
-                navigate(`/readBibleChapter/${currentTranslation}/${book}/${currentChapter + 1}`);
+                navigate(
+                    `/readBibleChapter/${currentTranslation}/${book}/${
+                        currentChapter + 1
+                    }`
+                );
             } else {
                 // Move to first chapter of next book
                 const nextBook = getNextBook(book, 'next');
@@ -118,13 +133,19 @@ const ReadBibleChapter = () => {
         } else if (direction === 'LEFT') {
             if (currentChapter > 1) {
                 // Move to previous chapter in current book
-                navigate(`/readBibleChapter/${currentTranslation}/${book}/${currentChapter - 1}`);
+                navigate(
+                    `/readBibleChapter/${currentTranslation}/${book}/${
+                        currentChapter - 1
+                    }`
+                );
             } else {
                 // Move to last chapter of previous book
                 const previousBook = getNextBook(book, 'previous');
                 const maxChapterForBook = getMaxChapterByBook(previousBook);
                 if (previousBook && maxChapterForBook) {
-                    navigate(`/readBibleChapter/${currentTranslation}/${previousBook}/${maxChapterForBook}`);
+                    navigate(
+                        `/readBibleChapter/${currentTranslation}/${previousBook}/${maxChapterForBook}`
+                    );
                 }
             }
         }
@@ -143,20 +164,16 @@ const ReadBibleChapter = () => {
         if (copyMode) {
             const success = handleCopyVerseRange(startVerse, endVerse, passage);
             if (success) {
-                setToastMessage('Passage copied to clipboard!');
-                setToastBg('#28a745');
-                setShowToast(true);
+                showToast({message: 'Passage copied to clipboard!', variant: 'success'});
             } else {
-                setToastMessage('Failed to copy text');
-                setToastBg('#dc3545');
-                setShowToast(true);
+                showToast({message: 'Failed to copy text', variant: 'error'});
             }
             setCopyMode(false);
         } else if (bibleHubMode) {
             const bibleHubPassage = {
                 ...passage,
                 startVerse,
-                endVerse
+                endVerse,
             };
             openBibleHubLink(bibleHubPassage);
             setBibleHubMode(false);
@@ -164,7 +181,7 @@ const ReadBibleChapter = () => {
             const interlinearPassage = {
                 ...passage,
                 startVerse,
-                endVerse
+                endVerse,
             };
             openInterlinearLink(interlinearPassage);
             setInterLinearMode(false);
@@ -172,9 +189,7 @@ const ReadBibleChapter = () => {
             setAddToMemoryMode(false);
             // Don't allow guest users to add memory passages
             if (isGuestUser) {
-                setToastMessage('Guest users cannot add memory passages');
-                setToastBg('#dc3545');
-                setShowToast(true);
+                showToast({message: 'Guest users cannot add memory passages', variant: 'error'});
                 return;
             }
 
@@ -200,9 +215,7 @@ const ReadBibleChapter = () => {
             setAddToNuggetsMode(false);
             // Don't allow guest users to add nuggets
             if (isGuestUser) {
-                setToastMessage('Guest users cannot add nuggets');
-                setToastBg('#dc3545');
-                setShowToast(true);
+                showToast({message: 'Guest users cannot add nuggets', variant: 'error'});
                 return;
             }
 
@@ -231,24 +244,27 @@ const ReadBibleChapter = () => {
     const getAdditionalMenus = () => {
         const menus = [
             {
-                ...COPY_VERSE_RANGE, callbackFunction: () => {
+                ...COPY_VERSE_RANGE,
+                callbackFunction: () => {
                     setCopyMode(true);
                     setShowVerseModal(true);
-                }
+                },
             },
             {
-                ...OPEN_IN_BIBLEHUB, callbackFunction: () => {
+                ...OPEN_IN_BIBLEHUB,
+                callbackFunction: () => {
                     setCopyMode(false);
                     setBibleHubMode(true);
                     setShowVerseModal(true);
-                }
+                },
             },
             {
-                ...OPEN_INTERLINEAR, callbackFunction: () => {
+                ...OPEN_INTERLINEAR,
+                callbackFunction: () => {
                     setCopyMode(false);
                     setInterLinearMode(true);
                     setShowVerseModal(true);
-                }
+                },
             },
         ];
 
@@ -261,7 +277,7 @@ const ReadBibleChapter = () => {
                         setAddToMemoryMode(true);
                         setCopyMode(false);
                         setShowVerseModal(true);
-                    }
+                    },
                 },
                 {
                     ...ADD_TO_NUGGETS,
@@ -269,7 +285,7 @@ const ReadBibleChapter = () => {
                         setAddToNuggetsMode(true);
                         setCopyMode(false);
                         setShowVerseModal(true);
-                    }
+                    },
                 }
             );
         }
@@ -279,13 +295,13 @@ const ReadBibleChapter = () => {
             menus.push({
                 itemLabel: 'Highlight Nuggets',
                 icon: faHighlighter,
-                callbackFunction: () => setIsHighlightMode(true)
+                callbackFunction: () => setIsHighlightMode(true),
             });
         } else {
             menus.push({
                 itemLabel: 'Clear Highlight',
                 icon: faEraser,
-                callbackFunction: () => setIsHighlightMode(false)
+                callbackFunction: () => setIsHighlightMode(false),
             });
         }
 
@@ -293,10 +309,15 @@ const ReadBibleChapter = () => {
     };
 
     if (!passage || !translation || !book || !chapter) {
-        console.log(`ReadBibleChapter - showing loading chapter - here are the values: translation: ${translation}, book: ${book}, chapter: ${chapter}, passage:`, passage);
+        console.log(
+            `ReadBibleChapter - showing loading chapter - here are the values: translation: ${translation}, book: ${book}, chapter: ${chapter}, passage:`,
+            passage
+        );
         return (
             <Container>
-                <div className="text-white text-center">Loading chapter information...</div>
+                <div className="text-white text-center">
+                    Loading chapter information...
+                </div>
             </Container>
         );
     }
@@ -334,17 +355,7 @@ const ReadBibleChapter = () => {
             />
 
             <Toast
-                onClose={() => setShowToast(false)}
-                show={showToast}
-                delay={3000}
-                autohide
-                style={{
-                    position: 'fixed',
-                    top: 20,
-                    left: 20,
-                    background: toastBg,
-                    color: 'white',
-                }}
+                {...toastProps}
             >
                 <Toast.Body>{toastMessage}</Toast.Body>
             </Toast>

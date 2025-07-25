@@ -22,6 +22,7 @@ import {Prayer, PrayerSession} from '../models/prayer.ts';
 import {format, parseISO} from 'date-fns';
 import AddEditPrayerModal from './AddEditPrayerModal';
 import {updateLastPracticedDate} from '../models/passage-utils';
+import {useToast} from '../hooks/useToast';
 
 const Prayers: React.FC = () => {
     const [prayers, setPrayers] = useState<Prayer[]>([]);
@@ -33,14 +34,16 @@ const Prayers: React.FC = () => {
     const [selectedPrayer, setSelectedPrayer] = useState<Prayer | null>(null);
     const [editingPrayer, setEditingPrayer] = useState<Prayer | null>(null);
     const [prayerHistory, setPrayerHistory] = useState<PrayerSession[]>([]);
-    const [filteredPrayerHistory, setFilteredPrayerHistory] = useState<PrayerSession[]>([]);
+    const [filteredPrayerHistory, setFilteredPrayerHistory] = useState<
+        PrayerSession[]
+    >([]);
     const [prayerNote, setPrayerNote] = useState('');
     const [isRecordingPrayer, setIsRecordingPrayer] = useState(false);
-    const [showToast, setShowToast] = useState(false);
-    const [toastMessage, setToastMessage] = useState('');
-    const [toastBg, setToastBg] = useState('#28a745');
-    const [expandedPrayers, setExpandedPrayers] = useState<Set<number>>(new Set());
+    const [expandedPrayers, setExpandedPrayers] = useState<Set<number>>(
+        new Set()
+    );
     const [prayedTodaySet, setPrayedTodaySet] = useState<Set<number>>(new Set());
+    const {showToast, toastProps, toastMessage} = useToast();
 
     const user = useAppSelector((state) => state.user.currentUser);
 
@@ -52,33 +55,38 @@ const Prayers: React.FC = () => {
             setIsLoading(true);
             Promise.all([
                 bibleService.getAllPrayers(user),
-                bibleService.getAllPrayerSessions(user)
-            ]).then(results => {
+                bibleService.getAllPrayerSessions(user),
+            ]).then((results) => {
                 setPrayerHistory(results[1]);
                 processPrayers(results[0], results[1]);
             });
         } catch (error) {
             console.error('Error fetching prayers:', error);
-            showToastMessage('Error fetching prayers', true);
+            showToast({message: 'Error fetching prayers', variant: 'error'});
         } finally {
             setIsLoading(false);
         }
-
     }, [user]);
 
-    const processPrayers = (prayerList: Prayer[], prayerSessions: PrayerSession[]) => {
+    const processPrayers = (
+        prayerList: Prayer[],
+        prayerSessions: PrayerSession[]
+    ) => {
         updateLastPracticedDate(prayerSessions, prayerList);
         const prayedTodayIds = new Set<number>();
         const today = format(new Date(), 'yyyy-MM-dd');
         console.log("Prayers.processPrayers - Here is today's date: " + today);
-        prayerList.forEach(p => {
+        prayerList.forEach((p) => {
             if (p.mostRecentPrayerDate === today) {
                 prayedTodayIds.add(p.prayerId);
             }
         });
-        console.log("Prayers.processPrayers - Here is the Set of prayedTodayIds:", prayedTodayIds);
-        setPrayers(prayerList.filter(p => p.archiveFl === "N"));
+        console.log(
+            'Prayers.processPrayers - Here is the Set of prayedTodayIds:',
+            prayedTodayIds
+        );
         setPrayedTodaySet(prayedTodayIds);
+        setPrayers(prayerList);
     };
 
     const togglePrayerExpansion = (prayerId: number) => {
@@ -93,12 +101,6 @@ const Prayers: React.FC = () => {
         });
     };
 
-    const showToastMessage = (message: string, isError: boolean = false) => {
-        setToastMessage(message);
-        setToastBg(isError ? '#dc3545' : '#28a745');
-        setShowToast(true);
-    };
-
     const handleAddPrayer = () => {
         setEditingPrayer(null);
         setShowAddEditModal(true);
@@ -111,7 +113,9 @@ const Prayers: React.FC = () => {
 
     const handlePrayerSaved = (prayer: Prayer) => {
         let localPrayers = [...prayers];
-        const existingPrayerIndex = prayers.findIndex(p => p.prayerId === prayer.prayerId);
+        const existingPrayerIndex = prayers.findIndex(
+            (p) => p.prayerId === prayer.prayerId
+        );
         if (existingPrayerIndex >= 0) {
             localPrayers[existingPrayerIndex] = prayer;
         } else {
@@ -123,13 +127,15 @@ const Prayers: React.FC = () => {
     const handleViewHistory = async (prayer: Prayer) => {
         try {
             // Filter existing prayerHistory for this specific prayer
-            const filteredHistory = prayerHistory.filter((h) => h.prayerId === prayer.prayerId);
+            const filteredHistory = prayerHistory.filter(
+                (h) => h.prayerId === prayer.prayerId
+            );
             setFilteredPrayerHistory(filteredHistory);
             setSelectedPrayer(prayer);
             setShowHistoryModal(true);
         } catch (error) {
             console.error('Error filtering prayer history:', error);
-            showToastMessage('Error fetching prayer history', true);
+            showToast({message: 'Error fetching prayer history', variant: 'error'});
         }
     };
 
@@ -141,15 +147,17 @@ const Prayers: React.FC = () => {
                 selectedPrayer.prayerId
             );
             if (result === 'success') {
-                showToastMessage('Prayer archived successfully');
-                setPrayers(prev => prev.filter(p => p.prayerId !== selectedPrayer.prayerId));
+                showToast({message: 'Prayer archived successfully', variant: 'success'});
+                setPrayers((prev) =>
+                    prev.filter((p) => p.prayerId !== selectedPrayer.prayerId)
+                );
             } else {
-                showToastMessage('Failed to archive prayer', true);
+                showToast({message: 'Failed to archive prayer', variant: 'error'});
             }
             setShowArchiveModal(false);
         } catch (error) {
             console.error('Error archiving prayer:', error);
-            showToastMessage('Error archiving prayer', true);
+            showToast({message: 'Error archiving prayer', variant: 'error'});
         }
     };
 
@@ -164,27 +172,27 @@ const Prayers: React.FC = () => {
                 prayerNote.trim() || null
             );
             if (result === 'error') {
-                showToastMessage('Failed to record prayer session', true);
+                showToast({message: 'Failed to record prayer session', variant: 'error'});
             } else {
-                showToastMessage('Prayer session recorded successfully');
+                showToast({message: 'Prayer session recorded successfully', variant: 'success'});
 
                 // Create new prayer session entry and add it to prayerHistory
                 const newSession: PrayerSession = {
                     dateTime: new Date().toISOString(),
                     userId: user,
                     prayerId: selectedPrayer.prayerId,
-                    prayerNoteTx: prayerNote.trim() || null
+                    prayerNoteTx: prayerNote.trim() || null,
                 };
 
                 // Update prayerHistory state with the new session
-                setPrayerHistory(prev => [newSession, ...prev]);
+                setPrayerHistory((prev) => [newSession, ...prev]);
                 const locPrayedToday = new Set(prayedTodaySet);
                 locPrayedToday.add(newSession.prayerId);
                 setPrayedTodaySet(locPrayedToday);
 
                 // Collapse the prayer card after recording
                 if (selectedPrayer.prayerId) {
-                    setExpandedPrayers(prev => {
+                    setExpandedPrayers((prev) => {
                         const newSet = new Set(prev);
                         newSet.delete(selectedPrayer.prayerId!);
                         return newSet;
@@ -196,7 +204,7 @@ const Prayers: React.FC = () => {
             }
         } catch (error) {
             console.error('Error recording prayer session:', error);
-            showToastMessage('Error recording prayer session', true);
+            showToast({message: 'Error recording prayer session', variant: 'error'});
         } finally {
             setIsRecordingPrayer(false);
         }
@@ -227,24 +235,31 @@ const Prayers: React.FC = () => {
                                         <div
                                             className="d-flex justify-content-between align-items-center cursor-pointer"
                                             onClick={() =>
-                                                prayer.prayerId && togglePrayerExpansion(prayer.prayerId)
+                                                prayer.prayerId &&
+                                                togglePrayerExpansion(prayer.prayerId)
                                             }
                                             style={{cursor: 'pointer'}}
                                         >
                                             <h3 className="mb-0 d-flex align-items-center">
-                                                <span
-                                                    className="me-2 px-2 py-1 rounded"
-                                                    style={{
-                                                        backgroundColor: prayer.prayerId && prayedTodaySet.has(prayer.prayerId)
-                                                            ? '#28a745'
-                                                            : 'transparent',
-                                                        color: prayer.prayerId && prayedTodaySet.has(prayer.prayerId)
-                                                            ? 'white'
-                                                            : 'inherit'
-                                                    }}
-                                                >
-                                                    {expandedPrayers.has(prayer.prayerId || 0) ? '▼' : '▶'}
-                                                </span>
+                        <span
+                            className="me-2 px-2 py-1 rounded"
+                            style={{
+                                backgroundColor:
+                                    prayer.prayerId &&
+                                    prayedTodaySet.has(prayer.prayerId)
+                                        ? '#28a745'
+                                        : 'transparent',
+                                color:
+                                    prayer.prayerId &&
+                                    prayedTodaySet.has(prayer.prayerId)
+                                        ? 'white'
+                                        : 'inherit',
+                            }}
+                        >
+                          {expandedPrayers.has(prayer.prayerId || 0)
+                              ? '▼'
+                              : '▶'}
+                        </span>
                                                 {prayer.prayerTitleTx}
                                             </h3>
                                         </div>
@@ -298,7 +313,10 @@ const Prayers: React.FC = () => {
                                             <Card.Subtitle className="mb-2 text-muted">
                                                 Pray for: {prayer.prayerSubjectPersonName}
                                             </Card.Subtitle>
-                                            <Card.Text className="lead" style={{whiteSpace: 'pre-line'}}>
+                                            <Card.Text
+                                                className="lead"
+                                                style={{whiteSpace: 'pre-line'}}
+                                            >
                                                 {prayer.prayerDetailsTx}
                                             </Card.Text>
                                         </Card.Body>
@@ -448,17 +466,7 @@ const Prayers: React.FC = () => {
 
             {/* Toast notification */}
             <Toast
-                onClose={() => setShowToast(false)}
-                show={showToast}
-                delay={3000}
-                autohide
-                style={{
-                    position: 'fixed',
-                    top: 20,
-                    left: 20,
-                    background: toastBg,
-                    color: 'white',
-                }}
+                {...toastProps}
             >
                 <Toast.Body>{toastMessage}</Toast.Body>
             </Toast>

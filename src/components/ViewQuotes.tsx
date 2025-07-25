@@ -1,4 +1,16 @@
-import {Container, Spinner, Toast, Badge, Collapse, Button, Modal, Form, Row, Col, InputGroup} from 'react-bootstrap';
+import {
+    Container,
+    Spinner,
+    Toast,
+    Badge,
+    Collapse,
+    Button,
+    Modal,
+    Form,
+    Row,
+    Col,
+    InputGroup,
+} from 'react-bootstrap';
 import {useState, useEffect, useMemo} from 'react';
 import {Quote} from '../models/quote';
 import {bibleService} from '../services/bible-service';
@@ -6,7 +18,11 @@ import Toolbar from './Toolbar';
 import SwipeContainer from './SwipeContainer';
 import {shuffleArray} from '../models/passage-utils';
 import {useAppSelector, useAppDispatch} from '../store/hooks';
-import {setTopics, setTopicsLoading, setTopicsError} from '../store/topicSlice';
+import {
+    setTopics,
+    setTopicsLoading,
+    setTopicsError,
+} from '../store/topicSlice';
 import {clearSearchResults} from '../store/searchSlice';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {
@@ -17,9 +33,10 @@ import {
     faPencilAlt,
     faCopy,
     faArrowUp,
-    faRemove
+    faRemove,
 } from '@fortawesome/free-solid-svg-icons';
 import {useNavigate, useParams} from 'react-router-dom';
+import {useToast} from '../hooks/useToast';
 
 const ViewQuotes = () => {
     const [allQuotes, setAllQuotes] = useState<Quote[]>([]);
@@ -28,9 +45,6 @@ const ViewQuotes = () => {
     const [currentIndex, setCurrentIndex] = useState(0);
     const [isLoading, setIsLoading] = useState(true);
     const [loadingSeconds, setLoadingSeconds] = useState(0);
-    const [showToast, setShowToast] = useState(false);
-    const [toastMessage, setToastMessage] = useState('');
-    const [toastBg, setToastBg] = useState('#28a745');
     const [showTopics, setShowTopics] = useState(false);
     const [showFilterModal, setShowFilterModal] = useState(false);
     const [showAddTopicModal, setShowAddTopicModal] = useState(false);
@@ -41,13 +55,15 @@ const ViewQuotes = () => {
     const [topicSearchTerm, setTopicSearchTerm] = useState('');
     const [selectedTopicsToAdd, setSelectedTopicsToAdd] = useState<number[]>([]);
     const [isAddingTopics, setIsAddingTopics] = useState(false);
-    const [showOnlyAssociatedTopics, setShowOnlyAssociatedTopics] = useState(true);
+    const [showOnlyAssociatedTopics, setShowOnlyAssociatedTopics] =
+        useState(true);
     const [showFloatingButtons, setShowFloatingButtons] = useState(false);
+    const {showToast, toastProps, toastMessage} = useToast();
 
-    const user = useAppSelector(state => state.user.currentUser);
-    const topics = useAppSelector(state => state.topic.topics);
-    const topicsLoading = useAppSelector(state => state.topic.loading);
-    const topicsError = useAppSelector(state => state.topic.error);
+    const user = useAppSelector((state) => state.user.currentUser);
+    const topics = useAppSelector((state) => state.topic.topics);
+    const topicsLoading = useAppSelector((state) => state.topic.loading);
+    const topicsError = useAppSelector((state) => state.topic.error);
     const storedQuotes = useAppSelector((state) => state.quote.quotes);
     const searchState = useAppSelector((state) => state.search);
     const dispatch = useAppDispatch();
@@ -66,7 +82,7 @@ const ViewQuotes = () => {
     const scrollToTop = () => {
         window.scrollTo({
             top: 0,
-            behavior: 'smooth'
+            behavior: 'smooth',
         });
     };
 
@@ -74,14 +90,10 @@ const ViewQuotes = () => {
         if (currentQuote?.quoteTx) {
             try {
                 await navigator.clipboard.writeText(currentQuote.quoteTx);
-                setToastMessage('Quote copied to clipboard!');
-                setToastBg('#28a745');
-                setShowToast(true);
+                showToast({message: 'Quote copied to clipboard!', variant: 'success'});
             } catch (err) {
                 console.error('Failed to copy text:', err);
-                setToastMessage('Failed to copy text');
-                setToastBg('#dc3545');
-                setShowToast(true);
+                showToast({message: 'Failed to copy text', variant: 'error'});
             }
         }
     };
@@ -117,9 +129,9 @@ const ViewQuotes = () => {
     const topicCounts = useMemo(() => {
         const counts: { [key: number]: number } = {};
 
-        quotes.forEach(quote => {
+        quotes.forEach((quote) => {
             if (quote.tagIds && quote.tagIds.length > 0) {
-                quote.tagIds.forEach(tagId => {
+                quote.tagIds.forEach((tagId) => {
                     counts[tagId] = (counts[tagId] || 0) + 1;
                 });
             }
@@ -130,7 +142,7 @@ const ViewQuotes = () => {
 
     // Get list of topic IDs that are associated with at least one quote
     const associatedTopicIds = useMemo(() => {
-        return Object.keys(topicCounts).map(id => parseInt(id));
+        return Object.keys(topicCounts).map((id) => parseInt(id));
     }, [topicCounts]);
 
     // Filter topics based on search term and optionally by association with quotes
@@ -141,14 +153,14 @@ const ViewQuotes = () => {
 
         // First filter by search term if provided
         if (topicSearchTerm.trim()) {
-            filtered = filtered.filter(topic =>
+            filtered = filtered.filter((topic) =>
                 topic.name.toLowerCase().includes(topicSearchTerm.toLowerCase())
             );
         }
 
         // Then filter by association with quotes if enabled
         if (showOnlyAssociatedTopics) {
-            filtered = filtered.filter(topic =>
+            filtered = filtered.filter((topic) =>
                 associatedTopicIds.includes(topic.id)
             );
         }
@@ -165,18 +177,29 @@ const ViewQuotes = () => {
             // If counts are equal, sort alphabetically
             return a.name.localeCompare(b.name);
         });
-    }, [topics, topicSearchTerm, showOnlyAssociatedTopics, associatedTopicIds, topicCounts]);
+    }, [
+        topics,
+        topicSearchTerm,
+        showOnlyAssociatedTopics,
+        associatedTopicIds,
+        topicCounts,
+    ]);
 
     useEffect(() => {
         if (!quoteId || !allQuotes || !allQuotes.length) {
             return;
         }
         const iQuoteId = parseInt(quoteId);
-        let quoteIndex = allQuotes.findIndex(q => q.quoteId === iQuoteId);
+        let quoteIndex = allQuotes.findIndex((q) => q.quoteId === iQuoteId);
         if (!quoteIndex || quoteIndex === -1) {
             return;
         } else {
-            console.log("ViewQuotes.tsx.useEffect[quoteId, allQuotes] quoteId=" + quoteId + ", quoteIndex=" + quoteIndex);
+            console.log(
+                'ViewQuotes.tsx.useEffect[quoteId, allQuotes] quoteId=' +
+                quoteId +
+                ', quoteIndex=' +
+                quoteIndex
+            );
             handleChangeIndex(quoteIndex);
         }
     }, [quoteId, allQuotes]);
@@ -191,10 +214,13 @@ const ViewQuotes = () => {
                 setQuotes(quoteList);
 
                 if (quoteList.length > 0) {
-                    const quoteText = await bibleService.getQuoteText(user, quoteList[0].quoteId);
+                    const quoteText = await bibleService.getQuoteText(
+                        user,
+                        quoteList[0].quoteId
+                    );
                     setCurrentQuote({
                         ...quoteList[0],
-                        quoteTx: quoteText
+                        quoteTx: quoteText,
                     });
                 }
             } catch (error) {
@@ -205,7 +231,7 @@ const ViewQuotes = () => {
         };
 
         const loadingInterval = setInterval(() => {
-            setLoadingSeconds(s => s + 1);
+            setLoadingSeconds((s) => s + 1);
         }, 1000);
 
         // Check if we have search results to use
@@ -295,10 +321,13 @@ const ViewQuotes = () => {
         setIsLoading(true);
 
         try {
-            const quoteText = await bibleService.getQuoteText(user, quotes[toIndex].quoteId);
+            const quoteText = await bibleService.getQuoteText(
+                user,
+                quotes[toIndex].quoteId
+            );
             setCurrentQuote({
                 ...quotes[toIndex],
-                quoteTx: quoteText
+                quoteTx: quoteText,
             });
             // Scroll to top when new quote is loaded
             window.scrollTo(0, 0);
@@ -307,21 +336,16 @@ const ViewQuotes = () => {
         } finally {
             setIsLoading(false);
         }
-
     };
 
     const handleCopy = async () => {
         if (currentQuote && currentQuote.quoteTx) {
             try {
                 await navigator.clipboard.writeText(currentQuote.quoteTx);
-                setToastMessage('Quote copied to clipboard!');
-                setToastBg('#28a745');
-                setShowToast(true);
+                showToast({message: 'Quote copied to clipboard!', variant: 'success'});
             } catch (err) {
                 console.error('Failed to copy text:', err);
-                setToastMessage('Failed to copy text');
-                setToastBg('#dc3545');
-                setShowToast(true);
+                showToast({message: 'Failed to copy text', variant: 'error'});
             }
         }
     };
@@ -329,15 +353,13 @@ const ViewQuotes = () => {
     const getTopicsForQuote = () => {
         if (!currentQuote || !currentQuote.tagIds || !topics.length) return [];
 
-        return topics.filter(topic =>
-            currentQuote.tagIds.includes(topic.id)
-        );
+        return topics.filter((topic) => currentQuote.tagIds.includes(topic.id));
     };
 
     const handleTopicFilterChange = (topicId: number) => {
-        setSelectedTopicIds(prev => {
+        setSelectedTopicIds((prev) => {
             if (prev.includes(topicId)) {
-                return prev.filter(id => id !== topicId);
+                return prev.filter((id) => id !== topicId);
             } else {
                 return [...prev, topicId];
             }
@@ -345,9 +367,9 @@ const ViewQuotes = () => {
     };
 
     const handleTopicToAddChange = (topicId: number) => {
-        setSelectedTopicsToAdd(prev => {
+        setSelectedTopicsToAdd((prev) => {
             if (prev.includes(topicId)) {
-                return prev.filter(id => id !== topicId);
+                return prev.filter((id) => id !== topicId);
             } else {
                 return [...prev, topicId];
             }
@@ -364,8 +386,10 @@ const ViewQuotes = () => {
             }
         } else {
             // Filter quotes that have at least one of the selected topics
-            const filteredQuotes = allQuotes.filter(quote =>
-                quote.tagIds && quote.tagIds.some(tagId => selectedTopicIds.includes(tagId))
+            const filteredQuotes = allQuotes.filter(
+                (quote) =>
+                    quote.tagIds &&
+                    quote.tagIds.some((tagId) => selectedTopicIds.includes(tagId))
             );
 
             setQuotes(filteredQuotes);
@@ -396,7 +420,7 @@ const ViewQuotes = () => {
             const quoteText = await bibleService.getQuoteText(user, quote.quoteId);
             setCurrentQuote({
                 ...quote,
-                quoteTx: quoteText
+                quoteTx: quoteText,
             });
         } catch (error) {
             console.error('Error fetching quote text:', error);
@@ -415,10 +439,14 @@ const ViewQuotes = () => {
             const currentTopicIds = currentQuote.tagIds || [];
 
             // Find only the newly selected topics (ones that aren't already associated)
-            const newTopicIds = selectedTopicsToAdd.filter(id => !currentTopicIds.includes(id));
+            const newTopicIds = selectedTopicsToAdd.filter(
+                (id) => !currentTopicIds.includes(id)
+            );
 
             // Find topics that were removed
-            const removedTopicIds = currentTopicIds.filter(id => !selectedTopicsToAdd.includes(id));
+            const removedTopicIds = currentTopicIds.filter(
+                (id) => !selectedTopicsToAdd.includes(id)
+            );
 
             // If there are no changes, just close the modal
             if (newTopicIds.length === 0 && removedTopicIds.length === 0) {
@@ -428,24 +456,32 @@ const ViewQuotes = () => {
             }
 
             // Get the full topic objects for only the newly selected topics
-            const topicsToAdd = topics.filter(topic => newTopicIds.includes(topic.id));
+            const topicsToAdd = topics.filter((topic) =>
+                newTopicIds.includes(topic.id)
+            );
 
             // Only send the new topics to the API
-            const result = await bibleService.addQuoteTopic(user, currentQuote.quoteId, topicsToAdd);
+            const result = await bibleService.addQuoteTopic(
+                user,
+                currentQuote.quoteId,
+                topicsToAdd
+            );
 
-            if (result.message === "success") {
+            if (result.message === 'success') {
                 // Update the current quote with all selected topics (both old and new)
                 const updatedQuote = {
                     ...currentQuote,
                     tagIds: selectedTopicsToAdd,
-                    tags: topics.filter(topic => selectedTopicsToAdd.includes(topic.id))
+                    tags: topics.filter((topic) =>
+                        selectedTopicsToAdd.includes(topic.id)
+                    ),
                 };
 
                 setCurrentQuote(updatedQuote);
 
                 // Update the quote in both quotes and allQuotes arrays
                 const updateQuoteInArray = (quoteArray: Quote[]) => {
-                    return quoteArray.map(quote =>
+                    return quoteArray.map((quote) =>
                         quote.quoteId === currentQuote.quoteId
                             ? {...quote, tagIds: selectedTopicsToAdd}
                             : quote
@@ -455,20 +491,14 @@ const ViewQuotes = () => {
                 setQuotes(updateQuoteInArray(quotes));
                 setAllQuotes(updateQuoteInArray(allQuotes));
 
-                setToastMessage('Topics updated successfully!');
-                setToastBg('#28a745');
-                setShowToast(true);
+                showToast({message: 'Topics updated successfully!', variant: 'success'});
                 setShowAddTopicModal(false);
             } else {
-                setToastMessage('Failed to update topics');
-                setToastBg('#dc3545');
-                setShowToast(true);
+                showToast({message: 'Failed to update topics', variant: 'error'});
             }
         } catch (error) {
             console.error('Error adding topics to quote:', error);
-            setToastMessage('Error updating topics');
-            setToastBg('#dc3545');
-            setShowToast(true);
+            showToast({message: 'Error updating topics', variant: 'error'});
         } finally {
             setIsAddingTopics(false);
         }
@@ -483,19 +513,19 @@ const ViewQuotes = () => {
             // Create updated quote object with new text
             const updatedQuote = {
                 ...currentQuote,
-                quoteTx: editedQuoteText
+                quoteTx: editedQuoteText,
             };
 
             // Call the API to update the quote
             const result = await bibleService.updateQuote(user, updatedQuote);
 
-            if (result === "success") {
+            if (result === 'success') {
                 // Update the current quote with the new text
                 setCurrentQuote(updatedQuote);
 
                 // Update the quote in both quotes and allQuotes arrays
                 const updateQuoteInArray = (quoteArray: Quote[]) => {
-                    return quoteArray.map(quote =>
+                    return quoteArray.map((quote) =>
                         quote.quoteId === currentQuote.quoteId
                             ? {...quote, quoteTx: editedQuoteText}
                             : quote
@@ -505,20 +535,14 @@ const ViewQuotes = () => {
                 setQuotes(updateQuoteInArray(quotes));
                 setAllQuotes(updateQuoteInArray(allQuotes));
 
-                setToastMessage('Quote updated successfully!');
-                setToastBg('#28a745');
-                setShowToast(true);
+                showToast({message: 'Quote updated successfully!', variant: 'success'});
                 setShowEditQuoteModal(false);
             } else {
-                setToastMessage('Failed to update quote');
-                setToastBg('#dc3545');
-                setShowToast(true);
+                showToast({message: 'Failed to update quote', variant: 'error'});
             }
         } catch (error) {
             console.error('Error updating quote:', error);
-            setToastMessage('Error updating quote');
-            setToastBg('#dc3545');
-            setShowToast(true);
+            showToast({message: 'Error updating quote', variant: 'error'});
         } finally {
             setIsUpdatingQuote(false);
         }
@@ -558,50 +582,50 @@ const ViewQuotes = () => {
     // Create additional menus for the toolbar
     const additionalMenus = [
         {
-            itemLabel: "Edit Quote...",
+            itemLabel: 'Edit Quote...',
             icon: faPencilAlt,
             callbackFunction: () => {
                 setShowEditQuoteModal(true);
-            }
+            },
         },
         {
-            itemLabel: "Manage Topics...",
+            itemLabel: 'Manage Topics...',
             icon: faTags,
             callbackFunction: () => {
                 setShowAddTopicModal(true);
-            }
+            },
         },
         {
-            itemLabel: "Filter by Topic...",
+            itemLabel: 'Filter by Topic...',
             icon: faFilter,
             callbackFunction: () => {
                 setShowFilterModal(true);
-            }
+            },
         },
         {
-            itemLabel: "Search Quotes...",
+            itemLabel: 'Search Quotes...',
             icon: faSearch,
             callbackFunction: () => {
                 navigate('/searchQuotes');
-            }
-        }
+            },
+        },
     ];
 
     // Conditionally add Clear Filter menu item when filters are active
     if (selectedTopicIds.length > 0) {
         additionalMenus.push({
-            itemLabel: "Clear Filter",
+            itemLabel: 'Clear Filter',
             icon: faTimesCircle,
-            callbackFunction: clearTopicFilter
+            callbackFunction: clearTopicFilter,
         });
     }
 
     // Add "Back to Search" menu item if we're viewing search results
     if (searchState.hasSearchResults) {
         additionalMenus.unshift({
-            itemLabel: "Clear Search Results",
+            itemLabel: 'Clear Search Results',
             icon: faRemove,
-            callbackFunction: restoreFullQuoteList
+            callbackFunction: restoreFullQuoteList,
         });
     }
 
@@ -614,15 +638,18 @@ const ViewQuotes = () => {
                 <div className="text-white">
                     {searchState.hasSearchResults && (
                         <span className="me-2">
-                            Search Results for "{searchState.searchTerm}" ({quotes.length} quotes)
-                        </span>
-                    )}
-                    {quotes.length !== allQuotes.length && !searchState.hasSearchResults && (
-                        <span className="me-2">
-              Showing {quotes.length} of {allQuotes.length} quotes
-                            {activeFilterCount > 0 && ` (${activeFilterCount} filters active)`}
+              Search Results for "{searchState.searchTerm}" ({quotes.length}{' '}
+                            quotes)
             </span>
                     )}
+                    {quotes.length !== allQuotes.length &&
+                        !searchState.hasSearchResults && (
+                            <span className="me-2">
+                Showing {quotes.length} of {allQuotes.length} quotes
+                                {activeFilterCount > 0 &&
+                                    ` (${activeFilterCount} filters active)`}
+              </span>
+                        )}
                 </div>
             </div>
 
@@ -634,7 +661,7 @@ const ViewQuotes = () => {
                 onTranslationChange={() => {
                 }}
                 currentPassage={null}
-                getUnformattedText={() => currentQuote?.quoteTx || ""}
+                getUnformattedText={() => currentQuote?.quoteTx || ''}
                 onCopy={handleCopy}
                 additionalMenus={additionalMenus}
             />
@@ -651,7 +678,7 @@ const ViewQuotes = () => {
                             {searchState.hasSearchResults ? (
                                 <span
                                     dangerouslySetInnerHTML={{
-                                        __html: highlightSearchTerms(currentQuote.quoteTx)
+                                        __html: highlightSearchTerms(currentQuote.quoteTx),
                                     }}
                                 />
                             ) : (
@@ -680,17 +707,21 @@ const ViewQuotes = () => {
                                         Loading topics...
                                     </div>
                                 ) : topicsError ? (
-                                    <div className="text-danger">Error loading topics: {topicsError}</div>
+                                    <div className="text-danger">
+                                        Error loading topics: {topicsError}
+                                    </div>
                                 ) : quoteTopics.length > 0 ? (
                                     <div className="d-flex flex-wrap gap-2">
-                                        {quoteTopics.map(topic => (
+                                        {quoteTopics.map((topic) => (
                                             <Badge key={topic.id} bg="secondary" className="p-2">
                                                 {topic.name}
                                             </Badge>
                                         ))}
                                     </div>
                                 ) : (
-                                    <div className="text-white-50">No topics associated with this quote</div>
+                                    <div className="text-white-50">
+                                        No topics associated with this quote
+                                    </div>
                                 )}
                             </div>
                         </Collapse>
@@ -707,7 +738,7 @@ const ViewQuotes = () => {
                         right: '20px',
                         display: 'flex',
                         gap: '10px',
-                        zIndex: 1000
+                        zIndex: 1000,
                     }}
                 >
                     <Button
@@ -750,14 +781,17 @@ const ViewQuotes = () => {
                                 style={{
                                     minHeight: '40vh',
                                     whiteSpace: 'pre-line',
-                                    fontSize: "1.71rem"
+                                    fontSize: '1.71rem',
                                 }}
                             />
                         </Form.Group>
                     </Form>
                 </Modal.Body>
                 <Modal.Footer className="bg-dark text-white">
-                    <Button variant="secondary" onClick={() => setShowEditQuoteModal(false)}>
+                    <Button
+                        variant="secondary"
+                        onClick={() => setShowEditQuoteModal(false)}
+                    >
                         Cancel
                     </Button>
                     <Button
@@ -803,8 +837,8 @@ const ViewQuotes = () => {
                     ) : (
                         <>
                             <p className="mb-3">
-                                Select one or more topics to filter quotes. Only quotes with at least one of the
-                                selected topics will be shown.
+                                Select one or more topics to filter quotes. Only quotes with at
+                                least one of the selected topics will be shown.
                             </p>
 
                             {/* Search and filter options */}
@@ -837,7 +871,9 @@ const ViewQuotes = () => {
                                             id="show-only-associated-topics"
                                             label="Show only topics with quotes"
                                             checked={showOnlyAssociatedTopics}
-                                            onChange={(e) => setShowOnlyAssociatedTopics(e.target.checked)}
+                                            onChange={(e) =>
+                                                setShowOnlyAssociatedTopics(e.target.checked)
+                                            }
                                             className="mt-2"
                                         />
                                     </Col>
@@ -882,8 +918,8 @@ const ViewQuotes = () => {
                                     <p>Selected topics: {selectedTopicIds.length}</p>
                                     <div className="d-flex flex-wrap gap-2">
                                         {topics
-                                            .filter(topic => selectedTopicIds.includes(topic.id))
-                                            .map(topic => (
+                                            .filter((topic) => selectedTopicIds.includes(topic.id))
+                                            .map((topic) => (
                                                 <Badge
                                                     key={topic.id}
                                                     bg="primary"
@@ -899,11 +935,14 @@ const ViewQuotes = () => {
                             )}
 
                             {/* Topic checkboxes */}
-                            <div className="mb-3" style={{maxHeight: '300px', overflowY: 'auto'}}>
+                            <div
+                                className="mb-3"
+                                style={{maxHeight: '300px', overflowY: 'auto'}}
+                            >
                                 <Form>
                                     <Row xs={1} md={2} lg={3} className="g-3">
                                         {filteredTopics.length > 0 ? (
-                                            filteredTopics.map(topic => {
+                                            filteredTopics.map((topic) => {
                                                 const count = topicCounts[topic.id] || 0;
                                                 return (
                                                     <Col key={topic.id}>
@@ -932,7 +971,9 @@ const ViewQuotes = () => {
                                             })
                                         ) : (
                                             <Col>
-                                                <p className="text-muted">No topics match your search.</p>
+                                                <p className="text-muted">
+                                                    No topics match your search.
+                                                </p>
                                             </Col>
                                         )}
                                     </Row>
@@ -952,7 +993,11 @@ const ViewQuotes = () => {
                     <Button variant="secondary" onClick={() => setShowFilterModal(false)}>
                         Cancel
                     </Button>
-                    <Button variant="danger" onClick={clearTopicFilter} disabled={selectedTopicIds.length === 0}>
+                    <Button
+                        variant="danger"
+                        onClick={clearTopicFilter}
+                        disabled={selectedTopicIds.length === 0}
+                    >
                         Clear Filter
                     </Button>
                     <Button variant="primary" onClick={applyTopicFilter}>
@@ -980,7 +1025,8 @@ const ViewQuotes = () => {
                     ) : (
                         <>
                             <p className="mb-3">
-                                Select topics to associate with this quote. You can select multiple topics.
+                                Select topics to associate with this quote. You can select
+                                multiple topics.
                             </p>
 
                             {/* Search box for topics */}
@@ -1010,8 +1056,8 @@ const ViewQuotes = () => {
                                     <p>Selected topics: {selectedTopicsToAdd.length}</p>
                                     <div className="d-flex flex-wrap gap-2">
                                         {topics
-                                            .filter(topic => selectedTopicsToAdd.includes(topic.id))
-                                            .map(topic => (
+                                            .filter((topic) => selectedTopicsToAdd.includes(topic.id))
+                                            .map((topic) => (
                                                 <Badge
                                                     key={topic.id}
                                                     bg="primary"
@@ -1027,11 +1073,14 @@ const ViewQuotes = () => {
                             )}
 
                             {/* Topic checkboxes */}
-                            <div className="mb-3" style={{maxHeight: '300px', overflowY: 'auto'}}>
+                            <div
+                                className="mb-3"
+                                style={{maxHeight: '300px', overflowY: 'auto'}}
+                            >
                                 <Form>
                                     <Row xs={1} md={2} lg={3} className="g-3">
                                         {filteredTopics.length > 0 ? (
-                                            filteredTopics.map(topic => {
+                                            filteredTopics.map((topic) => {
                                                 const count = topicCounts[topic.id] || 0;
                                                 return (
                                                     <Col key={topic.id}>
@@ -1061,7 +1110,9 @@ const ViewQuotes = () => {
                                             })
                                         ) : (
                                             <Col>
-                                                <p className="text-muted">No topics match your search.</p>
+                                                <p className="text-muted">
+                                                    No topics match your search.
+                                                </p>
                                             </Col>
                                         )}
                                     </Row>
@@ -1078,7 +1129,10 @@ const ViewQuotes = () => {
                     )}
                 </Modal.Body>
                 <Modal.Footer className="bg-dark text-white">
-                    <Button variant="secondary" onClick={() => setShowAddTopicModal(false)}>
+                    <Button
+                        variant="secondary"
+                        onClick={() => setShowAddTopicModal(false)}
+                    >
                         Cancel
                     </Button>
                     <Button
@@ -1106,17 +1160,7 @@ const ViewQuotes = () => {
             </Modal>
 
             <Toast
-                onClose={() => setShowToast(false)}
-                show={showToast}
-                delay={3000}
-                autohide
-                style={{
-                    position: 'fixed',
-                    top: 20,
-                    left: 20,
-                    background: toastBg,
-                    color: 'white',
-                }}
+                {...toastProps}
             >
                 <Toast.Body>{toastMessage}</Toast.Body>
             </Toast>

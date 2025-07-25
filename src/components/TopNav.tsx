@@ -6,14 +6,13 @@ import {GUEST_USER} from '../models/constants';
 import {bibleService} from '../services/bible-service';
 import GoToPassageByRef from './GoToPassageByRef';
 import AddEditPrayerModal from './AddEditPrayerModal';
+import {useToast} from '../hooks/useToast';
 
 const TopNav = () => {
     const [expanded, setExpanded] = useState(false);
-    const [showToast, setShowToast] = useState(false);
-    const [toastMessage, setToastMessage] = useState('');
-    const [toastBg, setToastBg] = useState('#28a745');
     const [showGoToPassage, setShowGoToPassage] = useState(false);
     const [showAddPrayerModal, setShowAddPrayerModal] = useState(false);
+    const {showToast, toastProps, toastMessage} = useToast();
 
     const navigate = useNavigate();
     const location = useLocation();
@@ -37,19 +36,13 @@ const TopNav = () => {
             );
 
             if (result === 'success') {
-                setToastMessage('Successfully copied database to Guest user');
-                setToastBg('#28a745');
+                showToast({message: 'Successfully copied database to Guest user', variant: 'success'});
             } else {
-                setToastMessage(`Failed to copy database: ${result}`);
-                setToastBg('#dc3545');
+                showToast({message: `Failed to copy database: ${result}`, variant: 'error'});
             }
-
-            setShowToast(true);
         } catch (error) {
             console.error('Error copying database:', error);
-            setToastMessage('Error copying database');
-            setToastBg('#dc3545');
-            setShowToast(true);
+            showToast({message: 'Error copying database', variant: 'error'});
         }
     };
 
@@ -60,9 +53,7 @@ const TopNav = () => {
 
     const handlePrayerSaved = () => {
         // Show success message
-        setToastMessage('Prayer added successfully!');
-        setToastBg('#28a745');
-        setShowToast(true);
+        showToast({message: 'Prayer added successfully!', variant: 'success'});
     };
 
     return (
@@ -105,9 +96,9 @@ const TopNav = () => {
                                     Prayers
                                 </Nav.Link>
                             )}
-                            {isMainUser && <Nav.Link onClick={handleAddPrayer}>
-                                Add Prayer
-                            </Nav.Link>}
+                            {isMainUser && (
+                                <Nav.Link onClick={handleAddPrayer}>Add Prayer</Nav.Link>
+                            )}
                             {!isGuestUser && location.pathname !== '/addQuote' && (
                                 <Nav.Link onClick={() => handleNavigation('/addQuote')}>
                                     Add Quote
@@ -128,10 +119,12 @@ const TopNav = () => {
                                     Bible Search
                                 </Nav.Link>
                             )}
-                            <Nav.Link onClick={() => {
-                                setExpanded(false);
-                                setShowGoToPassage(true);
-                            }}>
+                            <Nav.Link
+                                onClick={() => {
+                                    setExpanded(false);
+                                    setShowGoToPassage(true);
+                                }}
+                            >
                                 Go To Passage
                             </Nav.Link>
                             {isMainUser && currentUser === 'SteveWarsa' && (
@@ -189,18 +182,7 @@ const TopNav = () => {
             />
 
             <Toast
-                onClose={() => setShowToast(false)}
-                show={showToast}
-                delay={3000}
-                autohide
-                style={{
-                    position: 'fixed',
-                    top: 20,
-                    left: 20,
-                    background: toastBg,
-                    color: 'white',
-                    zIndex: 9999,
-                }}
+                {...toastProps}
             >
                 <Toast.Body>{toastMessage}</Toast.Body>
             </Toast>

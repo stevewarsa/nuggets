@@ -1,9 +1,23 @@
 import React, {useEffect, useState} from 'react';
-import {Button, Card, Container, Form, ListGroup, Modal, Spinner, Toast} from 'react-bootstrap';
+import {
+    Button,
+    Card,
+    Container,
+    Form,
+    ListGroup,
+    Modal,
+    Spinner,
+    Toast,
+} from 'react-bootstrap';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import {faExternalLinkAlt, faPlus, faStar} from '@fortawesome/free-solid-svg-icons';
+import {
+    faExternalLinkAlt,
+    faPlus,
+    faStar,
+} from '@fortawesome/free-solid-svg-icons';
 import {bibleService} from '../services/bible-service';
 import {useAppSelector} from '../store/hooks';
+import {useToast} from '../hooks/useToast';
 
 interface Link {
     key: string;
@@ -19,56 +33,54 @@ const Links: React.FC = () => {
     const [newLinkLabel, setNewLinkLabel] = useState<string>('');
     const [newLinkUrl, setNewLinkUrl] = useState<string>('');
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-    const [showToast, setShowToast] = useState<boolean>(false);
-    const [toastMessage, setToastMessage] = useState<string>('');
-    const [toastBg, setToastBg] = useState<string>('#28a745');
+    const {showToast, toastProps, toastMessage} = useToast();
 
-    const user = useAppSelector(state => state.user.currentUser);
+    const user = useAppSelector((state) => state.user.currentUser);
 
     // Hard-coded links
     const hardcodedLinks: Link[] = [
         {
-            key: "4.1",
-            label: "Valley of Vision",
-            action: "https://banneroftruth.org/us/valley/",
-            additional: false
+            key: '4.1',
+            label: 'Valley of Vision',
+            action: 'https://banneroftruth.org/us/valley/',
+            additional: false,
         },
         {
-            key: "4.2",
-            label: "Spurgeon Morning & Evening",
-            action: "http://biblegateway.com/devotionals/morning-and-evening/today",
-            additional: false
+            key: '4.2',
+            label: 'Spurgeon Morning & Evening',
+            action: 'http://biblegateway.com/devotionals/morning-and-evening/today',
+            additional: false,
         },
         {
-            key: "4.3",
-            label: "Grace Gems",
-            action: "http://gracegems.org/",
-            additional: false
+            key: '4.3',
+            label: 'Grace Gems',
+            action: 'http://gracegems.org/',
+            additional: false,
         },
         {
-            key: "4.4",
-            label: "Got Questions",
-            action: "http://www.gotquestions.net/getrandompage.asp?websiteid=1",
-            additional: false
+            key: '4.4',
+            label: 'Got Questions',
+            action: 'http://www.gotquestions.net/getrandompage.asp?websiteid=1',
+            additional: false,
         },
         {
-            key: "4.5",
-            label: "J.C. Ryle",
-            action: "http://gracegems.org/Ryle",
-            additional: false
+            key: '4.5',
+            label: 'J.C. Ryle',
+            action: 'http://gracegems.org/Ryle',
+            additional: false,
         },
         {
-            key: "4.6",
-            label: "Our Daily Bread",
-            action: "http://odb.org",
-            additional: false
+            key: '4.6',
+            label: 'Our Daily Bread',
+            action: 'http://odb.org',
+            additional: false,
         },
         {
-            key: "4.7",
-            label: "Plugged In Movie Reviews",
-            action: "http://www.pluggedin.com",
-            additional: false
-        }
+            key: '4.7',
+            label: 'Plugged In Movie Reviews',
+            action: 'http://www.pluggedin.com',
+            additional: false,
+        },
     ];
 
     useEffect(() => {
@@ -78,9 +90,9 @@ const Links: React.FC = () => {
                 const additionalLinks = await bibleService.getAdditionalLinks(user);
 
                 // Mark fetched links as additional
-                const markedAdditionalLinks = additionalLinks.map(link => ({
+                const markedAdditionalLinks = additionalLinks.map((link) => ({
                     ...link,
-                    additional: true
+                    additional: true,
                 }));
 
                 // Combine hardcoded and additional links
@@ -90,9 +102,7 @@ const Links: React.FC = () => {
                 // If there's an error, still show the hardcoded links
                 setLinks(hardcodedLinks);
 
-                setToastMessage('Failed to load additional links');
-                setToastBg('#dc3545');
-                setShowToast(true);
+                showToast({message: 'Failed to load additional links', variant: 'error'});
             } finally {
                 setIsLoading(false);
             }
@@ -109,7 +119,7 @@ const Links: React.FC = () => {
     // Generate the next key based on the highest existing key
     const generateNextKey = (): string => {
         // Extract all numeric parts after the dot in keys (e.g., "4.7" -> 7)
-        const keyNumbers = links.map(link => {
+        const keyNumbers = links.map((link) => {
             const parts = link.key.split('.');
             return parts.length > 1 ? parseInt(parts[1], 10) : 0;
         });
@@ -123,17 +133,16 @@ const Links: React.FC = () => {
 
     const handleAddLink = async () => {
         if (!newLinkLabel.trim() || !newLinkUrl.trim()) {
-            setToastMessage('Please enter both a label and URL');
-            setToastBg('#dc3545');
-            setShowToast(true);
+            showToast({message: 'Please enter both a label and URL', variant: 'error'});
             return;
         }
 
         // Basic URL validation
-        if (!newLinkUrl.startsWith('http://') && !newLinkUrl.startsWith('https://')) {
-            setToastMessage('URL must start with http:// or https://');
-            setToastBg('#dc3545');
-            setShowToast(true);
+        if (
+            !newLinkUrl.startsWith('http://') &&
+            !newLinkUrl.startsWith('https://')
+        ) {
+            showToast({message: 'URL must start with http:// or https://', variant: 'error'});
             return;
         }
 
@@ -157,7 +166,7 @@ const Links: React.FC = () => {
                     key: newKey,
                     label: newLinkLabel,
                     action: newLinkUrl,
-                    additional: true
+                    additional: true,
                 };
 
                 setLinks([...links, newLink]);
@@ -167,19 +176,13 @@ const Links: React.FC = () => {
                 setNewLinkUrl('');
                 setShowAddModal(false);
 
-                setToastMessage('Link added successfully!');
-                setToastBg('#28a745');
-                setShowToast(true);
+                showToast({message: 'Link added successfully!', variant: 'success'});
             } else {
-                setToastMessage('Failed to add link');
-                setToastBg('#dc3545');
-                setShowToast(true);
+                showToast({message: 'Failed to add link', variant: 'error'});
             }
         } catch (error) {
             console.error('Error adding link:', error);
-            setToastMessage('Error adding link');
-            setToastBg('#dc3545');
-            setShowToast(true);
+            showToast({message: 'Error adding link', variant: 'error'});
         } finally {
             setIsSubmitting(false);
         }
@@ -189,10 +192,7 @@ const Links: React.FC = () => {
         <Container className="py-4">
             <div className="d-flex justify-content-between align-items-center mb-4">
                 <h1 className="text-white">Links</h1>
-                <Button
-                    variant="primary"
-                    onClick={() => setShowAddModal(true)}
-                >
+                <Button variant="primary" onClick={() => setShowAddModal(true)}>
                     <FontAwesomeIcon icon={faPlus} className="me-2"/>
                     Add Link
                 </Button>
@@ -231,11 +231,7 @@ const Links: React.FC = () => {
             )}
 
             {/* Add Link Modal */}
-            <Modal
-                show={showAddModal}
-                onHide={() => setShowAddModal(false)}
-                centered
-            >
+            <Modal show={showAddModal} onHide={() => setShowAddModal(false)} centered>
                 <Modal.Header closeButton className="bg-dark text-white">
                     <Modal.Title>Add New Link</Modal.Title>
                 </Modal.Header>
@@ -274,7 +270,9 @@ const Links: React.FC = () => {
                     <Button
                         variant="primary"
                         onClick={handleAddLink}
-                        disabled={isSubmitting || !newLinkLabel.trim() || !newLinkUrl.trim()}
+                        disabled={
+                            isSubmitting || !newLinkLabel.trim() || !newLinkUrl.trim()
+                        }
                     >
                         {isSubmitting ? (
                             <>
@@ -297,17 +295,7 @@ const Links: React.FC = () => {
 
             {/* Toast notification */}
             <Toast
-                onClose={() => setShowToast(false)}
-                show={showToast}
-                delay={3000}
-                autohide
-                style={{
-                    position: 'fixed',
-                    top: 20,
-                    left: 20,
-                    background: toastBg,
-                    color: 'white',
-                }}
+                {...toastProps}
             >
                 <Toast.Body>{toastMessage}</Toast.Body>
             </Toast>

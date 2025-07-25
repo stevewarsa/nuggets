@@ -1,11 +1,20 @@
 import React, {useState} from 'react';
-import {Button, Col, Container, Form, Modal, Row, Toast} from 'react-bootstrap';
+import {
+    Button,
+    Col,
+    Container,
+    Form,
+    Modal,
+    Row,
+    Toast,
+} from 'react-bootstrap';
 import {bookAbbrev, translations} from '../models/constants';
 import {Passage} from '../models/passage';
 import {bibleService} from '../services/bible-service';
 import {getDisplayBookName} from '../models/passage-utils';
 import {useAppSelector} from '../store/hooks';
-import {useNavigate} from "react-router-dom";
+import {useNavigate} from 'react-router-dom';
+import {useToast} from '../hooks/useToast';
 
 const BibleSearch: React.FC = () => {
     const navigate = useNavigate();
@@ -15,14 +24,12 @@ const BibleSearch: React.FC = () => {
     const [searchPhrase, setSearchPhrase] = useState<string>('');
     const [searchResults, setSearchResults] = useState<Passage[]>([]);
     const [isSearching, setIsSearching] = useState<boolean>(false);
-    const [showToast, setShowToast] = useState<boolean>(false);
-    const [toastMessage, setToastMessage] = useState<string>('');
-    const [toastBg, setToastBg] = useState<string>('#28a745');
     const [showEmailModal, setShowEmailModal] = useState<boolean>(false);
     const [emailAddress, setEmailAddress] = useState<string>('');
     const [isSendingEmail, setIsSendingEmail] = useState<boolean>(false);
+    const {showToast, toastProps, toastMessage} = useToast();
 
-    const user = useAppSelector(state => state.user.currentUser);
+    const user = useAppSelector((state) => state.user.currentUser);
 
     const testamentOptions = [
         {label: 'NT', value: 'new'},
@@ -37,16 +44,17 @@ const BibleSearch: React.FC = () => {
         try {
             setIsSearching(true);
 
-            const translationsToSearch = selectedTranslation === 'all'
-                ? translations.map(t => t.code)
-                : [selectedTranslation];
+            const translationsToSearch =
+                selectedTranslation === 'all'
+                    ? translations.map((t) => t.code)
+                    : [selectedTranslation];
 
             const results = await bibleService.searchBible({
                 book: selectedBook,
                 translations: translationsToSearch,
                 testament: testament,
                 searchPhrase: searchPhrase,
-                user: user
+                user: user,
             });
 
             setSearchResults(results);
@@ -63,28 +71,41 @@ const BibleSearch: React.FC = () => {
         const searchTerms = searchPhrase
             .replace(/\*/g, '\\w*') // Convert wildcard to regex pattern
             .split(' ')
-            .filter(term => term.length > 0);
+            .filter((term) => term.length > 0);
 
         const regex = new RegExp(`(${searchTerms.join('|')})`, 'gi');
         return text.split(regex).map((part, i) =>
-            regex.test(part) ? <span key={i} style={{color: 'green'}}>{part}</span> : part
+                regex.test(part) ? (
+                    <span key={i} style={{color: 'green'}}>
+          {part}
+        </span>
+                ) : (
+                    part
+                )
         );
     };
 
     const handleGoToVerse = (passage: Passage) => {
         const readChapRoute = `/readBibleChapter/${passage.translationName}/${passage.bookName}/${passage.chapter}/${passage.startVerse}`;
-        console.log("BibleSearch.handleGoToVerse - navigating to route:", readChapRoute);
+        console.log(
+            'BibleSearch.handleGoToVerse - navigating to route:',
+            readChapRoute
+        );
         navigate(readChapRoute);
     };
 
     const handleCopyPassage = async (passage: Passage) => {
         try {
-            const reference = `${getDisplayBookName(passage.bookId)} ${passage.chapter}:${passage.startVerse}${passage.endVerse !== passage.startVerse ? `-${passage.endVerse}` : ''}`;
+            const reference = `${getDisplayBookName(passage.bookId)} ${
+                passage.chapter
+            }:${passage.startVerse}${
+                passage.endVerse !== passage.startVerse ? `-${passage.endVerse}` : ''
+            }`;
 
             // Get the verse text without verse numbers
             let verseText = '';
-            passage.verses.forEach(verse => {
-                verse.verseParts.forEach(part => {
+            passage.verses.forEach((verse) => {
+                verse.verseParts.forEach((part) => {
                     verseText += part.verseText + ' ';
                 });
             });
@@ -93,14 +114,10 @@ const BibleSearch: React.FC = () => {
             const textToCopy = `${reference}\n\n${verseText.trim()}`;
 
             await navigator.clipboard.writeText(textToCopy);
-            setToastMessage('Passage copied to clipboard!');
-            setToastBg('#28a745');
-            setShowToast(true);
+            showToast({message: 'Passage copied to clipboard!', variant: 'success'});
         } catch (err) {
             console.error('Failed to copy text:', err);
-            setToastMessage('Failed to copy text');
-            setToastBg('#dc3545');
-            setShowToast(true);
+            showToast({message: 'Failed to copy text', variant: 'error'});
         }
     };
 
@@ -110,32 +127,43 @@ const BibleSearch: React.FC = () => {
         setIsSendingEmail(true);
         try {
             // Format search results for email
-            const formattedResults: [string, string][] = searchResults.map(passage => {
-                const reference = `${getDisplayBookName(passage.bookId)} ${passage.chapter}:${passage.startVerse}${passage.endVerse !== passage.startVerse ? `-${passage.endVerse}` : ''} (${passage.translationId.toUpperCase()})`;
+            const formattedResults: [string, string][] = searchResults.map(
+                (passage) => {
+                    const reference = `${getDisplayBookName(passage.bookId)} ${
+                        passage.chapter
+                    }:${passage.startVerse}${
+                        passage.endVerse !== passage.startVerse
+                            ? `-${passage.endVerse}`
+                            : ''
+                    } (${passage.translationId.toUpperCase()})`;
 
-                let verseText = '';
-                passage.verses.forEach(verse => {
-                    verse.verseParts.forEach(part => {
-                        const text = part.verseText;
-                        // Add words of Christ class if needed
-                        const formattedText = part.wordsOfChrist
-                            ? `<span class='wordsOfChrist'>${text}</span>`
-                            : text;
-                        verseText += formattedText + ' ';
+                    let verseText = '';
+                    passage.verses.forEach((verse) => {
+                        verse.verseParts.forEach((part) => {
+                            const text = part.verseText;
+                            // Add words of Christ class if needed
+                            const formattedText = part.wordsOfChrist
+                                ? `<span class='wordsOfChrist'>${text}</span>`
+                                : text;
+                            verseText += formattedText + ' ';
+                        });
                     });
-                });
 
-                // Highlight search terms
-                const searchTerms = searchPhrase
-                    .replace(/\*/g, '\\w*')
-                    .split(' ')
-                    .filter(term => term.length > 0);
+                    // Highlight search terms
+                    const searchTerms = searchPhrase
+                        .replace(/\*/g, '\\w*')
+                        .split(' ')
+                        .filter((term) => term.length > 0);
 
-                const regex = new RegExp(`(${searchTerms.join('|')})`, 'gi');
-                verseText = verseText.replace(regex, '<span class=\'search_result\'>$1</span>');
+                    const regex = new RegExp(`(${searchTerms.join('|')})`, 'gi');
+                    verseText = verseText.replace(
+                        regex,
+                        "<span class='search_result'>$1</span>"
+                    );
 
-                return [reference, verseText.trim()];
-            });
+                    return [reference, verseText.trim()];
+                }
+            );
 
             const result = await bibleService.sendSearchResults({
                 emailTo: emailAddress,
@@ -145,38 +173,41 @@ const BibleSearch: React.FC = () => {
                     translation: selectedTranslation,
                     testament: testament,
                     searchPhrase: searchPhrase,
-                    user: user
-                }
+                    user: user,
+                },
             });
 
             if (result === 'success') {
-                setToastMessage('Search results sent successfully!');
-                setToastBg('#28a745');
+                showToast({message: 'Search results sent successfully!', variant: 'success'});
                 setShowEmailModal(false);
                 setEmailAddress('');
             } else {
-                setToastMessage(`Failed to send email: ${result}`);
-                setToastBg('#dc3545');
+                showToast({message: `Failed to send email: ${result}`, variant: 'error'});
             }
         } catch (error) {
             console.error('Error sending email:', error);
-            setToastMessage('Error sending email');
-            setToastBg('#dc3545');
+            showToast({message: 'Error sending email', variant: 'error'});
         } finally {
             setIsSendingEmail(false);
-            setShowToast(true);
         }
     };
 
     const renderPassage = (passage: Passage) => {
-        const reference = `${getDisplayBookName(passage.bookId)} ${passage.chapter}:${passage.startVerse}${passage.endVerse !== passage.startVerse ? `-${passage.endVerse}` : ''}`;
-        const translationName = translations.find(t => t.code === passage.translationId)?.translationName || passage.translationId;
+        const reference = `${getDisplayBookName(passage.bookId)} ${
+            passage.chapter
+        }:${passage.startVerse}${
+            passage.endVerse !== passage.startVerse ? `-${passage.endVerse}` : ''
+        }`;
+        const translationName =
+            translations.find((t) => t.code === passage.translationId)
+                ?.translationName || passage.translationId;
 
         return (
             <div className="bg-dark p-4 rounded mb-4">
                 <div className="d-flex justify-content-between align-items-center mb-3">
                     <h3 className="text-white mb-0">
-                        {reference} <span style={{color: '#B0E0E6'}}>({translationName})</span>
+                        {reference}{' '}
+                        <span style={{color: '#B0E0E6'}}>({translationName})</span>
                     </h3>
                     <Button
                         variant="outline-light"
@@ -199,10 +230,18 @@ const BibleSearch: React.FC = () => {
                         <div key={verseIndex} className="mb-2">
                             {verse.verseParts.map((part, partIndex) => (
                                 <React.Fragment key={`${verseIndex}-${partIndex}`}>
-                                    {verseIndex === 0 && partIndex === 0 && passage.verses.length > 1 && (
-                                        <span className="me-2">{verse.verseParts[0].verseNumber}</span>
-                                    )}
-                                    <span className={part.wordsOfChrist ? 'words-of-christ' : 'verse-text'}>
+                                    {verseIndex === 0 &&
+                                        partIndex === 0 &&
+                                        passage.verses.length > 1 && (
+                                            <span className="me-2">
+                        {verse.verseParts[0].verseNumber}
+                      </span>
+                                        )}
+                                    <span
+                                        className={
+                                            part.wordsOfChrist ? 'words-of-christ' : 'verse-text'
+                                        }
+                                    >
                     {highlightSearchText(part.verseText)}{' '}
                   </span>
                                 </React.Fragment>
@@ -283,7 +322,9 @@ const BibleSearch: React.FC = () => {
                 <Row className="mb-3">
                     <Col>
                         <Form.Group>
-                            <Form.Label className="text-white">Search Phrase (use * for wildcard)</Form.Label>
+                            <Form.Label className="text-white">
+                                Search Phrase (use * for wildcard)
+                            </Form.Label>
                             <Form.Control
                                 type="text"
                                 value={searchPhrase}
@@ -313,7 +354,9 @@ const BibleSearch: React.FC = () => {
             {searchResults.length > 0 && (
                 <div className="mt-4">
                     <div className="d-flex justify-content-between align-items-center mb-3">
-                        <h2 className="text-white mb-0">Search Results ({searchResults.length})</h2>
+                        <h2 className="text-white mb-0">
+                            Search Results ({searchResults.length})
+                        </h2>
                         <Button
                             variant="outline-light"
                             onClick={() => setShowEmailModal(true)}
@@ -368,17 +411,7 @@ const BibleSearch: React.FC = () => {
 
             {/* Toast notification for copy success/failure */}
             <Toast
-                onClose={() => setShowToast(false)}
-                show={showToast}
-                delay={3000}
-                autohide
-                style={{
-                    position: 'fixed',
-                    top: 20,
-                    left: 20,
-                    background: toastBg,
-                    color: 'white',
-                }}
+                {...toastProps}
             >
                 <Toast.Body>{toastMessage}</Toast.Body>
             </Toast>

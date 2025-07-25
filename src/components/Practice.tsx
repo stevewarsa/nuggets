@@ -1,4 +1,13 @@
-import {Button, Collapse, Container, Form, InputGroup, Modal, Spinner, Toast,} from 'react-bootstrap';
+import {
+    Button,
+    Collapse,
+    Container,
+    Form,
+    InputGroup,
+    Modal,
+    Spinner,
+    Toast,
+} from 'react-bootstrap';
 import {useNavigate, useParams} from 'react-router-dom';
 import {useEffect, useRef, useState} from 'react';
 import {Passage} from '../models/passage';
@@ -24,7 +33,12 @@ import {
 import {useAppSelector} from '../store/hooks';
 import EditPassage from './EditPassage.tsx';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import {faBookOpen, faCommentDots, faSearch} from '@fortawesome/free-solid-svg-icons';
+import {
+    faBookOpen,
+    faCommentDots,
+    faSearch,
+} from '@fortawesome/free-solid-svg-icons';
+import {useToast} from '../hooks/useToast';
 
 const Practice = () => {
     const {mode, order} = useParams();
@@ -41,9 +55,7 @@ const Practice = () => {
     const [currentMode, setCurrentMode] = useState(mode);
     const [showInfo, setShowInfo] = useState(false);
     const [overrides, setOverrides] = useState<Passage[]>([]);
-    const [showToast, setShowToast] = useState(false);
-    const [toastMessage, setToastMessage] = useState('');
-    const [toastBg, setToastBg] = useState('#28a745');
+    const {showToast, toastProps, toastMessage} = useToast();
     const [showConfirmModal, setShowConfirmModal] = useState(false);
     const [pendingFrequencyChange, setPendingFrequencyChange] = useState<{
         direction: string;
@@ -60,7 +72,7 @@ const Practice = () => {
 
     const searchInputRef = useRef<HTMLInputElement>(null);
 
-    const user = useAppSelector(state => state.user.currentUser);
+    const user = useAppSelector((state) => state.user.currentUser);
     const isGuestUser = user === GUEST_USER;
 
     // Focus search input when modal opens
@@ -140,7 +152,11 @@ const Practice = () => {
     }, [order, user, isGuestUser]);
 
     const ensureVersesLoaded = async () => {
-        if (!currentPassage || !currentPassage.verses || currentPassage.verses.length === 0) {
+        if (
+            !currentPassage ||
+            !currentPassage.verses ||
+            currentPassage.verses.length === 0
+        ) {
             try {
                 const passageWithVerses = await bibleService.getPassageText(
                     user,
@@ -154,13 +170,11 @@ const Practice = () => {
                 // Update the current passage with verses
                 setCurrentPassage({
                     ...currentPassage,
-                    verses: passageWithVerses.verses
+                    verses: passageWithVerses.verses,
                 });
             } catch (error) {
                 console.error('Error fetching verses:', error);
-                setToastMessage('Error loading verses');
-                setToastBg('#dc3545');
-                setShowToast(true);
+                showToast({message: 'Error loading verses', variant: 'error'});
                 return false;
             }
         }
@@ -175,7 +189,12 @@ const Practice = () => {
         const lastViewedStr = DateUtils.formatDateTime(now, 'MM-dd-yy KK:mm:ss');
         const lastViewedNum = now.getTime();
 
-        bibleService.updateLastViewed(user, passageId, lastViewedNum, lastViewedStr);
+        bibleService.updateLastViewed(
+            user,
+            passageId,
+            lastViewedNum,
+            lastViewedStr
+        );
     };
 
     const handleEditingComplete = (
@@ -193,7 +212,9 @@ const Practice = () => {
         if (updatedPassage) {
             // Update the passage in memPsgList
             const updatedList = memPsgList.map((passage) =>
-                passage.passageId === updatedPassage.passageId ? updatedPassage : passage
+                passage.passageId === updatedPassage.passageId
+                    ? updatedPassage
+                    : passage
             );
             setMemPsgList(updatedList);
 
@@ -234,9 +255,7 @@ const Practice = () => {
             }
 
             // Show success message
-            setToastMessage('Passage updated successfully');
-            setToastBg('#28a745');
-            setShowToast(true);
+            showToast({message: 'Passage updated successfully', variant: 'success'});
         }
     };
 
@@ -265,7 +284,8 @@ const Practice = () => {
         if (direction === 'RIGHT') {
             newIndex = currentIndex + 1 >= memPsgList.length ? 0 : currentIndex + 1;
         } else if (direction === 'LEFT') {
-            newIndex = currentIndex - 1 < 0 ? memPsgList.length - 1 : currentIndex - 1;
+            newIndex =
+                currentIndex - 1 < 0 ? memPsgList.length - 1 : currentIndex - 1;
         }
 
         setCurrentIndex(newIndex);
@@ -342,20 +362,14 @@ const Practice = () => {
                 setMemPsgList(updatedList);
 
                 // Show success message
-                setToastMessage(`Frequency updated to Box ${newFrequency}`);
-                setToastBg('#28a745');
-                setShowToast(true);
+                showToast({message: `Frequency updated to Box ${newFrequency}`, variant: 'success'});
             } else {
                 // Show error message
-                setToastMessage('Failed to update frequency');
-                setToastBg('#dc3545');
-                setShowToast(true);
+                showToast({message: 'Failed to update frequency', variant: 'error'});
             }
         } catch (error) {
             console.error('Error updating passage frequency:', error);
-            setToastMessage('Error updating frequency');
-            setToastBg('#dc3545');
-            setShowToast(true);
+            showToast({message: 'Error updating frequency', variant: 'error'});
         } finally {
             setIsUpdating(false);
             setPendingFrequencyChange(null);
@@ -416,27 +430,20 @@ const Practice = () => {
 
                 // Now copy the text with the newly loaded verses
                 const passageRef = getPassageReference(currentPassage);
-                const verseText = getUnformattedPassageTextNoVerseNumbers(
-                    passageWithVerses
-                );
+                const verseText =
+                    getUnformattedPassageTextNoVerseNumbers(passageWithVerses);
                 const textToCopy = `${passageRef}\n\n${verseText}`;
 
                 try {
                     await navigator.clipboard.writeText(textToCopy);
-                    setToastMessage('Passage copied to clipboard!');
-                    setToastBg('#28a745');
-                    setShowToast(true);
+                    showToast({message: 'Passage copied to clipboard!', variant: 'success'});
                 } catch (err) {
                     console.error('Failed to copy text:', err);
-                    setToastMessage('Failed to copy text');
-                    setToastBg('#dc3545');
-                    setShowToast(true);
+                    showToast({message: 'Failed to copy text', variant: 'error'});
                 }
             } catch (error) {
                 console.error('Error loading verses:', error);
-                setToastMessage('Error loading verses');
-                setToastBg('#dc3545');
-                setShowToast(true);
+                showToast({message: 'Error loading verses', variant: 'error'});
             }
         } else {
             // Verses are already loaded, just copy the text
@@ -446,14 +453,10 @@ const Practice = () => {
 
             try {
                 await navigator.clipboard.writeText(textToCopy);
-                setToastMessage('Passage copied to clipboard!');
-                setToastBg('#28a745');
-                setShowToast(true);
+                showToast({message: 'Passage copied to clipboard!', variant: 'success'});
             } catch (err) {
                 console.error('Failed to copy text:', err);
-                setToastMessage('Failed to copy text');
-                setToastBg('#dc3545');
-                setShowToast(true);
+                showToast({message: 'Failed to copy text', variant: 'error'});
             }
         }
     };
@@ -499,7 +502,7 @@ const Practice = () => {
         try {
             const updatedPassage = {
                 ...currentPassage,
-                explanation: explanationText.trim()
+                explanation: explanationText.trim(),
             };
 
             const result = await bibleService.updatePassage(user, updatedPassage);
@@ -510,24 +513,20 @@ const Practice = () => {
 
                 // Update passage in lists
                 const updatePassageInList = (list: Passage[]) =>
-                    list.map(p => p.passageId === currentPassage.passageId ? updatedPassage : p);
+                    list.map((p) =>
+                        p.passageId === currentPassage.passageId ? updatedPassage : p
+                    );
 
-                setMemPsgList(prev => updatePassageInList(prev));
+                setMemPsgList((prev) => updatePassageInList(prev));
 
-                setToastMessage('Explanation saved successfully');
-                setToastBg('#28a745');
-                setShowToast(true);
+                showToast({message: 'Explanation saved successfully', variant: 'success'});
                 setShowExplanationEditor(false);
             } else {
-                setToastMessage('Failed to save explanation');
-                setToastBg('#dc3545');
-                setShowToast(true);
+                showToast({message: 'Failed to save explanation', variant: 'error'});
             }
         } catch (error) {
             console.error('Error saving explanation:', error);
-            setToastMessage('Error saving explanation');
-            setToastBg('#dc3545');
-            setShowToast(true);
+            showToast({message: 'Error saving explanation', variant: 'error'});
         } finally {
             setIsUpdatingExplanation(false);
         }
@@ -576,32 +575,43 @@ const Practice = () => {
     const getAdditionalMenus = () => {
         return [
             {
-                itemLabel: "Explanation...",
+                itemLabel: 'Explanation...',
                 icon: faCommentDots,
                 callbackFunction: async () => {
                     const versesLoaded = await ensureVersesLoaded();
                     if (versesLoaded) {
                         setShowExplanationEditor(true);
                     }
-                }
+                },
             },
             {
-                itemLabel: "Go to Passage...",
+                itemLabel: 'Go to Passage...',
                 icon: faSearch,
                 callbackFunction: () => setShowGoToModal(true),
             },
-            {...OPEN_IN_BIBLEHUB, callbackFunction: () => openBibleHubLink(currentPassage)},
-            {...OPEN_INTERLINEAR, callbackFunction: () => openInterlinearLink(currentPassage)},
+            {
+                ...OPEN_IN_BIBLEHUB,
+                callbackFunction: () => openBibleHubLink(currentPassage),
+            },
+            {
+                ...OPEN_INTERLINEAR,
+                callbackFunction: () => openInterlinearLink(currentPassage),
+            },
             {...EDIT_MEM_PASSAGE, callbackFunction: () => setShowEditModal(true)},
             {
-                itemLabel: "View In Context...",
+                itemLabel: 'View In Context...',
                 icon: faBookOpen,
                 callbackFunction: () => {
-                    const readChapRoute = `/readBibleChapter/${translation}/${getBookName(currentPassage.bookId)}/${currentPassage.chapter}/${currentPassage.startVerse}`;
-                    console.log("Practice.additionalMenus - navigating to chapter:", readChapRoute);
+                    const readChapRoute = `/readBibleChapter/${translation}/${getBookName(
+                        currentPassage.bookId
+                    )}/${currentPassage.chapter}/${currentPassage.startVerse}`;
+                    console.log(
+                        'Practice.additionalMenus - navigating to chapter:',
+                        readChapRoute
+                    );
                     navigate(readChapRoute);
-                }
-            }
+                },
+            },
         ];
     };
 
@@ -645,7 +655,8 @@ const Practice = () => {
                 <Collapse in={showInfo}>
                     <div id="info-collapse">
                         <div className="text-white-50 mb-2">
-                            Mode: {getModeDisplayText(mode)} | Order: {getOrderDisplayText(order)}
+                            Mode: {getModeDisplayText(mode)} | Order:{' '}
+                            {getOrderDisplayText(order)}
                         </div>
                         <div className="text-white-50">
                             Box: {currentPassage.frequencyDays} | Last Practiced:{' '}
@@ -684,29 +695,25 @@ const Practice = () => {
             />
 
             <Toast
-                onClose={() => setShowToast(false)}
-                show={showToast}
-                delay={3000}
-                autohide
-                style={{
-                    position: 'fixed',
-                    top: 20,
-                    left: 20,
-                    background: toastBg,
-                    color: 'white',
-                }}
+                {...toastProps}
             >
                 <Toast.Body>{toastMessage}</Toast.Body>
             </Toast>
 
             {/* Confirmation Modal */}
-            <Modal show={showConfirmModal} onHide={handleCancelFrequencyChange} centered>
+            <Modal
+                show={showConfirmModal}
+                onHide={handleCancelFrequencyChange}
+                centered
+            >
                 <Modal.Header closeButton className="bg-dark text-white">
                     <Modal.Title>Confirm Frequency Change</Modal.Title>
                 </Modal.Header>
                 <Modal.Body className="bg-dark text-white">
                     {pendingFrequencyChange && (
-                        <p>Change frequency to Box {pendingFrequencyChange.newFrequency}?</p>
+                        <p>
+                            Change frequency to Box {pendingFrequencyChange.newFrequency}?
+                        </p>
                     )}
                 </Modal.Body>
                 <Modal.Footer className="bg-dark text-white">
@@ -764,7 +771,10 @@ const Practice = () => {
                             className="bg-dark text-white border-secondary"
                         />
                         {searchTerm && (
-                            <Button variant="outline-secondary" onClick={() => setSearchTerm('')}>
+                            <Button
+                                variant="outline-secondary"
+                                onClick={() => setSearchTerm('')}
+                            >
                                 Clear
                             </Button>
                         )}
@@ -778,7 +788,9 @@ const Practice = () => {
                                     className="text-white text-decoration-none text-start w-100"
                                     onClick={() =>
                                         handleGoToPassage(
-                                            memPsgList.findIndex((p) => p.passageId === passage.passageId)
+                                            memPsgList.findIndex(
+                                                (p) => p.passageId === passage.passageId
+                                            )
                                         )
                                     }
                                 >
@@ -805,7 +817,9 @@ const Practice = () => {
             >
                 <Modal.Header closeButton className="bg-dark text-white">
                     <Modal.Title>
-                        {currentPassage?.explanation ? 'Update Explanation' : 'Add Explanation'}
+                        {currentPassage?.explanation
+                            ? 'Update Explanation'
+                            : 'Add Explanation'}
                     </Modal.Title>
                 </Modal.Header>
                 <Modal.Body className="bg-dark text-white">
@@ -827,7 +841,7 @@ const Practice = () => {
                             style={{
                                 minHeight: '50vh',
                                 whiteSpace: 'pre-line',
-                                fontSize: "1.71rem"
+                                fontSize: '1.71rem',
                             }}
                         />
                     </Form.Group>
@@ -875,10 +889,15 @@ const Practice = () => {
                     <Modal.Title>Passage Explanation</Modal.Title>
                 </Modal.Header>
                 <Modal.Body className="bg-dark text-white">
-                    <p style={{whiteSpace: 'pre-line'}}>{currentPassage?.explanation}</p>
+                    <p style={{whiteSpace: 'pre-line'}}>
+                        {currentPassage?.explanation}
+                    </p>
                 </Modal.Body>
                 <Modal.Footer className="bg-dark text-white">
-                    <Button variant="primary" onClick={() => setShowExplanationModal(false)}>
+                    <Button
+                        variant="primary"
+                        onClick={() => setShowExplanationModal(false)}
+                    >
                         Close
                     </Button>
                 </Modal.Footer>

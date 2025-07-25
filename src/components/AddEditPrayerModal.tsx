@@ -1,14 +1,9 @@
 import React, {useState, useEffect} from 'react';
-import {
-    Modal,
-    Form,
-    Button,
-    Spinner,
-    Toast,
-} from 'react-bootstrap';
+import {Modal, Form, Button, Spinner, Toast} from 'react-bootstrap';
 import {bibleService} from '../services/bible-service';
 import {useAppSelector} from '../store/hooks';
-import {Prayer} from "../models/prayer.ts";
+import {Prayer} from '../models/prayer.ts';
+import {useToast} from '../hooks/useToast';
 
 interface AddEditPrayerModalProps {
     show: boolean;
@@ -29,12 +24,10 @@ const AddEditPrayerModal: React.FC<AddEditPrayerModalProps> = ({
         prayerDetailsTx: '',
         prayerSubjectPersonName: '',
         archiveFl: 'N',
-        mostRecentPrayerDate: undefined
+        mostRecentPrayerDate: undefined,
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [showToast, setShowToast] = useState(false);
-    const [toastMessage, setToastMessage] = useState('');
-    const [toastBg, setToastBg] = useState('#28a745');
+    const {showToast, toastProps, toastMessage} = useToast();
 
     const user = useAppSelector((state) => state.user.currentUser);
 
@@ -52,21 +45,15 @@ const AddEditPrayerModal: React.FC<AddEditPrayerModalProps> = ({
                     prayerDetailsTx: '',
                     prayerSubjectPersonName: '',
                     archiveFl: 'N',
-                    mostRecentPrayerDate: undefined
+                    mostRecentPrayerDate: undefined,
                 });
             }
         }
     }, [show, prayer, user]);
 
-    const showToastMessage = (message: string, isError: boolean = false) => {
-        setToastMessage(message);
-        setToastBg(isError ? '#dc3545' : '#28a745');
-        setShowToast(true);
-    };
-
     const handleSubmit = async () => {
         if (!editingPrayer.prayerTitleTx.trim()) {
-            showToastMessage('Please enter a prayer title', true);
+            showToast({message: 'Please enter a prayer title', variant: 'error'});
             return;
         }
 
@@ -80,11 +67,12 @@ const AddEditPrayerModal: React.FC<AddEditPrayerModalProps> = ({
             }
 
             if (result !== 'error') {
-                showToastMessage(
-                    editingPrayer.prayerId
+                showToast({
+                    message: editingPrayer.prayerId
                         ? 'Prayer updated successfully'
-                        : 'Prayer added successfully'
-                );
+                        : 'Prayer added successfully',
+                    variant: 'success'
+                });
 
                 // Call the callback if provided
                 if (onPrayerSaved) {
@@ -96,11 +84,11 @@ const AddEditPrayerModal: React.FC<AddEditPrayerModalProps> = ({
                     onHide();
                 }, 1000);
             } else {
-                showToastMessage('Failed to save prayer', true);
+                showToast({message: 'Failed to save prayer', variant: 'error'});
             }
         } catch (error) {
             console.error('Error saving prayer:', error);
-            showToastMessage('Error saving prayer', true);
+            showToast({message: 'Error saving prayer', variant: 'error'});
         } finally {
             setIsSubmitting(false);
         }
@@ -171,7 +159,11 @@ const AddEditPrayerModal: React.FC<AddEditPrayerModalProps> = ({
                     </Form>
                 </Modal.Body>
                 <Modal.Footer className="bg-dark text-white">
-                    <Button variant="secondary" onClick={handleClose} disabled={isSubmitting}>
+                    <Button
+                        variant="secondary"
+                        onClick={handleClose}
+                        disabled={isSubmitting}
+                    >
                         Cancel
                     </Button>
                     <Button
@@ -191,8 +183,10 @@ const AddEditPrayerModal: React.FC<AddEditPrayerModalProps> = ({
                                 />
                                 Saving...
                             </>
+                        ) : editingPrayer.prayerId ? (
+                            'Save Changes'
                         ) : (
-                            editingPrayer.prayerId ? 'Save Changes' : 'Add Prayer'
+                            'Add Prayer'
                         )}
                     </Button>
                 </Modal.Footer>
@@ -200,18 +194,7 @@ const AddEditPrayerModal: React.FC<AddEditPrayerModalProps> = ({
 
             {/* Toast notification */}
             <Toast
-                onClose={() => setShowToast(false)}
-                show={showToast}
-                delay={3000}
-                autohide
-                style={{
-                    position: 'fixed',
-                    top: 20,
-                    left: 20,
-                    background: toastBg,
-                    color: 'white',
-                    zIndex: 9999,
-                }}
+                {...toastProps}
             >
                 <Toast.Body>{toastMessage}</Toast.Body>
             </Toast>

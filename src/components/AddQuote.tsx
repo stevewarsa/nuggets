@@ -4,25 +4,22 @@ import {useNavigate} from 'react-router-dom';
 import {bibleService} from '../services/bible-service';
 import {useAppDispatch, useAppSelector} from '../store/hooks';
 import {addQuote} from '../store/quoteSlice';
+import {useToast} from '../hooks/useToast';
 
 const AddQuote = () => {
     const [quoteText, setQuoteText] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [showToast, setShowToast] = useState(false);
-    const [toastMessage, setToastMessage] = useState('');
-    const [toastBg, setToastBg] = useState('#28a745');
+    const {showToast, toastProps, toastMessage} = useToast();
 
     const navigate = useNavigate();
     const dispatch = useAppDispatch();
-    const user = useAppSelector(state => state.user.currentUser);
+    const user = useAppSelector((state) => state.user.currentUser);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
         if (!quoteText.trim()) {
-            setToastMessage('Please enter quote text');
-            setToastBg('#dc3545');
-            setShowToast(true);
+            showToast({message: 'Please enter quote text', variant: 'error'});
             return;
         }
 
@@ -36,35 +33,33 @@ const AddQuote = () => {
 
             if (result && result.quoteId > 1) {
                 // Add the new quote to Redux store
-                dispatch(addQuote({
-                    quoteId: result.quoteId,
-                    quoteTx: quoteText,
-                    approved: 'Y',
-                    fromUser: user,
-                    sourceId: 0,
-                    tags: [],
-                    tagIds: []
-                }));
+                dispatch(
+                    addQuote({
+                        quoteId: result.quoteId,
+                        quoteTx: quoteText,
+                        approved: 'Y',
+                        fromUser: user,
+                        sourceId: 0,
+                        tags: [],
+                        tagIds: [],
+                    })
+                );
 
-                setToastMessage('Quote added successfully!');
-                setToastBg('#28a745');
-                setShowToast(true);
+                showToast({message: 'Quote added successfully!', variant: 'success'});
 
                 // Navigate to ViewQuotes after a short delay
-                console.log(`AddQuote.tsx - navigating to /viewQuotes/${result.quoteId}`);
+                console.log(
+                    `AddQuote.tsx - navigating to /viewQuotes/${result.quoteId}`
+                );
                 setTimeout(() => {
                     navigate(`/viewQuotes/${result.quoteId}`);
                 }, 500);
             } else {
-                setToastMessage('Failed to add quote');
-                setToastBg('#dc3545');
-                setShowToast(true);
+                showToast({message: 'Failed to add quote', variant: 'error'});
             }
         } catch (error) {
             console.error('Error adding quote:', error);
-            setToastMessage('Error adding quote');
-            setToastBg('#dc3545');
-            setShowToast(true);
+            showToast({message: 'Error adding quote', variant: 'error'});
         } finally {
             setIsSubmitting(false);
         }
@@ -85,7 +80,7 @@ const AddQuote = () => {
                         style={{
                             minHeight: '50vh',
                             whiteSpace: 'pre-line',
-                            fontSize: "1.71rem"
+                            fontSize: '1.71rem',
                         }}
                     />
                 </Form.Group>
@@ -117,17 +112,7 @@ const AddQuote = () => {
             </Form>
 
             <Toast
-                onClose={() => setShowToast(false)}
-                show={showToast}
-                delay={3000}
-                autohide
-                style={{
-                    position: 'fixed',
-                    top: 20,
-                    left: 20,
-                    background: toastBg,
-                    color: 'white',
-                }}
+                {...toastProps}
             >
                 <Toast.Body>{toastMessage}</Toast.Body>
             </Toast>

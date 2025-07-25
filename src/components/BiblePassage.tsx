@@ -1,12 +1,24 @@
 import React, {useEffect, useState} from 'react';
-import {Button, Container, Form, Modal, Spinner, Toast} from 'react-bootstrap';
+import {
+    Button,
+    Container,
+    Form,
+    Modal,
+    Spinner,
+    Toast,
+} from 'react-bootstrap';
 import {Passage} from '../models/passage';
 import {translationsShortNms} from '../models/constants';
 import {bibleService} from '../services/bible-service';
-import {getBookName, getDisplayBookName, handleCopyVerseRange} from '../models/passage-utils';
+import {
+    getBookName,
+    getDisplayBookName,
+    handleCopyVerseRange,
+} from '../models/passage-utils';
 import {useAppSelector} from '../store/hooks';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {faArrowUp, faCopy} from '@fortawesome/free-solid-svg-icons';
+import {useToast} from '../hooks/useToast';
 
 interface BiblePassageProps {
     passage: Passage;
@@ -41,14 +53,13 @@ const BiblePassage: React.FC<BiblePassageProps> = ({
     const [busy, setBusy] = useState<boolean>(false);
     const [seconds, setSeconds] = useState<number>(0);
     const [selectedVerses, setSelectedVerses] = useState<number[]>([]);
-    const [showFloatingButtons, setShowFloatingButtons] = useState<boolean>(false);
-    const [showToast, setShowToast] = useState<boolean>(false);
-    const [toastMessage, setToastMessage] = useState<string>('');
-    const [toastBg, setToastBg] = useState<string>('');
+    const [showFloatingButtons, setShowFloatingButtons] =
+        useState<boolean>(false);
     const [internalVerseModal, setInternalVerseModal] = useState<boolean>(false);
     const [lastScrollPosition, setLastScrollPosition] = useState<number>(0);
+    const {showToast, toastProps, toastMessage} = useToast();
 
-    const user = useAppSelector(state => state.user.currentUser);
+    const user = useAppSelector((state) => state.user.currentUser);
 
     useEffect(() => {
         const handleScroll = () => {
@@ -60,7 +71,12 @@ const BiblePassage: React.FC<BiblePassageProps> = ({
     }, []);
 
     useEffect(() => {
-        console.log('BiblePassage.tsx -showVerseText = ' + showVerseText + ', passage passed in changed:', passage);
+        console.log(
+            'BiblePassage.tsx -showVerseText = ' +
+            showVerseText +
+            ', passage passed in changed:',
+            passage
+        );
 
         // Scroll to top when passage changes
         if (scrollToVerse === -1) {
@@ -79,7 +95,7 @@ const BiblePassage: React.FC<BiblePassageProps> = ({
                     setBusy(true);
                     setSeconds(0);
                     const intervalId = setInterval(() => {
-                        setSeconds(s => s + 1);
+                        setSeconds((s) => s + 1);
                     }, 1000);
 
                     const fullPassage = await bibleService.getPassageText(
@@ -121,12 +137,12 @@ const BiblePassage: React.FC<BiblePassageProps> = ({
 
     useEffect(() => {
         if (scrollToVerse !== -1 && localPassage?.verses?.length) {
-            const element = document.getElementById("" + scrollToVerse);
+            const element = document.getElementById('' + scrollToVerse);
             if (element) {
                 const topPos = element.getBoundingClientRect().top + window.scrollY;
                 window.scrollTo({
                     top: topPos, // scroll so that the element is at the top of the view
-                    behavior: 'smooth' // smooth scroll
+                    behavior: 'smooth', // smooth scroll
                 });
             }
         }
@@ -135,16 +151,18 @@ const BiblePassage: React.FC<BiblePassageProps> = ({
     const scrollToTop = () => {
         window.scrollTo({
             top: 0,
-            behavior: 'smooth'
+            behavior: 'smooth',
         });
     };
 
-    const translationName = translationsShortNms.find(t => t.code === translation)?.translationName || '';
+    const translationName =
+        translationsShortNms.find((t) => t.code === translation)?.translationName ||
+        '';
 
     const handleVerseSelect = (verseNumber: number) => {
-        setSelectedVerses(prev => {
+        setSelectedVerses((prev) => {
             if (prev.includes(verseNumber)) {
-                return prev.filter(v => v !== verseNumber);
+                return prev.filter((v) => v !== verseNumber);
             }
             if (prev.length < 2) {
                 return [...prev, verseNumber].sort((a, b) => a - b);
@@ -163,19 +181,15 @@ const BiblePassage: React.FC<BiblePassageProps> = ({
             // this was triggered by clicking on the floating icon to copy verses
             const success = handleCopyVerseRange(startVerse, endVerse, passage);
             if (success) {
-                setToastMessage('Passage copied to clipboard!');
-                setToastBg('#28a745');
-                setShowToast(true);
+                showToast({message: 'Passage copied to clipboard!', variant: 'success'});
             } else {
-                setToastMessage('Failed to copy text');
-                setToastBg('#dc3545');
-                setShowToast(true);
+                showToast({message: 'Failed to copy text', variant: 'error'});
             }
             setInternalVerseModal(false);
             // Restore scroll position
             window.scrollTo({
                 top: lastScrollPosition,
-                behavior: 'smooth'
+                behavior: 'smooth',
             });
         } else {
             if (onVerseSelection) {
@@ -193,7 +207,7 @@ const BiblePassage: React.FC<BiblePassageProps> = ({
             // Restore scroll position
             window.scrollTo({
                 top: lastScrollPosition,
-                behavior: 'smooth'
+                behavior: 'smooth',
             });
         } else {
             onVerseModalClose?.();
@@ -201,7 +215,7 @@ const BiblePassage: React.FC<BiblePassageProps> = ({
     };
 
     const getVerseText = (verse: any) => {
-        return verse.verseParts.map(part => part.verseText).join(' ');
+        return verse.verseParts.map((part) => part.verseText).join(' ');
     };
 
     const handleCopyClick = () => {
@@ -210,15 +224,15 @@ const BiblePassage: React.FC<BiblePassageProps> = ({
 
         // If there's only one verse, copy it directly
         if (passage.startVerse === passage.endVerse) {
-            const success = handleCopyVerseRange(passage.startVerse, passage.endVerse, passage);
+            const success = handleCopyVerseRange(
+                passage.startVerse,
+                passage.endVerse,
+                passage
+            );
             if (success) {
-                setToastMessage('Passage copied to clipboard!');
-                setToastBg('#28a745');
-                setShowToast(true);
+                showToast({message: 'Passage copied to clipboard!', variant: 'success'});
             } else {
-                setToastMessage('Failed to copy text');
-                setToastBg('#dc3545');
-                setShowToast(true);
+                showToast({message: 'Failed to copy text', variant: 'error'});
             }
         } else {
             setInternalVerseModal(true);
@@ -230,9 +244,13 @@ const BiblePassage: React.FC<BiblePassageProps> = ({
                     let targetVerse = null;
 
                     // Find the first verse that's currently visible in the viewport
-                    verses.forEach(verse => {
+                    verses.forEach((verse) => {
                         const rect = verse.getBoundingClientRect();
-                        if (rect.top >= 0 && rect.bottom <= window.innerHeight && !targetVerse) {
+                        if (
+                            rect.top >= 0 &&
+                            rect.bottom <= window.innerHeight &&
+                            !targetVerse
+                        ) {
                             targetVerse = verse;
                         }
                     });
@@ -259,13 +277,19 @@ const BiblePassage: React.FC<BiblePassageProps> = ({
     }
 
     if (showVerseText && !localPassage.verses) {
-        return <Container className="text-white text-center">Loading passage...</Container>;
+        return (
+            <Container className="text-white text-center">
+                Loading passage...
+            </Container>
+        );
     }
 
     const getPassageReference = () => {
         const baseRef = `${displayBookName} ${displayChapter}:${displayStartVerse}`;
         if (displayEndVerse !== displayStartVerse) {
-            return `${baseRef}-${displayEndVerse}${localPassage.passageRefAppendLetter || ''}`;
+            return `${baseRef}-${displayEndVerse}${
+                localPassage.passageRefAppendLetter || ''
+            }`;
         }
         return `${baseRef}${localPassage.passageRefAppendLetter || ''}`;
     };
@@ -275,7 +299,8 @@ const BiblePassage: React.FC<BiblePassageProps> = ({
             <Container className="text-center">
                 {showPassageRef && (
                     <h2 className="passage-title mb-4 fw-bolder">
-                        {getPassageReference()} (<span style={{color: '#B0E0E6'}}>{translationName}</span>)
+                        {getPassageReference()} (
+                        <span style={{color: '#B0E0E6'}}>{translationName}</span>)
                     </h2>
                 )}
                 {showVerseText && localPassage.verses && (
@@ -283,9 +308,12 @@ const BiblePassage: React.FC<BiblePassageProps> = ({
                         {localPassage.verses.map((verse) => (
                             <React.Fragment key={verse.verseParts[0].verseNumber}>
                                 {showVerseNumbers && localPassage.verses.length > 1 && (
-                                    <span id={"" + verse.verseParts[0].verseNumber} className="verse-number me-2">
-                                        {verse.verseParts[0].verseNumber}
-                                    </span>
+                                    <span
+                                        id={'' + verse.verseParts[0].verseNumber}
+                                        className="verse-number me-2"
+                                    >
+                    {verse.verseParts[0].verseNumber}
+                  </span>
                                 )}
                                 {verse.verseParts.map((part, index) => (
                                     <span
@@ -294,13 +322,15 @@ const BiblePassage: React.FC<BiblePassageProps> = ({
                                             part.wordsOfChrist ? 'words-of-christ' : 'verse-text'
                                         } fw-bold`}
                                         style={{
-                                            backgroundColor: highlightedVerses.includes(verse.verseParts[0].verseNumber)
+                                            backgroundColor: highlightedVerses.includes(
+                                                verse.verseParts[0].verseNumber
+                                            )
                                                 ? '#ff8c00'
-                                                : 'transparent'
+                                                : 'transparent',
                                         }}
                                     >
-                                        {part.verseText}{' '}
-                                    </span>
+                    {part.verseText}{' '}
+                  </span>
                                 ))}
                             </React.Fragment>
                         ))}
@@ -315,7 +345,7 @@ const BiblePassage: React.FC<BiblePassageProps> = ({
                         right: '20px',
                         display: 'flex',
                         gap: '10px',
-                        zIndex: 1000
+                        zIndex: 1000,
                     }}
                 >
                     <Button
@@ -337,27 +367,24 @@ const BiblePassage: React.FC<BiblePassageProps> = ({
                 </div>
             )}
             <Toast
-                onClose={() => setShowToast(false)}
-                show={showToast}
-                delay={3000}
-                autohide
-                style={{
-                    position: 'fixed',
-                    top: 20,
-                    left: 20,
-                    background: toastBg,
-                    color: 'white',
-                }}
+                {...toastProps}
             >
                 <Toast.Body>{toastMessage}</Toast.Body>
             </Toast>
-            <Modal show={showVerseModal || internalVerseModal} onHide={handleCloseModal} size="lg">
+            <Modal
+                show={showVerseModal || internalVerseModal}
+                onHide={handleCloseModal}
+                size="lg"
+            >
                 <Modal.Header closeButton>
                     <Modal.Title>Select Verses</Modal.Title>
                 </Modal.Header>
-                <Modal.Body style={{position: 'relative', maxHeight: '60vh', overflowY: 'auto'}}>
+                <Modal.Body
+                    style={{position: 'relative', maxHeight: '60vh', overflowY: 'auto'}}
+                >
                     <p className="text-muted mb-3">
-                        Select one verse for a single verse, or two verses to define a range.
+                        Select one verse for a single verse, or two verses to define a
+                        range.
                     </p>
                     <div className="d-flex flex-column gap-2">
                         {localPassage.verses?.map((verse) => (
@@ -365,8 +392,12 @@ const BiblePassage: React.FC<BiblePassageProps> = ({
                                 key={verse.verseParts[0].verseNumber}
                                 type="checkbox"
                                 id={`verse-${verse.verseParts[0].verseNumber}`}
-                                checked={selectedVerses.includes(verse.verseParts[0].verseNumber)}
-                                onChange={() => handleVerseSelect(verse.verseParts[0].verseNumber)}
+                                checked={selectedVerses.includes(
+                                    verse.verseParts[0].verseNumber
+                                )}
+                                onChange={() =>
+                                    handleVerseSelect(verse.verseParts[0].verseNumber)
+                                }
                                 label={
                                     <div>
                                         <strong>{verse.verseParts[0].verseNumber}</strong>
