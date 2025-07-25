@@ -1,11 +1,11 @@
 import React, {useState, useEffect, useMemo} from 'react';
-import {Container, Form, InputGroup, Spinner, Collapse, Button} from 'react-bootstrap';
+import {Container, Form, InputGroup, Spinner, Collapse, Button, Toast} from 'react-bootstrap';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import {faChevronDown, faChevronRight, faSearch, faTimes} from '@fortawesome/free-solid-svg-icons';
+import {faChevronDown, faChevronRight, faCopy, faSearch, faTimes} from '@fortawesome/free-solid-svg-icons';
 import {useAppSelector} from '../store/hooks';
 import {bibleService} from '../services/bible-service';
 import {Passage} from '../models/passage';
-import {getPassageReference} from '../models/passage-utils';
+import {getPassageReference, handleCopyPassage} from '../models/passage-utils';
 
 const MemoryPassages: React.FC = () => {
     const [passages, setPassages] = useState<Passage[]>([]);
@@ -14,6 +14,9 @@ const MemoryPassages: React.FC = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [loadingPassageIds, setLoadingPassageIds] = useState<Set<number>>(new Set());
+    const [showToast, setShowToast] = useState(false);
+    const [toastMessage, setToastMessage] = useState('');
+    const [toastBg, setToastBg] = useState('#28a745');
 
     const user = useAppSelector(state => state.user.currentUser);
 
@@ -184,6 +187,26 @@ const MemoryPassages: React.FC = () => {
                             <div className="mt-3">
                                 <p className="mb-0 quote-text">
                                     {passageTexts.get(passage.passageId)}
+                                    <Button
+                                        variant="primary"
+                                        size="lg"
+                                        className="text-white p-0 ms-2 me-2"
+                                        onClick={() => {
+                                            handleCopyPassage(passage, passageTexts.get(passage.passageId)).then(success => {
+                                                if (success) {
+                                                    setToastMessage('Passage copied to clipboard!');
+                                                    setToastBg('#28a745');
+                                                    setShowToast(true);
+                                                } else {
+                                                    setToastMessage('Failed to copy text');
+                                                    setToastBg('#dc3545');
+                                                    setShowToast(true);
+                                                }
+                                            });
+                                        }}
+                                    >
+                                        <FontAwesomeIcon icon={faCopy}/>
+                                    </Button>
                                 </p>
                             </div>
                         </Collapse>
@@ -196,6 +219,22 @@ const MemoryPassages: React.FC = () => {
                     {searchTerm ? 'No passages match your search.' : 'No memory passages found.'}
                 </p>
             )}
+            <Toast
+                onClose={() => setShowToast(false)}
+                show={showToast}
+                delay={3000}
+                autohide
+                style={{
+                    position: 'fixed',
+                    top: 20,
+                    left: 20,
+                    //right: 20,
+                    background: toastBg,
+                    color: 'white',
+                }}
+            >
+                <Toast.Body>{toastMessage}</Toast.Body>
+            </Toast>
         </Container>
     );
 };

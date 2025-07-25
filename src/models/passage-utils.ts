@@ -304,6 +304,24 @@ export const updateLastPracticedDate = (
     console.log("passage-utils.updateLastPracticedDate - Here is the list of sorted prayers:", prayers);
 };
 
+export const handleCopyPassage = async (psg: Passage, psgText: string = null): Promise<boolean> => {
+    // Now copy the text with the newly loaded verses
+    const passageRef = getPassageReference(psg);
+    let verseText: string;
+    if (psgText) {
+        verseText = psgText;
+    } else {
+        verseText = getUnformattedPassageTextNoVerseNumbers(psg);
+    }
+    const textToCopy = `${passageRef}\n\n${verseText}`;
+    try {
+        await navigator.clipboard.writeText(textToCopy);
+        return true;
+    } catch (err) {
+        console.error('Failed to copy text:', err);
+        return false;
+    }
+};
 export const handleCopyVerseRange = async (
     startVerse: number,
     endVerse: number,
@@ -512,7 +530,7 @@ const isInteger = (str: string): boolean => {
     return /^-?\d+$/.test(str);
 }
 
-export const getNewSuggestions = (passageRef: string, selectedMatch: boolean=false) => {
+export const getNewSuggestions = (passageRef: string, selectedMatch: boolean = false) => {
     const trimmedSearchTerm = passageRef ? passageRef.trim() : undefined;
     if (!trimmedSearchTerm) {
         return [];

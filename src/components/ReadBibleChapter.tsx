@@ -341,7 +341,7 @@ const ReadBibleChapter = () => {
                 style={{
                     position: 'fixed',
                     top: 20,
-                    right: 20,
+                    left: 20,
                     background: toastBg,
                     color: 'white',
                 }}
