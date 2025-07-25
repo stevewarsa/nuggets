@@ -72,6 +72,7 @@ const Prayers: React.FC = () => {
         prayerList: Prayer[],
         prayerSessions: PrayerSession[]
     ) => {
+        prayerList = prayerList.filter(p => p.archiveFl === "N");
         updateLastPracticedDate(prayerSessions, prayerList);
         const prayedTodayIds = new Set<number>();
         const today = format(new Date(), 'yyyy-MM-dd');
