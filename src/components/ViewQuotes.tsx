@@ -65,6 +65,7 @@ const ViewQuotes = () => {
     const topicsLoading = useAppSelector((state) => state.topic.loading);
     const topicsError = useAppSelector((state) => state.topic.error);
     const storedQuotes = useAppSelector((state) => state.quote.quotes);
+    const quotesHaveBeenLoaded = useAppSelector((state) => state.quote.hasBeenLoaded);
     const searchState = useAppSelector((state) => state.search);
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
@@ -242,7 +243,8 @@ const ViewQuotes = () => {
             setQuotes(searchResults);
             setCurrentQuote(searchResults[0]);
             setIsLoading(false);
-        } else if (storedQuotes?.length > 0) {
+        } else if (quotesHaveBeenLoaded && storedQuotes?.length > 0) {
+            // Only use stored quotes if they have been properly loaded
             const locStoredQuotes = [...storedQuotes];
             shuffleArray(locStoredQuotes);
             setAllQuotes(locStoredQuotes);
@@ -250,12 +252,13 @@ const ViewQuotes = () => {
             setCurrentQuote(locStoredQuotes[0]);
             setIsLoading(false);
         } else {
+            // Always fetch quotes if they haven't been loaded yet
             if (user) {
                 fetchQuotes();
             }
         }
         return () => clearInterval(loadingInterval);
-    }, [user, searchState, storedQuotes]);
+    }, [user, searchState, storedQuotes, quotesHaveBeenLoaded]);
 
     useEffect(() => {
         // Fetch topics if they're not already in the store
@@ -551,7 +554,7 @@ const ViewQuotes = () => {
     if (isLoading && !currentQuote) {
         return (
             <Container className="p-4 text-white text-center">
-                <Spinner animation="border" role="status\" className="me-2"/>
+                <Spinner animation="border" role="status" className="me-2"/>
                 <span>Loading quotes... ({loadingSeconds} seconds)</span>
             </Container>
         );
@@ -668,7 +671,7 @@ const ViewQuotes = () => {
 
             {isLoading ? (
                 <div className="text-white text-center mt-4">
-                    <Spinner animation="border" role="status\" className="me-2"/>
+                    <Spinner animation="border" role="status" className="me-2"/>
                     <span>Loading quote... ({loadingSeconds} seconds)</span>
                 </div>
             ) : (
@@ -831,7 +834,7 @@ const ViewQuotes = () => {
                 <Modal.Body className="bg-dark text-white">
                     {topicsLoading ? (
                         <div className="text-center p-4">
-                            <Spinner animation="border" role="status\" className="me-2"/>
+                            <Spinner animation="border" role="status" className="me-2"/>
                             <span>Loading topics...</span>
                         </div>
                     ) : (
@@ -1019,7 +1022,7 @@ const ViewQuotes = () => {
                 <Modal.Body className="bg-dark text-white">
                     {topicsLoading ? (
                         <div className="text-center p-4">
-                            <Spinner animation="border" role="status\" className="me-2"/>
+                            <Spinner animation="border" role="status" className="me-2"/>
                             <span>Loading topics...</span>
                         </div>
                     ) : (
