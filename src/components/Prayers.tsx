@@ -5,6 +5,7 @@ import {
     Button,
     Modal,
     Form,
+    InputGroup,
     Spinner,
     Toast,
 } from 'react-bootstrap';
@@ -17,6 +18,8 @@ import {
     faHistory,
     faArchive,
     faEyeSlash,
+    faSearch,
+    faTimes,
 } from '@fortawesome/free-solid-svg-icons';
 import {bibleService} from '../services/bible-service';
 import {useAppSelector} from '../store/hooks';
@@ -46,6 +49,7 @@ const Prayers: React.FC = () => {
     );
     const [prayedTodaySet, setPrayedTodaySet] = useState<Set<number>>(new Set());
     const [showArchived, setShowArchived] = useState(false);
+    const [searchTerm, setSearchTerm] = useState('');
     const {showToast, toastProps, toastMessage} = useToast();
 
     const user = useAppSelector((state) => state.user.currentUser);
@@ -227,6 +231,18 @@ const Prayers: React.FC = () => {
         }
     };
 
+    // Filter prayers based on search term
+    const filteredPrayers = prayers.filter(prayer => {
+        if (!searchTerm.trim()) return true;
+
+        const searchLower = searchTerm.toLowerCase();
+        return (
+            prayer.prayerTitleTx?.toLowerCase().includes(searchLower) ||
+            prayer.prayerDetailsTx?.toLowerCase().includes(searchLower) ||
+            prayer.prayerSubjectPersonName?.toLowerCase().includes(searchLower)
+        );
+    });
+
     return (
         <Container className="py-4">
             {isLoading ? (
@@ -255,8 +271,37 @@ const Prayers: React.FC = () => {
                         </div>
                     </div>
 
+                    {/* Search Filter */}
+                    <div className="mb-4">
+                        <InputGroup>
+                            <InputGroup.Text className="bg-dark text-white border-secondary">
+                                <FontAwesomeIcon icon={faSearch}/>
+                            </InputGroup.Text>
+                            <Form.Control
+                                type="text"
+                                placeholder="Search prayers..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="bg-dark text-white border-secondary"
+                            />
+                            {searchTerm && (
+                                <Button
+                                    variant="outline-secondary"
+                                    onClick={() => setSearchTerm('')}
+                                >
+                                    <FontAwesomeIcon icon={faTimes}/>
+                                </Button>
+                            )}
+                        </InputGroup>
+                        {searchTerm && (
+                            <Form.Text className="text-white-50">
+                                Showing {filteredPrayers.length} of {prayers.length} prayers
+                            </Form.Text>
+                        )}
+                    </div>
+
                     <div className="row g-4">
-                        {prayers.map((prayer) => (
+                        {filteredPrayers.map((prayer) => (
                             <div key={prayer.prayerId} className="col-12">
                                 <Card bg="dark" text="white">
                                     <Card.Header>
@@ -353,6 +398,18 @@ const Prayers: React.FC = () => {
                             </div>
                         ))}
                     </div>
+
+                    {filteredPrayers.length === 0 && prayers.length > 0 && (
+                        <div className="text-center text-white mt-4">
+                            <p>No prayers match your search criteria.</p>
+                            <Button
+                                variant="outline-light"
+                                onClick={() => setSearchTerm('')}
+                            >
+                                Clear Search
+                            </Button>
+                        </div>
+                    )}
                 </>
             )}
 
