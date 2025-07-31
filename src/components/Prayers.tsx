@@ -15,6 +15,8 @@ import {
     faTrash,
     faPray,
     faHistory,
+    faArchive,
+    faEyeSlash,
 } from '@fortawesome/free-solid-svg-icons';
 import {bibleService} from '../services/bible-service';
 import {useAppSelector} from '../store/hooks';
@@ -43,6 +45,7 @@ const Prayers: React.FC = () => {
         new Set()
     );
     const [prayedTodaySet, setPrayedTodaySet] = useState<Set<number>>(new Set());
+    const [showArchived, setShowArchived] = useState(false);
     const {showToast, toastProps, toastMessage} = useToast();
 
     const user = useAppSelector((state) => state.user.currentUser);
@@ -72,7 +75,10 @@ const Prayers: React.FC = () => {
         prayerList: Prayer[],
         prayerSessions: PrayerSession[]
     ) => {
-        prayerList = prayerList.filter(p => p.archiveFl === "N");
+        // Filter based on showArchived state
+        prayerList = showArchived
+            ? prayerList.filter((p) => p.archiveFl === 'Y')
+            : prayerList.filter((p) => p.archiveFl === 'N');
         updateLastPracticedDate(prayerSessions, prayerList);
         const prayedTodayIds = new Set<number>();
         const today = format(new Date(), 'yyyy-MM-dd');
@@ -89,6 +95,16 @@ const Prayers: React.FC = () => {
         setPrayedTodaySet(prayedTodayIds);
         setPrayers(prayerList);
     };
+
+    // Re-process prayers when showArchived changes
+    useEffect(() => {
+        if (prayerHistory.length > 0) {
+            // Get all prayers again from the API when toggling
+            bibleService.getAllPrayers(user).then((allPrayersList) => {
+                processPrayers(allPrayersList, prayerHistory);
+            });
+        }
+    }, [showArchived]);
 
     const togglePrayerExpansion = (prayerId: number) => {
         setExpandedPrayers((prev) => {
@@ -221,11 +237,22 @@ const Prayers: React.FC = () => {
             ) : (
                 <>
                     <div className="d-flex justify-content-between align-items-center mb-4">
-                        <h1 className="text-white">Prayers</h1>
-                        <Button variant="primary" onClick={handleAddPrayer}>
-                            <FontAwesomeIcon icon={faPlus} className="me-2"/>
-                            Add Prayer
-                        </Button>
+                        <h1 className="text-white">
+                            {showArchived ? 'Archived Prayers' : 'Prayers'}
+                        </h1>
+                        <div className="d-flex gap-2">
+                            <Button
+                                variant={showArchived ? "warning" : "outline-secondary"}
+                                onClick={() => setShowArchived(!showArchived)}
+                                title={showArchived ? "Show Active Prayers" : "Show Archived Prayers"}
+                            >
+                                <FontAwesomeIcon icon={showArchived ? faEyeSlash : faArchive}/>
+                            </Button>
+                            <Button variant="primary" onClick={handleAddPrayer}>
+                                <FontAwesomeIcon icon={faPlus} className="me-2"/>
+                                Add Prayer
+                            </Button>
+                        </div>
                     </div>
 
                     <div className="row g-4">
@@ -316,7 +343,7 @@ const Prayers: React.FC = () => {
                                             </Card.Subtitle>
                                             <Card.Text
                                                 className="lead"
-                                                style={{whiteSpace: 'pre-line'}}
+                                                title={showArchived ? "Unarchive" : "Archive"}
                                             >
                                                 {prayer.prayerDetailsTx}
                                             </Card.Text>
@@ -466,9 +493,7 @@ const Prayers: React.FC = () => {
             </Modal>
 
             {/* Toast notification */}
-            <Toast
-                {...toastProps}
-            >
+            <Toast {...toastProps}>
                 <Toast.Body>{toastMessage}</Toast.Body>
             </Toast>
         </Container>
