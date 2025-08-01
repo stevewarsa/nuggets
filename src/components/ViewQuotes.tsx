@@ -89,12 +89,16 @@ const ViewQuotes = () => {
 
     const copyCurrentQuote = async () => {
         if (currentQuote?.quoteTx) {
+            const debugLog: string[] = [];
             try {
+                debugLog.push("Ready to call 'await navigator.clipboard.writeText'...");
                 await navigator.clipboard.writeText(currentQuote.quoteTx);
+                debugLog.push("Called 'await navigator.clipboard.writeText'!!");
                 showToast({message: 'Quote copied to clipboard!', variant: 'success'});
-            } catch (err) {
-                console.error('Failed to copy text:', err);
-                showToast({message: 'Failed to copy text', variant: 'error'});
+            } catch (e) {
+                debugLog.push(`Error occurred: ${e?.message || e?.toString() || 'Unknown error'}`);
+                console.error('Failed to copy text:', e);
+                showToast({message: `Failed to copy quote to clipboard. Debug info:\n${debugLog.map((msg, index) => `${index + 1}. ${msg}`).join('\n')}`, variant: 'error'});
             }
         }
     };

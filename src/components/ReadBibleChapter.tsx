@@ -162,13 +162,14 @@ const ReadBibleChapter = () => {
         if (!passage || !book) return;
 
         if (copyMode) {
-            const success = handleCopyVerseRange(startVerse, endVerse, passage);
-            if (success) {
-                showToast({message: 'Passage copied to clipboard!', variant: 'success'});
-            } else {
-                showToast({message: 'Failed to copy text', variant: 'error'});
-            }
-            setCopyMode(false);
+            handleCopyVerseRange(startVerse, endVerse, passage).then(errorMsg => {
+                if (!errorMsg) {
+                    showToast({message: 'Passage copied to clipboard!', variant: 'success'});
+                } else {
+                    showToast({message: errorMsg, variant: 'error'});
+                }
+                setCopyMode(false);
+            });
         } else if (bibleHubMode) {
             const bibleHubPassage = {
                 ...passage,

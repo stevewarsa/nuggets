@@ -179,17 +179,18 @@ const BiblePassage: React.FC<BiblePassageProps> = ({
         const endVerse = selectedVerses.length > 1 ? selectedVerses[1] : startVerse;
         if (internalVerseModal) {
             // this was triggered by clicking on the floating icon to copy verses
-            const success = handleCopyVerseRange(startVerse, endVerse, passage);
-            if (success) {
-                showToast({message: 'Passage copied to clipboard!', variant: 'success'});
-            } else {
-                showToast({message: 'Failed to copy text', variant: 'error'});
-            }
-            setInternalVerseModal(false);
-            // Restore scroll position
-            window.scrollTo({
-                top: lastScrollPosition,
-                behavior: 'smooth',
+            handleCopyVerseRange(startVerse, endVerse, passage).then(errorMsg => {
+                if (!errorMsg) {
+                    showToast({message: 'Passage copied to clipboard!', variant: 'success'});
+                } else {
+                    showToast({message: errorMsg, variant: 'error'});
+                }
+                setInternalVerseModal(false);
+                // Restore scroll position
+                window.scrollTo({
+                    top: lastScrollPosition,
+                    behavior: 'smooth',
+                });
             });
         } else {
             if (onVerseSelection) {
@@ -224,16 +225,17 @@ const BiblePassage: React.FC<BiblePassageProps> = ({
 
         // If there's only one verse, copy it directly
         if (passage.startVerse === passage.endVerse) {
-            const success = handleCopyVerseRange(
+            handleCopyVerseRange(
                 passage.startVerse,
                 passage.endVerse,
                 passage
-            );
-            if (success) {
-                showToast({message: 'Passage copied to clipboard!', variant: 'success'});
-            } else {
-                showToast({message: 'Failed to copy text', variant: 'error'});
-            }
+            ).then(errorMsg => {
+                if (!errorMsg) {
+                    showToast({message: 'Passage copied to clipboard!', variant: 'success'});
+                } else {
+                    showToast({message: errorMsg, variant: 'error'});
+                }
+            });
         } else {
             setInternalVerseModal(true);
             // After modal is shown, scroll to match the current viewport position

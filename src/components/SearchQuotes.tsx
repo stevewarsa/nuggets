@@ -95,9 +95,9 @@ const SearchQuotes: React.FC = () => {
         try {
             await navigator.clipboard.writeText(quoteText);
             showToast({message: 'Quote copied to clipboard!', variant: 'success'});
-        } catch (err) {
-            console.error('Failed to copy text:', err);
-            showToast({message: 'Failed to copy text', variant: 'error'});
+        } catch (e) {
+            console.error('Failed to copy text:', e);
+            showToast({message: `Error occurred copying quote: ${e?.message || e?.toString() || 'Unknown error'}`, variant: 'error'});
         }
     };
 

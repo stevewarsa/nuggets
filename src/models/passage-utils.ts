@@ -326,7 +326,7 @@ export const handleCopyVerseRange = async (
     startVerse: number,
     endVerse: number,
     psg: Passage
-) => {
+): Promise<string> => {
     if (!psg || !psg.verses) return;
 
     const selectedVerses = psg.verses.filter((verse) => {
@@ -346,14 +346,17 @@ export const handleCopyVerseRange = async (
             verseText += part.verseText + ' ';
         });
     });
-
+    const debugLog: string[] = [];
     const textToCopy = `${reference}\n\n${verseText.trim()}`;
     try {
+        debugLog.push("Ready to call 'await navigator.clipboard.writeText'...");
         await navigator.clipboard.writeText(textToCopy);
-        return true;
-    } catch (err) {
-        console.error('Failed to copy text:', err);
-        return false;
+        debugLog.push("Called 'await navigator.clipboard.writeText'!!");
+        return undefined;
+    } catch (e) {
+        debugLog.push(`Error occurred: ${e?.message || e?.toString() || 'Unknown error'}`);
+        console.error('Failed to copy text:', e);
+        return `Failed to copy passage to clipboard. Debug info:\n${debugLog.map((msg, index) => `${index + 1}. ${msg}`).join('\n')}`;
     }
 };
 

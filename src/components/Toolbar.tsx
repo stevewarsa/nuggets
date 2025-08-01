@@ -86,12 +86,16 @@ const Toolbar: React.FC<ToolbarProps> = ({
             const verseText = getUnformattedText(currentPassage);
             const textToCopy = `${passageRef}\n\n${verseText}`;
 
+            const debugLog: string[] = [];
             try {
+                debugLog.push("Ready to call 'await navigator.clipboard.writeText'...");
                 await navigator.clipboard.writeText(textToCopy);
+                debugLog.push("Called 'await navigator.clipboard.writeText'!!");
                 showToast({message: 'Passage copied to clipboard!', variant: 'success'});
-            } catch (err) {
-                console.error('Failed to copy text:', err);
-                showToast({message: 'Failed to copy text', variant: 'error'});
+            } catch (e) {
+                debugLog.push(`Error occurred: ${e?.message || e?.toString() || 'Unknown error'}`);
+                console.error('Failed to copy text:', e);
+                showToast({message: `Failed to copy passage to clipboard. Debug info:\n${debugLog.map((msg, index) => `${index + 1}. ${msg}`).join('\n')}`, variant: 'error'});
             }
         }
     };

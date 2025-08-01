@@ -437,9 +437,9 @@ const Practice = () => {
                 try {
                     await navigator.clipboard.writeText(textToCopy);
                     showToast({message: 'Passage copied to clipboard!', variant: 'success'});
-                } catch (err) {
-                    console.error('Failed to copy text:', err);
-                    showToast({message: 'Failed to copy text', variant: 'error'});
+                } catch (e) {
+                    console.error('Failed to copy text:', e);
+                    showToast({message: `Error occurred copying text: ${e?.message || e?.toString() || 'Unknown error'}`, variant: 'error'});
                 }
             } catch (error) {
                 console.error('Error loading verses:', error);
@@ -454,9 +454,9 @@ const Practice = () => {
             try {
                 await navigator.clipboard.writeText(textToCopy);
                 showToast({message: 'Passage copied to clipboard!', variant: 'success'});
-            } catch (err) {
-                console.error('Failed to copy text:', err);
-                showToast({message: 'Failed to copy text', variant: 'error'});
+            } catch (e) {
+                console.error('Failed to copy text:', e);
+                showToast({message: `Error occurred copying text: ${e?.message || e?.toString() || 'Unknown error'}`, variant: 'error'});
             }
         }
     };
