@@ -92,7 +92,8 @@ export class BibleService {
             const response = await axios.get(
                 `${BibleService.BASE_URL}get_all_users.php`
             );
-            return response.data;
+            // Ensure response.data is an array before returning
+            return Array.isArray(response.data) ? response.data : [];
         } catch (error) {
             return this.handleError(error, 'fetching users');
         }

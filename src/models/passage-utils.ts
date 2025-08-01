@@ -11,7 +11,7 @@ import {StringUtils} from './string.utils';
 import {bookAbbrev, booksByNum, getMaxChapterByBook, getMaxVerse, TRANSLATION} from './constants';
 import {Passage} from './passage';
 import {Prayer, PrayerSession} from "./prayer";
-import {isBefore, parse, parseISO} from "date-fns";
+import {format, isBefore, parse, parseISO} from "date-fns";
 
 export const RAND: string = 'rand';
 export const BY_FREQ: string = 'by_freq';
@@ -267,10 +267,11 @@ export const getPrayerIdsSortedByLeastRecentPrayerDate = (
 };
 
 export const updateLastPracticedDate = (
-    prayerSessions: PrayerSession[], prayers: Prayer[]
+    prayerSessions: PrayerSession[],
+    prayers: Prayer[]
 ) => {
     const prayersById: { [prayerId: number]: Prayer } = {};
-    prayers.forEach(p => prayersById[p.prayerId] = p);
+    prayers.forEach((p) => (prayersById[p.prayerId] = p));
 
     for (const session of prayerSessions) {
         const currPrayer: Prayer = prayersById[session.prayerId];
@@ -278,30 +279,62 @@ export const updateLastPracticedDate = (
             continue;
         }
         const sessionDate = parseISO(session.dateTime);
+        // Extract only the date part (YYYY-MM-DD format)
+        const sessionDateOnly = format(sessionDate, 'yyyy-MM-dd');
+
         if (!currPrayer.mostRecentPrayerDate) {
-            currPrayer.mostRecentPrayerDate = session.dateTime;
+            currPrayer.mostRecentPrayerDate = sessionDateOnly;
         } else {
-            const currPrayerLastPrayedDate = parseISO(currPrayer.mostRecentPrayerDate);
+            const currPrayerLastPrayedDate = parseISO(
+                currPrayer.mostRecentPrayerDate
+            );
             if (isBefore(currPrayerLastPrayedDate, sessionDate)) {
-                currPrayer.mostRecentPrayerDate = session.dateTime;
+                currPrayer.mostRecentPrayerDate = sessionDateOnly;
             }
         }
     }
-    prayers.sort((a, b) => {
-        const dateA = a.mostRecentPrayerDate
-            ? parse(a.mostRecentPrayerDate, 'yyyy-MM-dd', new Date())
-            : null;
-        const dateB = b.mostRecentPrayerDate
-            ? parse(b.mostRecentPrayerDate, 'yyyy-MM-dd', new Date())
-            : null;
 
-        if (!dateA && !dateB) return 0;
-        if (!dateA) return -1; // a comes first
-        if (!dateB) return 1;  // b comes first
+    // Group prayers by mostRecentPrayerDate
+    const prayersByDate: { [date: string]: Prayer[] } = {};
+
+    prayers.forEach(prayer => {
+        const dateKey = prayer.mostRecentPrayerDate || 'no-date';
+        if (!prayersByDate[dateKey]) {
+            prayersByDate[dateKey] = [];
+        }
+        prayersByDate[dateKey].push(prayer);
+    });
+
+    // Randomize prayers within each date group
+    Object.keys(prayersByDate).forEach(dateKey => {
+        shuffleArray(prayersByDate[dateKey]);
+    });
+
+    // Sort date keys ascending (oldest first), with 'no-date' at the beginning
+    const sortedDateKeys = Object.keys(prayersByDate).sort((a, b) => {
+        if (a === 'no-date') return -1;
+        if (b === 'no-date') return 1;
+
+        const dateA = parse(a, 'yyyy-MM-dd', new Date());
+        const dateB = parse(b, 'yyyy-MM-dd', new Date());
 
         return dateA.getTime() - dateB.getTime();
     });
-    console.log("passage-utils.updateLastPracticedDate - Here is the list of sorted prayers:", prayers);
+
+    // Build the final sorted and randomized prayer array
+    const sortedPrayers: Prayer[] = [];
+    sortedDateKeys.forEach(dateKey => {
+        sortedPrayers.push(...prayersByDate[dateKey]);
+    });
+
+    // Replace the contents of the original prayers array
+    prayers.length = 0;
+    prayers.push(...sortedPrayers);
+
+    console.log(
+        'passage-utils.updateLastPracticedDate - Here is the list of sorted prayers:',
+        prayers
+    );
 };
 
 export const handleCopyPassage = async (psg: Passage, psgText: string = null): Promise<boolean> => {
