@@ -192,6 +192,21 @@ export class BibleService {
         }
     }
 
+    async addNewTopic(user: string, topicNm: string): Promise<{ topicId: number, message: string }> {
+        try {
+            const response = await axios.post(
+                `${BibleService.BASE_URL}add_new_topic.php`,
+                {
+                    user,
+                    topicNm
+                }
+            );
+            return response.data;
+        } catch (error) {
+            return this.handleError(error, 'adding new topic');
+        }
+    }
+
     async addPassageTopics(
         user: string,
         topicIds: number[],

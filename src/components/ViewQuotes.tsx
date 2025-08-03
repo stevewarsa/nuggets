@@ -18,11 +18,6 @@ import Toolbar from './Toolbar';
 import SwipeContainer from './SwipeContainer';
 import {shuffleArray} from '../models/passage-utils';
 import {useAppSelector, useAppDispatch} from '../store/hooks';
-import {
-    setTopics,
-    setTopicsLoading,
-    setTopicsError,
-} from '../store/topicSlice';
 import {clearSearchResults} from '../store/searchSlice';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {
@@ -33,10 +28,11 @@ import {
     faPencilAlt,
     faCopy,
     faArrowUp,
-    faRemove,
+    faRemove, faPlus,
 } from '@fortawesome/free-solid-svg-icons';
 import {useNavigate, useParams} from 'react-router-dom';
 import {useToast} from '../hooks/useToast';
+import {useTopics} from '../hooks/useTopics';
 
 const ViewQuotes = () => {
     const [allQuotes, setAllQuotes] = useState<Quote[]>([]);
@@ -58,14 +54,16 @@ const ViewQuotes = () => {
     const [showOnlyAssociatedTopics, setShowOnlyAssociatedTopics] =
         useState(true);
     const [showFloatingButtons, setShowFloatingButtons] = useState(false);
+    const [newTopicName, setNewTopicName] = useState('');
+    const [isCreatingTopic, setIsCreatingTopic] = useState(false);
     const {showToast, toastProps, toastMessage} = useToast();
 
     const user = useAppSelector((state) => state.user.currentUser);
-    const topics = useAppSelector((state) => state.topic.topics);
-    const topicsLoading = useAppSelector((state) => state.topic.loading);
-    const topicsError = useAppSelector((state) => state.topic.error);
+    const {topics, loading: topicsLoading, error: topicsError, addNewTopicAndAssociate} = useTopics();
     const storedQuotes = useAppSelector((state) => state.quote.quotes);
-    const quotesHaveBeenLoaded = useAppSelector((state) => state.quote.hasBeenLoaded);
+    const quotesHaveBeenLoaded = useAppSelector(
+        (state) => state.quote.hasBeenLoaded
+    );
     const searchState = useAppSelector((state) => state.search);
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
@@ -264,25 +262,6 @@ const ViewQuotes = () => {
         return () => clearInterval(loadingInterval);
     }, [user, searchState, storedQuotes, quotesHaveBeenLoaded]);
 
-    useEffect(() => {
-        // Fetch topics if they're not already in the store
-        if (topics.length === 0 && !topicsLoading && !topicsError) {
-            const fetchTopics = async () => {
-                try {
-                    dispatch(setTopicsLoading());
-                    const tagList = await bibleService.getTagList(user);
-                    dispatch(setTopics(tagList));
-                } catch (error) {
-                    console.error('Error fetching topics:', error);
-                    dispatch(setTopicsError('Failed to load topics'));
-                }
-            };
-            if (user) {
-                fetchTopics();
-            }
-        }
-    }, [user, topics.length, topicsLoading, topicsError, dispatch]);
-
     // Reset search term when modal is opened or closed
     useEffect(() => {
         if (!showFilterModal && !showAddTopicModal) {
@@ -295,6 +274,7 @@ const ViewQuotes = () => {
         if (showAddTopicModal && currentQuote) {
             // Initialize with current quote's topics
             setSelectedTopicsToAdd(currentQuote.tagIds || []);
+            setNewTopicName('');
         }
     }, [showAddTopicModal, currentQuote]);
 
@@ -552,6 +532,45 @@ const ViewQuotes = () => {
             showToast({message: 'Error updating quote', variant: 'error'});
         } finally {
             setIsUpdatingQuote(false);
+        }
+    };
+
+    // Check if new topic name matches existing topic
+    const isExistingTopic = newTopicName.trim() &&
+        topics.some(topic => topic.name.toLowerCase() === newTopicName.trim().toLowerCase());
+
+    const handleCreateNewTopic = async () => {
+        if (!currentQuote || !newTopicName.trim() || isExistingTopic) return;
+
+        setIsCreatingTopic(true);
+        try {
+            const result = await addNewTopicAndAssociate(newTopicName.trim(), currentQuote.quoteId);
+
+            if (result.success) {
+                showToast({
+                    message: 'New topic created and associated with quote!',
+                    variant: 'success',
+                });
+                setShowAddTopicModal(false);
+                setNewTopicName('');
+                setCurrentQuote(prev => {
+                    prev.tagIds.push(result.newTopic.id);
+                    return prev;
+                })
+            } else {
+                showToast({
+                    message: result.error || 'Failed to create topic',
+                    variant: 'error',
+                });
+            }
+        } catch (error) {
+            console.error('Error creating new topic:', error);
+            showToast({
+                message: 'Error creating new topic',
+                variant: 'error',
+            });
+        } finally {
+            setIsCreatingTopic(false);
         }
     };
 
@@ -1031,6 +1050,43 @@ const ViewQuotes = () => {
                         </div>
                     ) : (
                         <>
+                            {/* Add New Topic Section */}
+                            <div className="mb-4 p-3 border border-secondary rounded">
+                                <h6 className="mb-3">Create New Topic</h6>
+                                <InputGroup className="mb-2">
+                                    <Form.Control
+                                        type="text"
+                                        placeholder="Enter new topic name..."
+                                        value={newTopicName}
+                                        onChange={(e) => setNewTopicName(e.target.value)}
+                                        className="bg-dark text-white border-secondary"
+                                        disabled={isCreatingTopic}
+                                    />
+                                    <Button
+                                        variant="primary"
+                                        onClick={handleCreateNewTopic}
+                                        disabled={!newTopicName.trim() || isExistingTopic || isCreatingTopic}
+                                    >
+                                        {isCreatingTopic ? (
+                                            <Spinner
+                                                as="span"
+                                                animation="border"
+                                                size="sm"
+                                                role="status"
+                                                aria-hidden="true"
+                                            />
+                                        ) : (
+                                            <FontAwesomeIcon icon={faPlus}/>
+                                        )}
+                                    </Button>
+                                </InputGroup>
+                                {isExistingTopic && (
+                                    <Form.Text className="text-warning">
+                                        A topic with this name already exists
+                                    </Form.Text>
+                                )}
+                            </div>
+
                             <p className="mb-3">
                                 Select topics to associate with this quote. You can select
                                 multiple topics.
