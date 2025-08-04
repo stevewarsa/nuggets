@@ -52,7 +52,7 @@ const ViewQuotes = () => {
     const [selectedTopicsToAdd, setSelectedTopicsToAdd] = useState<number[]>([]);
     const [isAddingTopics, setIsAddingTopics] = useState(false);
     const [showOnlyAssociatedTopics, setShowOnlyAssociatedTopics] =
-        useState(true);
+        useState(false);
     const [showFloatingButtons, setShowFloatingButtons] = useState(false);
     const [newTopicName, setNewTopicName] = useState('');
     const [isCreatingTopic, setIsCreatingTopic] = useState(false);
@@ -152,7 +152,7 @@ const ViewQuotes = () => {
     const filteredTopics = useMemo(() => {
         if (!topics.length) return [];
 
-        let filtered = topics;
+        let filtered = [...topics];
 
         // First filter by search term if provided
         if (topicSearchTerm.trim()) {
