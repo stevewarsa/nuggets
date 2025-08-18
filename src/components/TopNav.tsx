@@ -127,14 +127,14 @@ const TopNav = () => {
                             >
                                 Go To Passage
                             </Nav.Link>
-                            {isMainUser && currentUser === 'SteveWarsa' && (
-                                <Nav.Link onClick={handleCopyToGuest}>
-                                    Copy This DB to Guest
-                                </Nav.Link>
-                            )}
                             {location.pathname !== '/browseBible' && (
                                 <Nav.Link onClick={() => handleNavigation('/browseBible')}>
                                     Browse Bible
+                                </Nav.Link>
+                            )}
+                            {location.pathname !== '/memoryPassages' && (
+                                <Nav.Link onClick={() => handleNavigation('/memoryPassages')}>
+                                    My Memory Passages
                                 </Nav.Link>
                             )}
                             {location.pathname !== '/memoryStats' && (
@@ -154,9 +154,9 @@ const TopNav = () => {
                                     Search Quotes
                                 </Nav.Link>
                             )}
-                            {location.pathname !== '/memoryPassages' && (
-                                <Nav.Link onClick={() => handleNavigation('/memoryPassages')}>
-                                    My Memory Passages
+                            {isMainUser && currentUser === 'SteveWarsa' && (
+                                <Nav.Link onClick={handleCopyToGuest}>
+                                    Copy This DB to Guest
                                 </Nav.Link>
                             )}
                             {location.pathname !== '/login' && (

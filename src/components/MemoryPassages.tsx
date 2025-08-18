@@ -205,7 +205,7 @@ const MemoryPassages: React.FC = () => {
                                     }
                                 />
                             </Button>
-                            <span>{getPassageReference(passage, false)}</span>
+                            <span>{getPassageReference(passage, false, true)}</span>
                             {loadingPassageIds.has(passage.passageId) && (
                                 <Spinner animation="border" size="sm" className="ms-2"/>
                             )}

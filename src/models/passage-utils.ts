@@ -8,7 +8,7 @@ import {
     faTags,
 } from '@fortawesome/free-solid-svg-icons';
 import {StringUtils} from './string.utils';
-import {bookAbbrev, booksByNum, getMaxChapterByBook, getMaxVerse, TRANSLATION} from './constants';
+import {bookAbbrev, booksByNum, getMaxChapterByBook, getMaxVerse, TRANSLATION, translationsShortNms} from './constants';
 import {Passage} from './passage';
 import {Prayer, PrayerSession} from "./prayer";
 import {format, isBefore, parse, parseISO} from "date-fns";
@@ -394,18 +394,21 @@ export const handleCopyVerseRange = async (
 };
 
 export const getPassageReference = (
-    currentPassage: Passage,
-    shortBook: boolean = true
+    currPsg: Passage,
+    shortBook: boolean = true,
+    includeTransl: boolean = false
 ) => {
-    if (!currentPassage) return '';
-    const bookName = getDisplayBookName(currentPassage.bookId, shortBook);
-    const baseRef = `${bookName} ${currentPassage.chapter}:${currentPassage.startVerse}`;
-    if (currentPassage.endVerse !== currentPassage.startVerse) {
-        return `${baseRef}-${currentPassage.endVerse}${
-            currentPassage.passageRefAppendLetter || ''
-        }`;
+    //console.log("passage-utils.getPassageReference - currPsg:", currPsg);
+    if (!currPsg) return '';
+    const bookName = getDisplayBookName(currPsg.bookId, shortBook);
+    const baseRef = `${bookName} ${currPsg.chapter}:${currPsg.startVerse}`;
+    const transNm =
+        translationsShortNms.find((t) => t.code === currPsg.translationName)?.translationName;
+    const transl = includeTransl && transNm ? '(' + transNm + ')' : '';
+    if (currPsg.endVerse !== currPsg.startVerse) {
+        return `${baseRef}-${currPsg.endVerse}${currPsg.passageRefAppendLetter || ''} ${transl}`;
     }
-    return `${baseRef}${currentPassage.passageRefAppendLetter || ''}`;
+    return `${baseRef}${currPsg.passageRefAppendLetter || ''} ${transl}`;
 };
 
 export const getBookName = (bookId: number) => {
