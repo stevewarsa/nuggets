@@ -579,7 +579,8 @@ export const getNewSuggestions = (passageRef: string, selectedMatch: boolean = f
         const [bookChapter, verse] = trimmedSearchTerm.split(":");
         const parts = bookChapter.trim().split(/\s+/);
         const chapter = parts[parts.length - 1].toLowerCase();
-        const fullBookName = parts.join(" ").replace(chapter, "").trim();
+        const fullBookName = parts.slice(0, -1).join(" ").trim();
+        //const fullBookName = parts.join(" ").replace(chapter, "").trim();
         const exactMatch = getExactBookNameMatch(fullBookName);
         const fullPassageRef = exactMatch && isInteger(chapter) && isInteger(verse);
         if (fullPassageRef && selectedMatch) {
@@ -611,7 +612,7 @@ export const getNewSuggestions = (passageRef: string, selectedMatch: boolean = f
     if (parts.length >= 2) {
         const lastPart = parts[parts.length - 1].toLowerCase();
         if (isInteger(lastPart)) {
-            const bookWithoutChapter = parts.join(" ").replace(lastPart, "");
+            const bookWithoutChapter = parts.slice(0, -1).join(" ");
             const exactMatch = getExactBookNameMatch(bookWithoutChapter);
             const bookName = exactMatch[0];
             const fullBookName = exactMatch[1][1];
