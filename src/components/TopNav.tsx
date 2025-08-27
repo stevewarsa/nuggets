@@ -137,6 +137,11 @@ const TopNav = () => {
                                     My Memory Passages
                                 </Nav.Link>
                             )}
+                            {location.pathname !== '/memoryPassagesByBox' && (
+                                <Nav.Link onClick={() => handleNavigation('/memoryPassagesByBox')}>
+                                    Memory Passages by Box
+                                </Nav.Link>
+                            )}
                             {location.pathname !== '/memoryStats' && (
                                 <Nav.Link onClick={() => handleNavigation('/memoryStats')}>
                                     Memory Stats

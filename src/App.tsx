@@ -26,6 +26,7 @@ import SearchQuotes from './components/SearchQuotes';
 import ProtectedRoute from './components/ProtectedRoute';
 import MemoryPassages from './components/MemoryPassages.tsx';
 import Prayers from './components/Prayers.tsx';
+import MemoryPassagesByBox from "./components/MemoryPassagesByBox.tsx";
 
 // Create a wrapper component to access location
 const AppContent = () => {
@@ -195,6 +196,14 @@ const AppContent = () => {
                                 ) : (
                                     <Prayers/>
                                 )}
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/memoryPassagesByBox"
+                        element={
+                            <ProtectedRoute>
+                                <MemoryPassagesByBox/>
                             </ProtectedRoute>
                         }
                     />
