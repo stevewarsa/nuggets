@@ -38,6 +38,11 @@ body {
   color: white;
   font-size: 1.9em;
   white-space: pre-line;
+  word-wrap: break-word;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
+  max-width: 100%;
 }
 
 .words-of-christ {
