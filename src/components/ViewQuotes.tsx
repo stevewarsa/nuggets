@@ -28,11 +28,19 @@ import {
     faPencilAlt,
     faCopy,
     faArrowUp,
-    faRemove, faPlus,
+    faRemove,
+    faPlus,
+    faChevronDown,
+    faChevronRight,
 } from '@fortawesome/free-solid-svg-icons';
 import {useNavigate, useParams} from 'react-router-dom';
 import {useToast} from '../hooks/useToast';
 import {useTopics} from '../hooks/useTopics';
+
+// Local storage keys for recently used topics
+const RECENT_MANAGE_TOPICS_KEY = 'recentManageTopics';
+const RECENT_FILTER_TOPICS_KEY = 'recentFilterTopics';
+const MAX_RECENT_TOPICS = 10; // Maximum number of recent topics to store
 
 const ViewQuotes = () => {
     const [allQuotes, setAllQuotes] = useState<Quote[]>([]);
@@ -52,14 +60,22 @@ const ViewQuotes = () => {
     const [selectedTopicsToAdd, setSelectedTopicsToAdd] = useState<number[]>([]);
     const [isAddingTopics, setIsAddingTopics] = useState(false);
     const [showOnlyAssociatedTopics, setShowOnlyAssociatedTopics] =
-        useState(false);
+        useState(true);
     const [showFloatingButtons, setShowFloatingButtons] = useState(false);
     const [newTopicName, setNewTopicName] = useState('');
     const [isCreatingTopic, setIsCreatingTopic] = useState(false);
+    const [showCreateTopicSection, setShowCreateTopicSection] = useState(false);
+    const [recentManageTopics, setRecentManageTopics] = useState<number[]>([]);
+    const [recentFilterTopics, setRecentFilterTopics] = useState<number[]>([]);
     const {showToast, toastProps, toastMessage} = useToast();
 
     const user = useAppSelector((state) => state.user.currentUser);
-    const {topics, loading: topicsLoading, error: topicsError, addNewTopicAndAssociate} = useTopics();
+    const {
+        topics,
+        loading: topicsLoading,
+        error: topicsError,
+        addNewTopicAndAssociate,
+    } = useTopics();
     const storedQuotes = useAppSelector((state) => state.quote.quotes);
     const quotesHaveBeenLoaded = useAppSelector(
         (state) => state.quote.hasBeenLoaded
@@ -68,6 +84,58 @@ const ViewQuotes = () => {
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
     const {quoteId} = useParams();
+
+    // Load recently used topics from local storage on component mount
+    useEffect(() => {
+        const loadRecentTopics = () => {
+            try {
+                const recentManage = localStorage.getItem(RECENT_MANAGE_TOPICS_KEY);
+                const recentFilter = localStorage.getItem(RECENT_FILTER_TOPICS_KEY);
+
+                if (recentManage) {
+                    setRecentManageTopics(JSON.parse(recentManage));
+                }
+
+                if (recentFilter) {
+                    setRecentFilterTopics(JSON.parse(recentFilter));
+                }
+            } catch (error) {
+                console.error('Error loading recent topics from localStorage:', error);
+            }
+        };
+
+        loadRecentTopics();
+    }, []);
+
+    // Helper function to update recently used topics
+    const updateRecentTopics = (topicIds: number[], type: 'manage' | 'filter') => {
+        const storageKey = type === 'manage' ? RECENT_MANAGE_TOPICS_KEY : RECENT_FILTER_TOPICS_KEY;
+        const setterFunction = type === 'manage' ? setRecentManageTopics : setRecentFilterTopics;
+
+        // Get current recent topics
+        const currentRecent = type === 'manage' ? recentManageTopics : recentFilterTopics;
+
+        // Create new list with the used topics at the top
+        const newRecent = [...topicIds];
+
+        // Add existing recent topics that weren't just used
+        currentRecent.forEach(topicId => {
+            if (!topicIds.includes(topicId) && newRecent.length < MAX_RECENT_TOPICS) {
+                newRecent.push(topicId);
+            }
+        });
+
+        // Limit to MAX_RECENT_TOPICS
+        const limitedRecent = newRecent.slice(0, MAX_RECENT_TOPICS);
+
+        // Update state and localStorage
+        setterFunction(limitedRecent);
+        try {
+            localStorage.setItem(storageKey, JSON.stringify(limitedRecent));
+        } catch (error) {
+            console.error('Error saving recent topics to localStorage:', error);
+        }
+    };
 
     useEffect(() => {
         const handleScroll = () => {
@@ -92,11 +160,21 @@ const ViewQuotes = () => {
                 debugLog.push("Ready to call 'await navigator.clipboard.writeText'...");
                 await navigator.clipboard.writeText(currentQuote.quoteTx);
                 debugLog.push("Called 'await navigator.clipboard.writeText'!!");
-                showToast({message: 'Quote copied to clipboard!', variant: 'success'});
+                showToast({
+                    message: 'Quote copied to clipboard!',
+                    variant: 'success',
+                });
             } catch (e) {
-                debugLog.push(`Error occurred: ${e?.message || e?.toString() || 'Unknown error'}`);
+                debugLog.push(
+                    `Error occurred: ${e?.message || e?.toString() || 'Unknown error'}`
+                );
                 console.error('Failed to copy text:', e);
-                showToast({message: `Failed to copy quote to clipboard. Debug info:\n${debugLog.map((msg, index) => `${index + 1}. ${msg}`).join('\n')}`, variant: 'error'});
+                showToast({
+                    message: `Failed to copy quote to clipboard. Debug info:\n${debugLog
+                        .map((msg, index) => `${index + 1}. ${msg}`)
+                        .join('\n')}`,
+                    variant: 'error',
+                });
             }
         }
     };
@@ -148,45 +226,85 @@ const ViewQuotes = () => {
         return Object.keys(topicCounts).map((id) => parseInt(id));
     }, [topicCounts]);
 
-    // Filter topics based on search term and optionally by association with quotes
-    const filteredTopics = useMemo(() => {
-        if (!topics.length) return [];
+    // Get recent and remaining topics for manage modal
+    const {recentManageTopicsData, remainingManageTopicsData} = useMemo(() => {
+        if (!topics.length) return {recentManageTopicsData: [], remainingManageTopicsData: []};
 
-        let filtered = [...topics];
+        // Get recent topics that exist in the current topics list
+        const recentTopicsData = recentManageTopics
+            .map(id => topics.find(topic => topic.id === id))
+            .filter(topic => topic !== undefined);
+
+        // Get remaining topics (not in recent list)
+        const remainingTopicsData = topics.filter(topic => !recentManageTopics.includes(topic.id));
+
+        // Apply search filter to both lists
+        const searchFilter = (topicList: typeof topics) => {
+            if (!topicSearchTerm.trim()) return topicList;
+            return topicList.filter(topic =>
+                topic.name.toLowerCase().includes(topicSearchTerm.trim().toLowerCase())
+            );
+        };
+
+        const filteredRecent = searchFilter(recentTopicsData);
+        const filteredRemaining = searchFilter(remainingTopicsData).sort((a, b) => {
+            const countA = topicCounts[a.id] || 0;
+            const countB = topicCounts[b.id] || 0;
+            if (countB !== countA) {
+                return countB - countA; // Sort by count descending
+            }
+            return a.name.localeCompare(b.name); // Then alphabetically
+        });
+
+        return {
+            recentManageTopicsData: filteredRecent,
+            remainingManageTopicsData: filteredRemaining
+        };
+    }, [topics, recentManageTopics, topicSearchTerm, topicCounts]);
+
+    // Get recent and remaining topics for filter modal
+    const {recentFilterTopicsData, remainingFilterTopicsData} = useMemo(() => {
+        if (!topics.length) return {recentFilterTopicsData: [], remainingFilterTopicsData: []};
+
+        // Apply the same filtering logic as the original filteredTopics
+        let allFilteredTopics = topics;
 
         // First filter by search term if provided
         if (topicSearchTerm.trim()) {
-            filtered = filtered.filter((topic) =>
-                topic.name.toLowerCase().includes(topicSearchTerm.toLowerCase())
+            allFilteredTopics = allFilteredTopics.filter((topic) =>
+                topic.name.toLowerCase().includes(topicSearchTerm.trim().toLowerCase())
             );
         }
 
         // Then filter by association with quotes if enabled
         if (showOnlyAssociatedTopics) {
-            filtered = filtered.filter((topic) =>
+            allFilteredTopics = allFilteredTopics.filter((topic) =>
                 associatedTopicIds.includes(topic.id)
             );
         }
 
-        // Sort topics by count (most used first) and then alphabetically
-        return filtered.sort((a, b) => {
-            const countA = topicCounts[a.id] || 0;
-            const countB = topicCounts[b.id] || 0;
+        // Get recent topics that exist in the filtered list
+        const recentTopicsData = recentFilterTopics
+            .map(id => allFilteredTopics.find(topic => topic.id === id))
+            .filter(topic => topic !== undefined);
 
-            if (countB !== countA) {
-                return countB - countA; // Sort by count descending
-            }
+        // Get remaining topics (not in recent list)
+        const remainingTopicsData = allFilteredTopics
+            .filter(topic => !recentFilterTopics.includes(topic.id))
+            .sort((a, b) => {
+                const countA = topicCounts[a.id] || 0;
+                const countB = topicCounts[b.id] || 0;
+                if (countB !== countA) {
+                    return countB - countA; // Sort by count descending
+                }
+                return a.name.localeCompare(b.name); // Then alphabetically
+            });
 
-            // If counts are equal, sort alphabetically
-            return a.name.localeCompare(b.name);
-        });
-    }, [
-        topics,
-        topicSearchTerm,
-        showOnlyAssociatedTopics,
-        associatedTopicIds,
-        topicCounts,
-    ]);
+        return {
+            recentFilterTopicsData: recentTopicsData,
+            remainingFilterTopicsData: remainingTopicsData
+        };
+    }, [topics, recentFilterTopics, topicSearchTerm, showOnlyAssociatedTopics, associatedTopicIds, topicCounts]);
 
     useEffect(() => {
         if (!quoteId || !allQuotes || !allQuotes.length) {
@@ -275,6 +393,7 @@ const ViewQuotes = () => {
             // Initialize with current quote's topics
             setSelectedTopicsToAdd(currentQuote.tagIds || []);
             setNewTopicName('');
+            setShowCreateTopicSection(false);
         }
     }, [showAddTopicModal, currentQuote]);
 
@@ -329,7 +448,10 @@ const ViewQuotes = () => {
         if (currentQuote && currentQuote.quoteTx) {
             try {
                 await navigator.clipboard.writeText(currentQuote.quoteTx);
-                showToast({message: 'Quote copied to clipboard!', variant: 'success'});
+                showToast({
+                    message: 'Quote copied to clipboard!',
+                    variant: 'success',
+                });
             } catch (err) {
                 console.error('Failed to copy text:', err);
                 showToast({message: 'Failed to copy text', variant: 'error'});
@@ -386,6 +508,11 @@ const ViewQuotes = () => {
             } else {
                 setCurrentQuote(null);
             }
+        }
+
+        // Update recently used filter topics
+        if (selectedTopicIds.length > 0) {
+            updateRecentTopics(selectedTopicIds, 'filter');
         }
 
         setShowFilterModal(false);
@@ -478,7 +605,16 @@ const ViewQuotes = () => {
                 setQuotes(updateQuoteInArray(quotes));
                 setAllQuotes(updateQuoteInArray(allQuotes));
 
-                showToast({message: 'Topics updated successfully!', variant: 'success'});
+                showToast({
+                    message: 'Topics updated successfully!',
+                    variant: 'success',
+                });
+
+                // Update recently used manage topics
+                if (selectedTopicsToAdd.length > 0) {
+                    updateRecentTopics(selectedTopicsToAdd, 'manage');
+                }
+
                 setShowAddTopicModal(false);
             } else {
                 showToast({message: 'Failed to update topics', variant: 'error'});
@@ -522,7 +658,10 @@ const ViewQuotes = () => {
                 setQuotes(updateQuoteInArray(quotes));
                 setAllQuotes(updateQuoteInArray(allQuotes));
 
-                showToast({message: 'Quote updated successfully!', variant: 'success'});
+                showToast({
+                    message: 'Quote updated successfully!',
+                    variant: 'success',
+                });
                 setShowEditQuoteModal(false);
             } else {
                 showToast({message: 'Failed to update quote', variant: 'error'});
@@ -536,15 +675,21 @@ const ViewQuotes = () => {
     };
 
     // Check if new topic name matches existing topic
-    const isExistingTopic = newTopicName.trim() &&
-        topics.some(topic => topic.name.toLowerCase() === newTopicName.trim().toLowerCase());
+    const isExistingTopic =
+        newTopicName.trim() &&
+        topics.some(
+            (topic) => topic.name.toLowerCase() === newTopicName.trim().toLowerCase()
+        );
 
     const handleCreateNewTopic = async () => {
         if (!currentQuote || !newTopicName.trim() || isExistingTopic) return;
 
         setIsCreatingTopic(true);
         try {
-            const result = await addNewTopicAndAssociate(newTopicName.trim(), currentQuote.quoteId);
+            const result = await addNewTopicAndAssociate(
+                newTopicName.trim(),
+                currentQuote.quoteId
+            );
 
             if (result.success) {
                 showToast({
@@ -553,10 +698,10 @@ const ViewQuotes = () => {
                 });
                 setShowAddTopicModal(false);
                 setNewTopicName('');
-                setCurrentQuote(prev => {
+                setCurrentQuote((prev) => {
                     prev.tagIds.push(result.newTopic.id);
                     return prev;
-                })
+                });
             } else {
                 showToast({
                     message: result.error || 'Failed to create topic',
@@ -966,50 +1111,94 @@ const ViewQuotes = () => {
                                 style={{maxHeight: '300px', overflowY: 'auto'}}
                             >
                                 <Form>
-                                    <Row xs={1} md={2} lg={3} className="g-3">
-                                        {filteredTopics.length > 0 ? (
-                                            filteredTopics.map((topic) => {
-                                                const count = topicCounts[topic.id] || 0;
-                                                return (
-                                                    <Col key={topic.id}>
-                                                        <Form.Check
-                                                            type="checkbox"
-                                                            id={`topic-${topic.id}`}
-                                                            label={
-                                                                <span>
-                                  {topic.name}
-                                                                    <Badge
-                                                                        bg="secondary"
-                                                                        className="ms-2"
-                                                                        style={{fontSize: '0.75em'}}
-                                                                    >
-                                    {count}
-                                  </Badge>
-                                </span>
-                                                            }
-                                                            checked={selectedTopicIds.includes(topic.id)}
-                                                            onChange={() => handleTopicFilterChange(topic.id)}
-                                                            className="mb-2"
-                                                            disabled={count === 0}
-                                                        />
-                                                    </Col>
-                                                );
-                                            })
-                                        ) : (
+                                    {/* Recently Used Topics Section */}
+                                    {recentFilterTopicsData.length > 0 && (
+                                        <>
+                                            <h6 className="text-white-50 mb-3">Recently Used</h6>
+                                            <Row xs={1} md={2} lg={3} className="g-3 mb-4">
+                                                {recentFilterTopicsData.map((topic) => {
+                                                    const count = topicCounts[topic.id] || 0;
+                                                    return (
+                                                        <Col key={topic.id}>
+                                                            <Form.Check
+                                                                type="checkbox"
+                                                                id={`recent-filter-topic-${topic.id}`}
+                                                                label={
+                                                                    <span>
+                                    {topic.name}
+                                                                        <Badge
+                                                                            bg="secondary"
+                                                                            className="ms-2"
+                                                                            style={{fontSize: '0.75em'}}
+                                                                        >
+                                      {count}
+                                    </Badge>
+                                  </span>
+                                                                }
+                                                                checked={selectedTopicIds.includes(topic.id)}
+                                                                onChange={() => handleTopicFilterChange(topic.id)}
+                                                                className="mb-2"
+                                                                disabled={count === 0}
+                                                            />
+                                                        </Col>
+                                                    );
+                                                })}
+                                            </Row>
+                                        </>
+                                    )}
+
+                                    {/* All Topics Section */}
+                                    {remainingFilterTopicsData.length > 0 && (
+                                        <>
+                                            <h6 className="text-white-50 mb-3">
+                                                {recentFilterTopicsData.length > 0 ? 'All Topics' : 'Topics'}
+                                            </h6>
+                                            <Row xs={1} md={2} lg={3} className="g-3">
+                                                {remainingFilterTopicsData.map((topic) => {
+                                                    const count = topicCounts[topic.id] || 0;
+                                                    return (
+                                                        <Col key={topic.id}>
+                                                            <Form.Check
+                                                                type="checkbox"
+                                                                id={`all-filter-topic-${topic.id}`}
+                                                                label={
+                                                                    <span>
+                                    {topic.name}
+                                                                        <Badge
+                                                                            bg="secondary"
+                                                                            className="ms-2"
+                                                                            style={{fontSize: '0.75em'}}
+                                                                        >
+                                      {count}
+                                    </Badge>
+                                  </span>
+                                                                }
+                                                                checked={selectedTopicIds.includes(topic.id)}
+                                                                onChange={() => handleTopicFilterChange(topic.id)}
+                                                                className="mb-2"
+                                                                disabled={count === 0}
+                                                            />
+                                                        </Col>
+                                                    );
+                                                })}
+                                            </Row>
+                                        </>
+                                    )}
+
+                                    {recentFilterTopicsData.length === 0 && remainingFilterTopicsData.length === 0 && (
+                                        <Row>
                                             <Col>
-                                                <p className="text-muted">
-                                                    No topics match your search.
-                                                </p>
+                                                <p className="text-muted">No topics match your search.</p>
                                             </Col>
-                                        )}
-                                    </Row>
+                                        </Row>
+                                    )}
                                 </Form>
                             </div>
 
                             {/* Search results info */}
                             {(topicSearchTerm || showOnlyAssociatedTopics) && (
                                 <div className="mb-3 text-muted">
-                                    Showing {filteredTopics.length} of {topics.length} topics
+                                    Showing {recentFilterTopicsData.length + remainingFilterTopicsData.length} of {topics.length} topics
                                 </div>
                             )}
                         </>
@@ -1051,40 +1240,57 @@ const ViewQuotes = () => {
                     ) : (
                         <>
                             {/* Add New Topic Section */}
-                            <div className="mb-4 p-3 border border-secondary rounded">
-                                <h6 className="mb-3">Create New Topic</h6>
-                                <InputGroup className="mb-2">
-                                    <Form.Control
-                                        type="text"
-                                        placeholder="Enter new topic name..."
-                                        value={newTopicName}
-                                        onChange={(e) => setNewTopicName(e.target.value)}
-                                        className="bg-dark text-white border-secondary"
-                                        disabled={isCreatingTopic}
+                            <div className="mb-4 border border-secondary rounded">
+                                <Button
+                                    variant="link"
+                                    className="text-white text-decoration-none w-100 text-start p-3"
+                                    onClick={() => setShowCreateTopicSection(!showCreateTopicSection)}
+                                >
+                                    <FontAwesomeIcon
+                                        icon={showCreateTopicSection ? faChevronDown : faChevronRight}
+                                        className="me-2"
                                     />
-                                    <Button
-                                        variant="primary"
-                                        onClick={handleCreateNewTopic}
-                                        disabled={!newTopicName.trim() || isExistingTopic || isCreatingTopic}
-                                    >
-                                        {isCreatingTopic ? (
-                                            <Spinner
-                                                as="span"
-                                                animation="border"
-                                                size="sm"
-                                                role="status"
-                                                aria-hidden="true"
+                                    Create New Topic
+                                </Button>
+
+                                <Collapse in={showCreateTopicSection}>
+                                    <div className="px-3 pb-3">
+                                        <InputGroup className="mb-2">
+                                            <Form.Control
+                                                type="text"
+                                                placeholder="Enter new topic name..."
+                                                value={newTopicName}
+                                                onChange={(e) => setNewTopicName(e.target.value)}
+                                                className="bg-dark text-white border-secondary"
+                                                disabled={isCreatingTopic}
                                             />
-                                        ) : (
-                                            <FontAwesomeIcon icon={faPlus}/>
+                                            <Button
+                                                variant="primary"
+                                                onClick={handleCreateNewTopic}
+                                                disabled={
+                                                    !newTopicName.trim() || isExistingTopic || isCreatingTopic
+                                                }
+                                            >
+                                                {isCreatingTopic ? (
+                                                    <Spinner
+                                                        as="span"
+                                                        animation="border"
+                                                        size="sm"
+                                                        role="status"
+                                                        aria-hidden="true"
+                                                    />
+                                                ) : (
+                                                    <FontAwesomeIcon icon={faPlus}/>
+                                                )}
+                                            </Button>
+                                        </InputGroup>
+                                        {isExistingTopic && (
+                                            <Form.Text className="text-warning">
+                                                A topic with this name already exists
+                                            </Form.Text>
                                         )}
-                                    </Button>
-                                </InputGroup>
-                                {isExistingTopic && (
-                                    <Form.Text className="text-warning">
-                                        A topic with this name already exists
-                                    </Form.Text>
-                                )}
+                                    </div>
+                                </Collapse>
                             </div>
 
                             <p className="mb-3">
@@ -1141,51 +1347,98 @@ const ViewQuotes = () => {
                                 style={{maxHeight: '300px', overflowY: 'auto'}}
                             >
                                 <Form>
-                                    <Row xs={1} md={2} lg={3} className="g-3">
-                                        {filteredTopics.length > 0 ? (
-                                            filteredTopics.map((topic) => {
-                                                const count = topicCounts[topic.id] || 0;
-                                                return (
-                                                    <Col key={topic.id}>
-                                                        <Form.Check
-                                                            type="checkbox"
-                                                            id={`add-topic-${topic.id}`}
-                                                            label={
-                                                                <span>
-                                  {topic.name}
-                                                                    {count > 0 && (
-                                                                        <Badge
-                                                                            bg="secondary"
-                                                                            className="ms-2"
-                                                                            style={{fontSize: '0.75em'}}
-                                                                        >
-                                                                            {count}
-                                                                        </Badge>
-                                                                    )}
-                                </span>
-                                                            }
-                                                            checked={selectedTopicsToAdd.includes(topic.id)}
-                                                            onChange={() => handleTopicToAddChange(topic.id)}
-                                                            className="mb-2"
-                                                        />
-                                                    </Col>
-                                                );
-                                            })
-                                        ) : (
+                                    {/* Recently Used Topics Section */}
+                                    {recentManageTopicsData.length > 0 && (
+                                        <>
+                                            <h6 className="text-white-50 mb-3">Recently Used</h6>
+                                            <Row xs={1} md={2} lg={3} className="g-3 mb-4">
+                                                {recentManageTopicsData.map((topic) => {
+                                                    const count = topicCounts[topic.id] || 0;
+                                                    return (
+                                                        <Col key={topic.id}>
+                                                            <Form.Check
+                                                                type="checkbox"
+                                                                id={`recent-manage-topic-${topic.id}`}
+                                                                label={
+                                                                    <span>
+                                    {topic.name}
+                                                                        {count > 0 && (
+                                                                            <Badge
+                                                                                bg="secondary"
+                                                                                className="ms-2"
+                                                                                style={{fontSize: '0.75em'}}
+                                                                            >
+                                                                                {count}
+                                                                            </Badge>
+                                                                        )}
+                                  </span>
+                                                                }
+                                                                checked={selectedTopicsToAdd.includes(topic.id)}
+                                                                onChange={() => handleTopicToAddChange(topic.id)}
+                                                                className="mb-2"
+                                                            />
+                                                        </Col>
+                                                    );
+                                                })}
+                                            </Row>
+                                        </>
+                                    )}
+
+                                    {/* All Topics Section */}
+                                    {remainingManageTopicsData.length > 0 && (
+                                        <>
+                                            <h6 className="text-white-50 mb-3">
+                                                {recentManageTopicsData.length > 0 ? 'All Topics' : 'Topics'}
+                                            </h6>
+                                            <Row xs={1} md={2} lg={3} className="g-3">
+                                                {remainingManageTopicsData.map((topic) => {
+                                                    const count = topicCounts[topic.id] || 0;
+                                                    return (
+                                                        <Col key={topic.id}>
+                                                            <Form.Check
+                                                                type="checkbox"
+                                                                id={`all-manage-topic-${topic.id}`}
+                                                                label={
+                                                                    <span>
+                                    {topic.name}
+                                                                        {count > 0 && (
+                                                                            <Badge
+                                                                                bg="secondary"
+                                                                                className="ms-2"
+                                                                                style={{fontSize: '0.75em'}}
+                                                                            >
+                                                                                {count}
+                                                                            </Badge>
+                                                                        )}
+                                  </span>
+                                                                }
+                                                                checked={selectedTopicsToAdd.includes(topic.id)}
+                                                                onChange={() => handleTopicToAddChange(topic.id)}
+                                                                className="mb-2"
+                                                            />
+                                                        </Col>
+                                                    );
+                                                })}
+                                            </Row>
+                                        </>
+                                    )}
+
+                                    {recentManageTopicsData.length === 0 && remainingManageTopicsData.length === 0 && (
+                                        <Row>
                                             <Col>
                                                 <p className="text-muted">
                                                     No topics match your search.
                                                 </p>
                                             </Col>
-                                        )}
-                                    </Row>
+                                        </Row>
+                                    )}
                                 </Form>
                             </div>
 
                             {/* Search results info */}
                             {topicSearchTerm && (
                                 <div className="mb-3 text-muted">
-                                    Showing {filteredTopics.length} of {topics.length} topics
+                                    Showing {recentManageTopicsData.length + remainingManageTopicsData.length} of {topics.length} topics
                                 </div>
                             )}
                         </>
@@ -1222,9 +1475,7 @@ const ViewQuotes = () => {
                 </Modal.Footer>
             </Modal>
 
-            <Toast
-                {...toastProps}
-            >
+            <Toast {...toastProps}>
                 <Toast.Body>{toastMessage}</Toast.Body>
             </Toast>
         </SwipeContainer>
