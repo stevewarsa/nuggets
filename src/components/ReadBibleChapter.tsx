@@ -27,6 +27,7 @@ import SwipeContainer from './SwipeContainer';
 import {useAppSelector} from '../store/hooks';
 import {useBiblePassages} from '../hooks/useBiblePassages';
 import {faHighlighter, faEraser} from '@fortawesome/free-solid-svg-icons';
+import {faShare} from '@fortawesome/free-solid-svg-icons';
 import {useToast} from '../hooks/useToast';
 
 const ReadBibleChapter = () => {
@@ -241,6 +242,35 @@ const ReadBibleChapter = () => {
         }
     };
 
+    const handleSharePublicLink = async () => {
+        if (!translation || !book || !chapter) return;
+
+        // Get the base URL dynamically
+        const baseUrl = window.location.origin;
+        const basename = import.meta.env.DEV ? '' : '/nuggets';
+
+        // Construct the public URL
+        const publicUrl = scrollToVerse
+            ? `${baseUrl}${basename}/read/${translation}/${book}/${chapter}/${scrollToVerse}`
+            : `${baseUrl}${basename}/read/${translation}/${book}/${chapter}`;
+
+        try {
+            await navigator.clipboard.writeText(publicUrl);
+            showToast({
+                message: 'Public link copied to clipboard!',
+                variant: 'success',
+            });
+        } catch (e) {
+            console.error('Failed to copy public link:', e);
+            showToast({
+                message: `Error copying public link: ${
+                    e?.message || e?.toString() || 'Unknown error'
+                }`,
+                variant: 'error',
+            });
+        }
+    };
+
     // Create additional menus based on user status
     const getAdditionalMenus = () => {
         const menus = [
@@ -305,6 +335,13 @@ const ReadBibleChapter = () => {
                 callbackFunction: () => setIsHighlightMode(false),
             });
         }
+
+        // Add share public link menu
+        menus.push({
+            itemLabel: 'Share Public Link',
+            icon: faShare,
+            callbackFunction: handleSharePublicLink,
+        });
 
         return menus;
     };

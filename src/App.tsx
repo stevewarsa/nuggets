@@ -27,6 +27,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import MemoryPassages from './components/MemoryPassages.tsx';
 import Prayers from './components/Prayers.tsx';
 import MemoryPassagesByBox from "./components/MemoryPassagesByBox.tsx";
+import PublicReadBibleChapter from './components/PublicReadBibleChapter';
 
 // Create a wrapper component to access location
 const AppContent = () => {
@@ -47,6 +48,16 @@ const AppContent = () => {
                 <Routes>
                     <Route path="/" element={<Login/>}/>
                     <Route path="/login" element={<Login/>}/>
+
+                    {/* Public route for Bible reading - automatically logs in as guest */}
+                    <Route
+                        path="/read/:translation/:book/:chapter/:scrollToVerse"
+                        element={<PublicReadBibleChapter/>}
+                    />
+                    <Route
+                        path="/read/:translation/:book/:chapter"
+                        element={<PublicReadBibleChapter/>}
+                    />
 
                     <Route
                         path="/practiceSetup"
