@@ -28,6 +28,7 @@ import MemoryPassages from './components/MemoryPassages.tsx';
 import Prayers from './components/Prayers.tsx';
 import MemoryPassagesByBox from "./components/MemoryPassagesByBox.tsx";
 import PublicReadBibleChapter from './components/PublicReadBibleChapter';
+import PublicViewQuotes from "./components/PublicViewQuotes.tsx";
 
 // Create a wrapper component to access location
 const AppContent = () => {
@@ -58,7 +59,15 @@ const AppContent = () => {
                         path="/read/:translation/:book/:chapter"
                         element={<PublicReadBibleChapter/>}
                     />
-
+                    {/* Public route for viewing quotes - automatically logs in as guest */}
+                    <Route
+                        path="/quotes"
+                        element={<PublicViewQuotes/>}
+                    />
+                    <Route
+                        path="/quotes/:quoteId"
+                        element={<PublicViewQuotes/>}
+                    />
                     <Route
                         path="/practiceSetup"
                         element={
