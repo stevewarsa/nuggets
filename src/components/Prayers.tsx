@@ -20,7 +20,6 @@ import {
     faEyeSlash,
     faSearch,
     faTimes,
-    faArrowUp,
 } from '@fortawesome/free-solid-svg-icons';
 import {bibleService} from '../services/bible-service';
 import {useAppSelector} from '../store/hooks';
@@ -52,18 +51,8 @@ const Prayers: React.FC = () => {
     const [showArchived, setShowArchived] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const {showToast, toastProps, toastMessage} = useToast();
-    const [showFloatingButtons, setShowFloatingButtons] = useState<boolean>(false);
 
     const user = useAppSelector((state) => state.user.currentUser);
-
-    useEffect(() => {
-        const handleScroll = () => {
-            setShowFloatingButtons(window.scrollY > 100);
-        };
-
-        window.addEventListener('scroll', handleScroll);
-        return () => window.removeEventListener('scroll', handleScroll);
-    }, []);
 
     useEffect(() => {
         if (!user) {
@@ -85,13 +74,6 @@ const Prayers: React.FC = () => {
             setIsLoading(false);
         }
     }, [user]);
-
-    const scrollToTop = () => {
-        window.scrollTo({
-            top: 0,
-            behavior: 'smooth',
-        });
-    };
 
     const processPrayers = (
         prayerList: Prayer[],
@@ -250,16 +232,25 @@ const Prayers: React.FC = () => {
     };
 
     // Filter prayers based on search term
-    const filteredPrayers = prayers.filter(prayer => {
-        if (!searchTerm.trim()) return true;
+    const filteredPrayers = prayers
+        .filter(prayer => {
+            if (!searchTerm.trim()) return true;
 
-        const searchLower = searchTerm.toLowerCase();
-        return (
-            prayer.prayerTitleTx?.toLowerCase().includes(searchLower) ||
-            prayer.prayerDetailsTx?.toLowerCase().includes(searchLower) ||
-            prayer.prayerSubjectPersonName?.toLowerCase().includes(searchLower)
-        );
-    });
+            const searchLower = searchTerm.toLowerCase();
+            return (
+                prayer.prayerTitleTx?.toLowerCase().includes(searchLower) ||
+                prayer.prayerDetailsTx?.toLowerCase().includes(searchLower) ||
+                prayer.prayerSubjectPersonName?.toLowerCase().includes(searchLower)
+            );
+        })
+        .sort((a, b) => {
+            const aIsDaily = a.prayerPriorityCd === 'daily';
+            const bIsDaily = b.prayerPriorityCd === 'daily';
+
+            if (aIsDaily && !bIsDaily) return -1;
+            if (!aIsDaily && bIsDaily) return 1;
+            return 0;
+        });
 
     return (
         <Container className="py-4">
@@ -413,27 +404,6 @@ const Prayers: React.FC = () => {
                                         </Card.Body>
                                     )}
                                 </Card>
-                                {showFloatingButtons && (
-                                    <div
-                                        style={{
-                                            position: 'fixed',
-                                            bottom: '20px',
-                                            right: '20px',
-                                            display: 'flex',
-                                            gap: '10px',
-                                            zIndex: 1000,
-                                        }}
-                                    >
-                                        <Button
-                                            variant="secondary"
-                                            size="lg"
-                                            onClick={scrollToTop}
-                                            style={{borderRadius: '50%', width: '50px', height: '50px'}}
-                                        >
-                                            <FontAwesomeIcon icon={faArrowUp}/>
-                                        </Button>
-                                    </div>
-                                )}
                             </div>
                         ))}
                     </div>

@@ -16,7 +16,8 @@ error_log("[get_prayers.php] Getting prayers for user $userId ...");
 
 $db = new SQLite3("db/memory_$userId.db");
 
-$results = $db->query("SELECT prayer_id, prayer_title_tx, prayer_desc_tx, prayer_subject_person_nm, archive_fl FROM prayer");
+$results = $db->query("SELECT p.prayer_id, prayer_title_tx, prayer_desc_tx, prayer_subject_person_nm, archive_fl, f.prayer_priority_cd
+FROM prayer p LEFT JOIN prayer_frequency f ON p.prayer_id = f.prayer_id");
 
 $prayers = array();
 while ($row = $results->fetchArray()) {
@@ -25,7 +26,8 @@ while ($row = $results->fetchArray()) {
         'prayerTitleTx' => $row['prayer_title_tx'],
         'prayerDetailsTx' => $row['prayer_desc_tx'],
         'prayerSubjectPersonName' => $row['prayer_subject_person_nm'],
-        'archiveFl' => $row['archive_fl']
+        'archiveFl' => $row['archive_fl'],
+        'prayerPriorityCd' => $row['prayer_priority_cd']
     );
 }
 

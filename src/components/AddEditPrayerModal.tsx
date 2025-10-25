@@ -24,6 +24,7 @@ const AddEditPrayerModal: React.FC<AddEditPrayerModalProps> = ({
         prayerDetailsTx: '',
         prayerSubjectPersonName: '',
         archiveFl: 'N',
+        prayerPriorityCd: '',
         mostRecentPrayerDate: undefined,
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -45,6 +46,7 @@ const AddEditPrayerModal: React.FC<AddEditPrayerModalProps> = ({
                     prayerDetailsTx: '',
                     prayerSubjectPersonName: '',
                     archiveFl: 'N',
+                    prayerPriorityCd: '',
                     mostRecentPrayerDate: undefined,
                 });
             }
