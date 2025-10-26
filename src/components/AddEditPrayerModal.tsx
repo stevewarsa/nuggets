@@ -158,6 +158,21 @@ const AddEditPrayerModal: React.FC<AddEditPrayerModalProps> = ({
                                 disabled={isSubmitting}
                             />
                         </Form.Group>
+                        <Form.Group className="mb-3">
+                            <Form.Check
+                                type="checkbox"
+                                id="daily-prayer-checkbox"
+                                label="Pray for this daily"
+                                checked={editingPrayer.prayerPriorityCd === 'daily'}
+                                onChange={(e) =>
+                                    setEditingPrayer({
+                                        ...editingPrayer,
+                                        prayerPriorityCd: e.target.checked ? 'daily' : '',
+                                    })
+                                }
+                                disabled={isSubmitting}
+                            />
+                        </Form.Group>
                     </Form>
                 </Modal.Body>
                 <Modal.Footer className="bg-dark text-white">

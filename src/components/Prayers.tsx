@@ -20,6 +20,7 @@ import {
     faEyeSlash,
     faSearch,
     faTimes,
+    faCalendarDay,
 } from '@fortawesome/free-solid-svg-icons';
 import {bibleService} from '../services/bible-service';
 import {useAppSelector} from '../store/hooks';
@@ -343,6 +344,19 @@ const Prayers: React.FC = () => {
                               : '▶'}
                         </span>
                                                 {prayer.prayerTitleTx}
+                                                {prayer.prayerPriorityCd === 'daily' && (
+                                                    <span
+                                                        className="ms-2 badge bg-primary"
+                                                        style={{
+                                                            fontSize: '0.6rem',
+                                                            verticalAlign: 'middle'
+                                                        }}
+                                                        title="Daily prayer"
+                                                    >
+                                                        <FontAwesomeIcon icon={faCalendarDay} className="me-1"/>
+                                                        Daily
+                                                    </span>
+                                                )}
                                             </h3>
                                         </div>
                                     </Card.Header>
