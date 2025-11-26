@@ -31,7 +31,7 @@ import {
     faRemove,
     faPlus,
     faChevronDown,
-    faChevronRight,
+    faChevronRight, faShare,
 } from '@fortawesome/free-solid-svg-icons';
 import {useNavigate, useParams} from 'react-router-dom';
 import {useToast} from '../hooks/useToast';
@@ -106,6 +106,32 @@ const ViewQuotes = () => {
 
         loadRecentTopics();
     }, []);
+
+    const handleSharePublicLink = async () => {
+        if (!currentQuote) return;
+        // Get the base URL dynamically
+        const baseUrl = window.location.origin;
+        const basename = import.meta.env.DEV ? '' : '/nuggets';
+
+        // Construct the public URL
+        const publicUrl = `${baseUrl}${basename}/quotes/${currentQuote.quoteId}`;
+
+        try {
+            await navigator.clipboard.writeText(publicUrl);
+            showToast({
+                message: 'Public link copied to clipboard!',
+                variant: 'success',
+            });
+        } catch (e) {
+            console.error('Failed to copy public link:', e);
+            showToast({
+                message: `Error copying public link: ${
+                    e?.message || e?.toString() || 'Unknown error'
+                }`,
+                variant: 'error',
+            });
+        }
+    };
 
     // Helper function to update recently used topics
     const updateRecentTopics = (topicIds: number[], type: 'manage' | 'filter') => {
@@ -799,6 +825,16 @@ const ViewQuotes = () => {
             callbackFunction: restoreFullQuoteList,
         });
     }
+
+    if (currentQuote) {
+        // Add share public link menu
+        additionalMenus.push({
+            itemLabel: 'Share Public Link',
+            icon: faShare,
+            callbackFunction: handleSharePublicLink,
+        });
+    }
+
 
     return (
         <SwipeContainer
