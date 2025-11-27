@@ -107,31 +107,112 @@ const ViewQuotes = () => {
         loadRecentTopics();
     }, []);
 
-    const handleSharePublicLink = async () => {
-        if (!currentQuote) return;
-        // Get the base URL dynamically
-        const baseUrl = window.location.origin;
-        const basename = import.meta.env.DEV ? '' : '/nuggets';
+    useEffect(() => {
+        const handleScroll = () => {
+            setShowFloatingButtons(window.scrollY > 100);
+        };
 
-        // Construct the public URL
-        const publicUrl = `${baseUrl}${basename}/quotes/${currentQuote.quoteId}`;
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
 
-        try {
-            await navigator.clipboard.writeText(publicUrl);
-            showToast({
-                message: 'Public link copied to clipboard!',
-                variant: 'success',
-            });
-        } catch (e) {
-            console.error('Failed to copy public link:', e);
-            showToast({
-                message: `Error copying public link: ${
-                    e?.message || e?.toString() || 'Unknown error'
-                }`,
-                variant: 'error',
-            });
+    useEffect(() => {
+        if (!quoteId || !allQuotes || !allQuotes.length) {
+            return;
         }
-    };
+        const iQuoteId = parseInt(quoteId);
+        let quoteIndex = allQuotes.findIndex((q) => q.quoteId === iQuoteId);
+        if (!quoteIndex || quoteIndex === -1) {
+            return;
+        } else {
+            console.log(
+                'ViewQuotes.tsx.useEffect[quoteId, allQuotes] quoteId=' +
+                quoteId +
+                ', quoteIndex=' +
+                quoteIndex
+            );
+            handleChangeIndex(quoteIndex);
+        }
+    }, [quoteId, allQuotes]);
+
+    useEffect(() => {
+        const fetchQuotes = async () => {
+            try {
+                setIsLoading(true);
+                const quoteList = await bibleService.getQuoteList(user);
+                shuffleArray(quoteList);
+                setAllQuotes(quoteList);
+                setQuotes(quoteList);
+
+                if (quoteList.length > 0) {
+                    const quoteText = await bibleService.getQuoteText(
+                        user,
+                        quoteList[0].quoteId
+                    );
+                    setCurrentQuote({
+                        ...quoteList[0],
+                        quoteTx: quoteText,
+                    });
+                }
+            } catch (error) {
+                console.error('Error fetching quotes:', error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        const loadingInterval = setInterval(() => {
+            setLoadingSeconds((s) => s + 1);
+        }, 1000);
+
+        // Check if we have search results to use
+        if (searchState.hasSearchResults && searchState.searchResults.length > 0) {
+            console.log('ViewQuotes: Using search results from Redux store');
+            const searchResults = [...searchState.searchResults];
+            setAllQuotes(searchResults);
+            setQuotes(searchResults);
+            setCurrentQuote(searchResults[0]);
+            setIsLoading(false);
+        } else if (quotesHaveBeenLoaded && storedQuotes?.length > 0) {
+            // Only use stored quotes if they have been properly loaded
+            const locStoredQuotes = [...storedQuotes];
+            shuffleArray(locStoredQuotes);
+            setAllQuotes(locStoredQuotes);
+            setQuotes(locStoredQuotes);
+            setCurrentQuote(locStoredQuotes[0]);
+            setIsLoading(false);
+        } else {
+            // Always fetch quotes if they haven't been loaded yet
+            if (user) {
+                fetchQuotes();
+            }
+        }
+        return () => clearInterval(loadingInterval);
+    }, [user, searchState, storedQuotes, quotesHaveBeenLoaded]);
+
+    // Reset search term when modal is opened or closed
+    useEffect(() => {
+        if (!showFilterModal && !showAddTopicModal) {
+            setTopicSearchTerm('');
+        }
+    }, [showFilterModal, showAddTopicModal]);
+
+    // Initialize selectedTopicsToAdd when opening the add topic modal
+    useEffect(() => {
+        if (showAddTopicModal && currentQuote) {
+            // Initialize with current quote's topics
+            setSelectedTopicsToAdd(currentQuote.tagIds || []);
+            setNewTopicName('');
+            setShowCreateTopicSection(false);
+        }
+    }, [showAddTopicModal, currentQuote]);
+
+    // Initialize editedQuoteText when opening the edit quote modal
+    useEffect(() => {
+        if (showEditQuoteModal && currentQuote) {
+            setEditedQuoteText(currentQuote.quoteTx || '');
+        }
+    }, [showEditQuoteModal, currentQuote]);
 
     // Helper function to update recently used topics
     const updateRecentTopics = (topicIds: number[], type: 'manage' | 'filter') => {
@@ -162,15 +243,6 @@ const ViewQuotes = () => {
             console.error('Error saving recent topics to localStorage:', error);
         }
     };
-
-    useEffect(() => {
-        const handleScroll = () => {
-            setShowFloatingButtons(window.scrollY > 100);
-        };
-
-        window.addEventListener('scroll', handleScroll);
-        return () => window.removeEventListener('scroll', handleScroll);
-    }, []);
 
     const scrollToTop = () => {
         window.scrollTo({
@@ -331,104 +403,6 @@ const ViewQuotes = () => {
             remainingFilterTopicsData: remainingTopicsData
         };
     }, [topics, recentFilterTopics, topicSearchTerm, showOnlyAssociatedTopics, associatedTopicIds, topicCounts]);
-
-    useEffect(() => {
-        if (!quoteId || !allQuotes || !allQuotes.length) {
-            return;
-        }
-        const iQuoteId = parseInt(quoteId);
-        let quoteIndex = allQuotes.findIndex((q) => q.quoteId === iQuoteId);
-        if (!quoteIndex || quoteIndex === -1) {
-            return;
-        } else {
-            console.log(
-                'ViewQuotes.tsx.useEffect[quoteId, allQuotes] quoteId=' +
-                quoteId +
-                ', quoteIndex=' +
-                quoteIndex
-            );
-            handleChangeIndex(quoteIndex);
-        }
-    }, [quoteId, allQuotes]);
-
-    useEffect(() => {
-        const fetchQuotes = async () => {
-            try {
-                setIsLoading(true);
-                const quoteList = await bibleService.getQuoteList(user);
-                shuffleArray(quoteList);
-                setAllQuotes(quoteList);
-                setQuotes(quoteList);
-
-                if (quoteList.length > 0) {
-                    const quoteText = await bibleService.getQuoteText(
-                        user,
-                        quoteList[0].quoteId
-                    );
-                    setCurrentQuote({
-                        ...quoteList[0],
-                        quoteTx: quoteText,
-                    });
-                }
-            } catch (error) {
-                console.error('Error fetching quotes:', error);
-            } finally {
-                setIsLoading(false);
-            }
-        };
-
-        const loadingInterval = setInterval(() => {
-            setLoadingSeconds((s) => s + 1);
-        }, 1000);
-
-        // Check if we have search results to use
-        if (searchState.hasSearchResults && searchState.searchResults.length > 0) {
-            console.log('ViewQuotes: Using search results from Redux store');
-            const searchResults = [...searchState.searchResults];
-            setAllQuotes(searchResults);
-            setQuotes(searchResults);
-            setCurrentQuote(searchResults[0]);
-            setIsLoading(false);
-        } else if (quotesHaveBeenLoaded && storedQuotes?.length > 0) {
-            // Only use stored quotes if they have been properly loaded
-            const locStoredQuotes = [...storedQuotes];
-            shuffleArray(locStoredQuotes);
-            setAllQuotes(locStoredQuotes);
-            setQuotes(locStoredQuotes);
-            setCurrentQuote(locStoredQuotes[0]);
-            setIsLoading(false);
-        } else {
-            // Always fetch quotes if they haven't been loaded yet
-            if (user) {
-                fetchQuotes();
-            }
-        }
-        return () => clearInterval(loadingInterval);
-    }, [user, searchState, storedQuotes, quotesHaveBeenLoaded]);
-
-    // Reset search term when modal is opened or closed
-    useEffect(() => {
-        if (!showFilterModal && !showAddTopicModal) {
-            setTopicSearchTerm('');
-        }
-    }, [showFilterModal, showAddTopicModal]);
-
-    // Initialize selectedTopicsToAdd when opening the add topic modal
-    useEffect(() => {
-        if (showAddTopicModal && currentQuote) {
-            // Initialize with current quote's topics
-            setSelectedTopicsToAdd(currentQuote.tagIds || []);
-            setNewTopicName('');
-            setShowCreateTopicSection(false);
-        }
-    }, [showAddTopicModal, currentQuote]);
-
-    // Initialize editedQuoteText when opening the edit quote modal
-    useEffect(() => {
-        if (showEditQuoteModal && currentQuote) {
-            setEditedQuoteText(currentQuote.quoteTx || '');
-        }
-    }, [showEditQuoteModal, currentQuote]);
 
     const handleToolbarClick = async (direction: string) => {
         if (quotes.length === 0) return;
@@ -825,6 +799,32 @@ const ViewQuotes = () => {
             callbackFunction: restoreFullQuoteList,
         });
     }
+
+    const handleSharePublicLink = async () => {
+        if (!currentQuote) return;
+        // Get the base URL dynamically
+        const baseUrl = window.location.origin;
+        const basename = import.meta.env.DEV ? '' : '/nuggets';
+
+        // Construct the public URL
+        const publicUrl = `${baseUrl}${basename}/quotes/${currentQuote.quoteId}`;
+
+        try {
+            await navigator.clipboard.writeText(publicUrl);
+            showToast({
+                message: 'Public link copied to clipboard!',
+                variant: 'success',
+            });
+        } catch (e) {
+            console.error('Failed to copy public link:', e);
+            showToast({
+                message: `Error copying public link: ${
+                    e?.message || e?.toString() || 'Unknown error'
+                }`,
+                variant: 'error',
+            });
+        }
+    };
 
     if (currentQuote) {
         // Add share public link menu
