@@ -31,7 +31,8 @@ import {
     faRemove,
     faPlus,
     faChevronDown,
-    faChevronRight, faShare,
+    faChevronRight,
+    faShare,
 } from '@fortawesome/free-solid-svg-icons';
 import {useNavigate, useParams} from 'react-router-dom';
 import {useToast} from '../hooks/useToast';
@@ -85,8 +86,9 @@ const ViewQuotes = () => {
     const navigate = useNavigate();
     const {quoteId} = useParams();
 
-    // Load recently used topics from local storage on component mount
+    // Load recently used topics and setup scroll listener on component mount
     useEffect(() => {
+        // Load recent topics from localStorage
         const loadRecentTopics = () => {
             try {
                 const recentManage = localStorage.getItem(RECENT_MANAGE_TOPICS_KEY);
@@ -105,9 +107,8 @@ const ViewQuotes = () => {
         };
 
         loadRecentTopics();
-    }, []);
 
-    useEffect(() => {
+        // Setup scroll event listener
         const handleScroll = () => {
             setShowFloatingButtons(window.scrollY > 100);
         };
@@ -116,13 +117,21 @@ const ViewQuotes = () => {
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
 
+    // Navigate to specific quote when quoteId parameter is present in the URL
+    // This handles deep linking (e.g., /viewQuotes/2937 or /quotes/2937)
+    // Runs whenever the quoteId URL parameter or allQuotes array changes
     useEffect(() => {
         if (!quoteId || !allQuotes || !allQuotes.length) {
             return;
         }
         const iQuoteId = parseInt(quoteId);
         let quoteIndex = allQuotes.findIndex((q) => q.quoteId === iQuoteId);
-        if (!quoteIndex || quoteIndex === -1) {
+        if (quoteIndex === -1) {
+            console.log(
+                'ViewQuotes.tsx.useEffect[quoteId, allQuotes] quoteId=' +
+                quoteId +
+                ' not found in allQuotes'
+            );
             return;
         } else {
             console.log(
@@ -135,6 +144,10 @@ const ViewQuotes = () => {
         }
     }, [quoteId, allQuotes]);
 
+    // Load quotes from Redux store (search results or cached quotes) or fetch from API
+    // Priority order: 1) Search results, 2) Redux cached quotes, 3) Fetch fresh from API
+    // Sets currentQuote to the first quote in the loaded list
+    // Note: If a quoteId is in the URL, the previous useEffect will navigate to it after this runs
     useEffect(() => {
         const fetchQuotes = async () => {
             try {
@@ -215,18 +228,24 @@ const ViewQuotes = () => {
     }, [showEditQuoteModal, currentQuote]);
 
     // Helper function to update recently used topics
-    const updateRecentTopics = (topicIds: number[], type: 'manage' | 'filter') => {
-        const storageKey = type === 'manage' ? RECENT_MANAGE_TOPICS_KEY : RECENT_FILTER_TOPICS_KEY;
-        const setterFunction = type === 'manage' ? setRecentManageTopics : setRecentFilterTopics;
+    const updateRecentTopics = (
+        topicIds: number[],
+        type: 'manage' | 'filter'
+    ) => {
+        const storageKey =
+            type === 'manage' ? RECENT_MANAGE_TOPICS_KEY : RECENT_FILTER_TOPICS_KEY;
+        const setterFunction =
+            type === 'manage' ? setRecentManageTopics : setRecentFilterTopics;
 
         // Get current recent topics
-        const currentRecent = type === 'manage' ? recentManageTopics : recentFilterTopics;
+        const currentRecent =
+            type === 'manage' ? recentManageTopics : recentFilterTopics;
 
         // Create new list with the used topics at the top
         const newRecent = [...topicIds];
 
         // Add existing recent topics that weren't just used
-        currentRecent.forEach(topicId => {
+        currentRecent.forEach((topicId) => {
             if (!topicIds.includes(topicId) && newRecent.length < MAX_RECENT_TOPICS) {
                 newRecent.push(topicId);
             }
@@ -326,20 +345,23 @@ const ViewQuotes = () => {
 
     // Get recent and remaining topics for manage modal
     const {recentManageTopicsData, remainingManageTopicsData} = useMemo(() => {
-        if (!topics.length) return {recentManageTopicsData: [], remainingManageTopicsData: []};
+        if (!topics.length)
+            return {recentManageTopicsData: [], remainingManageTopicsData: []};
 
         // Get recent topics that exist in the current topics list
         const recentTopicsData = recentManageTopics
-            .map(id => topics.find(topic => topic.id === id))
-            .filter(topic => topic !== undefined);
+            .map((id) => topics.find((topic) => topic.id === id))
+            .filter((topic) => topic !== undefined);
 
         // Get remaining topics (not in recent list)
-        const remainingTopicsData = topics.filter(topic => !recentManageTopics.includes(topic.id));
+        const remainingTopicsData = topics.filter(
+            (topic) => !recentManageTopics.includes(topic.id)
+        );
 
         // Apply search filter to both lists
         const searchFilter = (topicList: typeof topics) => {
             if (!topicSearchTerm.trim()) return topicList;
-            return topicList.filter(topic =>
+            return topicList.filter((topic) =>
                 topic.name.toLowerCase().includes(topicSearchTerm.trim().toLowerCase())
             );
         };
@@ -356,13 +378,14 @@ const ViewQuotes = () => {
 
         return {
             recentManageTopicsData: filteredRecent,
-            remainingManageTopicsData: filteredRemaining
+            remainingManageTopicsData: filteredRemaining,
         };
     }, [topics, recentManageTopics, topicSearchTerm, topicCounts]);
 
     // Get recent and remaining topics for filter modal
     const {recentFilterTopicsData, remainingFilterTopicsData} = useMemo(() => {
-        if (!topics.length) return {recentFilterTopicsData: [], remainingFilterTopicsData: []};
+        if (!topics.length)
+            return {recentFilterTopicsData: [], remainingFilterTopicsData: []};
 
         // Apply the same filtering logic as the original filteredTopics
         let allFilteredTopics = topics;
@@ -383,12 +406,12 @@ const ViewQuotes = () => {
 
         // Get recent topics that exist in the filtered list
         const recentTopicsData = recentFilterTopics
-            .map(id => allFilteredTopics.find(topic => topic.id === id))
-            .filter(topic => topic !== undefined);
+            .map((id) => allFilteredTopics.find((topic) => topic.id === id))
+            .filter((topic) => topic !== undefined);
 
         // Get remaining topics (not in recent list)
         const remainingTopicsData = allFilteredTopics
-            .filter(topic => !recentFilterTopics.includes(topic.id))
+            .filter((topic) => !recentFilterTopics.includes(topic.id))
             .sort((a, b) => {
                 const countA = topicCounts[a.id] || 0;
                 const countB = topicCounts[b.id] || 0;
@@ -400,9 +423,16 @@ const ViewQuotes = () => {
 
         return {
             recentFilterTopicsData: recentTopicsData,
-            remainingFilterTopicsData: remainingTopicsData
+            remainingFilterTopicsData: remainingTopicsData,
         };
-    }, [topics, recentFilterTopics, topicSearchTerm, showOnlyAssociatedTopics, associatedTopicIds, topicCounts]);
+    }, [
+        topics,
+        recentFilterTopics,
+        topicSearchTerm,
+        showOnlyAssociatedTopics,
+        associatedTopicIds,
+        topicCounts,
+    ]);
 
     const handleToolbarClick = async (direction: string) => {
         if (quotes.length === 0) return;
@@ -835,7 +865,6 @@ const ViewQuotes = () => {
         });
     }
 
-
     return (
         <SwipeContainer
             onSwipeLeft={() => handleToolbarClick('RIGHT')}
@@ -1172,7 +1201,9 @@ const ViewQuotes = () => {
                                   </span>
                                                                 }
                                                                 checked={selectedTopicIds.includes(topic.id)}
-                                                                onChange={() => handleTopicFilterChange(topic.id)}
+                                                                onChange={() =>
+                                                                    handleTopicFilterChange(topic.id)
+                                                                }
                                                                 className="mb-2"
                                                                 disabled={count === 0}
                                                             />
@@ -1187,7 +1218,9 @@ const ViewQuotes = () => {
                                     {remainingFilterTopicsData.length > 0 && (
                                         <>
                                             <h6 className="text-white-50 mb-3">
-                                                {recentFilterTopicsData.length > 0 ? 'All Topics' : 'Topics'}
+                                                {recentFilterTopicsData.length > 0
+                                                    ? 'All Topics'
+                                                    : 'Topics'}
                                             </h6>
                                             <Row xs={1} md={2} lg={3} className="g-3">
                                                 {remainingFilterTopicsData.map((topic) => {
@@ -1210,7 +1243,9 @@ const ViewQuotes = () => {
                                   </span>
                                                                 }
                                                                 checked={selectedTopicIds.includes(topic.id)}
-                                                                onChange={() => handleTopicFilterChange(topic.id)}
+                                                                onChange={() =>
+                                                                    handleTopicFilterChange(topic.id)
+                                                                }
                                                                 className="mb-2"
                                                                 disabled={count === 0}
                                                             />
@@ -1221,20 +1256,26 @@ const ViewQuotes = () => {
                                         </>
                                     )}
 
-                                    {recentFilterTopicsData.length === 0 && remainingFilterTopicsData.length === 0 && (
-                                        <Row>
-                                            <Col>
-                                                <p className="text-muted">No topics match your search.</p>
-                                            </Col>
-                                        </Row>
-                                    )}
+                                    {recentFilterTopicsData.length === 0 &&
+                                        remainingFilterTopicsData.length === 0 && (
+                                            <Row>
+                                                <Col>
+                                                    <p className="text-muted">
+                                                        No topics match your search.
+                                                    </p>
+                                                </Col>
+                                            </Row>
+                                        )}
                                 </Form>
                             </div>
 
                             {/* Search results info */}
                             {(topicSearchTerm || showOnlyAssociatedTopics) && (
                                 <div className="mb-3 text-muted">
-                                    Showing {recentFilterTopicsData.length + remainingFilterTopicsData.length} of {topics.length} topics
+                                    Showing{' '}
+                                    {recentFilterTopicsData.length +
+                                        remainingFilterTopicsData.length}{' '}
+                                    of {topics.length} topics
                                 </div>
                             )}
                         </>
@@ -1280,10 +1321,14 @@ const ViewQuotes = () => {
                                 <Button
                                     variant="link"
                                     className="text-white text-decoration-none w-100 text-start p-3"
-                                    onClick={() => setShowCreateTopicSection(!showCreateTopicSection)}
+                                    onClick={() =>
+                                        setShowCreateTopicSection(!showCreateTopicSection)
+                                    }
                                 >
                                     <FontAwesomeIcon
-                                        icon={showCreateTopicSection ? faChevronDown : faChevronRight}
+                                        icon={
+                                            showCreateTopicSection ? faChevronDown : faChevronRight
+                                        }
                                         className="me-2"
                                     />
                                     Create New Topic
@@ -1304,7 +1349,9 @@ const ViewQuotes = () => {
                                                 variant="primary"
                                                 onClick={handleCreateNewTopic}
                                                 disabled={
-                                                    !newTopicName.trim() || isExistingTopic || isCreatingTopic
+                                                    !newTopicName.trim() ||
+                                                    isExistingTopic ||
+                                                    isCreatingTopic
                                                 }
                                             >
                                                 {isCreatingTopic ? (
@@ -1410,7 +1457,9 @@ const ViewQuotes = () => {
                                   </span>
                                                                 }
                                                                 checked={selectedTopicsToAdd.includes(topic.id)}
-                                                                onChange={() => handleTopicToAddChange(topic.id)}
+                                                                onChange={() =>
+                                                                    handleTopicToAddChange(topic.id)
+                                                                }
                                                                 className="mb-2"
                                                             />
                                                         </Col>
@@ -1424,7 +1473,9 @@ const ViewQuotes = () => {
                                     {remainingManageTopicsData.length > 0 && (
                                         <>
                                             <h6 className="text-white-50 mb-3">
-                                                {recentManageTopicsData.length > 0 ? 'All Topics' : 'Topics'}
+                                                {recentManageTopicsData.length > 0
+                                                    ? 'All Topics'
+                                                    : 'Topics'}
                                             </h6>
                                             <Row xs={1} md={2} lg={3} className="g-3">
                                                 {remainingManageTopicsData.map((topic) => {
@@ -1449,7 +1500,9 @@ const ViewQuotes = () => {
                                   </span>
                                                                 }
                                                                 checked={selectedTopicsToAdd.includes(topic.id)}
-                                                                onChange={() => handleTopicToAddChange(topic.id)}
+                                                                onChange={() =>
+                                                                    handleTopicToAddChange(topic.id)
+                                                                }
                                                                 className="mb-2"
                                                             />
                                                         </Col>
@@ -1459,22 +1512,26 @@ const ViewQuotes = () => {
                                         </>
                                     )}
 
-                                    {recentManageTopicsData.length === 0 && remainingManageTopicsData.length === 0 && (
-                                        <Row>
-                                            <Col>
-                                                <p className="text-muted">
-                                                    No topics match your search.
-                                                </p>
-                                            </Col>
-                                        </Row>
-                                    )}
+                                    {recentManageTopicsData.length === 0 &&
+                                        remainingManageTopicsData.length === 0 && (
+                                            <Row>
+                                                <Col>
+                                                    <p className="text-muted">
+                                                        No topics match your search.
+                                                    </p>
+                                                </Col>
+                                            </Row>
+                                        )}
                                 </Form>
                             </div>
 
                             {/* Search results info */}
                             {topicSearchTerm && (
                                 <div className="mb-3 text-muted">
-                                    Showing {recentManageTopicsData.length + remainingManageTopicsData.length} of {topics.length} topics
+                                    Showing{' '}
+                                    {recentManageTopicsData.length +
+                                        remainingManageTopicsData.length}{' '}
+                                    of {topics.length} topics
                                 </div>
                             )}
                         </>
