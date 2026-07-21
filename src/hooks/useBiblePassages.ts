@@ -68,7 +68,8 @@ export const useBiblePassages = () => {
 
     // Filter and sort topics for the filter modal
     const sortedTopics = useMemo(() => {
-        return topics
+        // Using '?? []' ensures topics defaults to a valid array if it arrives null or undefined
+        return (topics ?? [])
             .filter(topic =>
                 !topicSearchTerm.trim() ||
                 topic.name.toLowerCase().includes(topicSearchTerm.toLowerCase())
@@ -76,13 +77,13 @@ export const useBiblePassages = () => {
             .sort((a, b) => {
                 const countA = topicCounts[a.id] || 0;
                 const countB = topicCounts[b.id] || 0;
-
                 if (countB !== countA) {
                     return countB - countA; // Sort by count descending
                 }
                 return a.name.localeCompare(b.name); // Then alphabetically
             });
     }, [topics, topicCounts, topicSearchTerm]);
+
 
     // Filter topics based on search term and current passage's topics
     const availableTopics = useMemo(() => {

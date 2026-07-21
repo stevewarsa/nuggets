@@ -99,15 +99,12 @@ export class BibleService {
         }
     }
 
-    async nuggetLogin(
-        user: string,
-        copyUser: string | null = null
-    ): Promise<string> {
+    async nuggetLogin(user: string): Promise<string> {
         try {
             const response = await axios.get(
                 `${BibleService.BASE_URL}nuggets_login.php`,
                 {
-                    params: {user, copyUser},
+                    params: { user },
                 }
             );
             return response.data;

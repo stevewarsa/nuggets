@@ -91,11 +91,6 @@ const Login = () => {
     };
 
     const handleLogin = async () => {
-        if (newUser && !selectedUser) {
-            setError('Please select an existing user to copy from');
-            return;
-        }
-
         const username = newUser || selectedUser;
         if (!username) {
             setError('Please select an existing user or enter a new username');
@@ -106,14 +101,12 @@ const Login = () => {
         setError(null);
 
         try {
-            if (newUser) {
-                // New user needs to be created via API with a user to copy from
-                const result = await bibleService.nuggetLogin(newUser, selectedUser);
-                if (result !== 'success') {
-                    setError(`Failed to create new user: ${result}`);
-                    setIsSubmitting(false);
-                    return;
-                }
+            // Both new and existing users call the exact same endpoint with the target name string
+            const result = await bibleService.nuggetLogin(username);
+            if (result !== 'success') {
+                setError(`Login failed: ${result}`);
+                setIsSubmitting(false);
+                return;
             }
 
             // Store the user in Redux
@@ -202,7 +195,7 @@ const Login = () => {
                                     variant="primary"
                                     size="lg"
                                     onClick={handleLogin}
-                                    disabled={(newUser && !selectedUser) || (!selectedUser && !newUser) || isSubmitting}
+                                    disabled={isSubmitting}
                                 >
                                     {isSubmitting ? (
                                         <>

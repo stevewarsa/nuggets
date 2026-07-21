@@ -14,23 +14,30 @@ if (empty(trim($user))) {
     exit;
 }
 
+$cleanUser = trim($user);
+
 try {
-    // Perform a safe parameterized lookup to confirm account existence
+    // Step 1: Perform a safe parameterized lookup to check account existence
     $statement = $pdo->prepare("SELECT COUNT(*) AS user_exists FROM user WHERE user_nm = ?");
-    $statement->execute([trim($user)]);
+    $statement->execute([$cleanUser]);
     $row = $statement->fetch();
 
     if ($row && (int)$row['user_exists'] > 0) {
-        error_log("[nuggets_login.php] Successfully logged in existing user " . $user . "! Returning 'success'.");
+        error_log("[nuggets_login.php] Successfully logged in existing user: " . $cleanUser);
         echo json_encode("success");
     } else {
-        error_log("[nuggets_login.php] User profile '" . $user . "' not found in the user table. Denying entry.");
-        // Returns a non-success flag to trigger React's failure hooks cleanly
-        echo json_encode("unauthorized");
+        // Step 2: User doesn't exist, create a new record instantly!
+        error_log("[nuggets_login.php] User '" . $cleanUser . "' not found. Automatically registering new profile.");
+
+        $insertStmt = $pdo->prepare("INSERT INTO user (user_nm) VALUES (?)");
+        $insertStmt->execute([$cleanUser]);
+
+        error_log("[nuggets_login.php] New account created for " . $cleanUser . " successfully! Returning 'success'.");
+        echo json_encode("success");
     }
 
 } catch (Exception $e) {
-    error_log("[nuggets_login.php] - An operational error occurred during login: " . $e->getMessage());
+    error_log("[nuggets_login.php] - An operational error occurred during login/signup: " . $e->getMessage());
     http_response_code(500);
     echo json_encode("error");
 }

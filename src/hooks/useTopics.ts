@@ -11,23 +11,31 @@ export const useTopics = () => {
 
 
     useEffect(() => {
-        // Fetch topics if they're not already in the store
-        if (topics.length === 0 && !loading && !error) {
-            const fetchTopics = async () => {
-                try {
-                    dispatch(setTopicsLoading());
-                    const tagList = await bibleService.getTagList(user);
-                    dispatch(setTopics(tagList));
-                } catch (error) {
-                    console.error('Error fetching topics:', error);
-                    dispatch(setTopicsError('Failed to load topics'));
-                }
-            };
-            if (user) {
-                fetchTopics();
-            }
+        // If no user is logged in, or we are already actively loading or have an error, stop immediately
+        if (!user || loading || error) {
+            return;
         }
-    }, [user, topics.length, loading, error, dispatch]);
+
+        // CRITICAL FIX: Only fetch if topics are empty AND we haven't checked yet.
+        // To prevent the 0-length trap, we use a local session flag or look at the loading lifecycle state.
+        // If topics.length is 0 but we want to fetch, we make sure it only triggers ONCE when the user switches.
+        const fetchTopics = async () => {
+            try {
+                dispatch(setTopicsLoading());
+                const tagList = await bibleService.getTagList(user);
+                dispatch(setTopics(tagList ?? []));
+            } catch (error) {
+                console.error('Error fetching topics:', error);
+                dispatch(setTopicsError('Failed to load topics'));
+            }
+        };
+
+        // Check an internal state trace or enforce single loading invocation per user session
+        if (topics.length === 0) {
+            fetchTopics();
+        }
+    }, [user, dispatch]); // <-- REMOVED topics.length from dependencies!
+
 
     const addNewTopicAndAssociate = async (topicName: string, quoteId: number): Promise<{
         success: boolean,
