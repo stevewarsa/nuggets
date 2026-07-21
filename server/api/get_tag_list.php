@@ -41,7 +41,7 @@ try {
         $statement = $pdo->prepare("
             SELECT tag_id, tag_name 
             FROM tag 
-            WHERE user_id = ? 
+            WHERE user_id = ? OR global_fl = 'Y'
             ORDER BY LOWER(tag_name) ASC
         ");
         $statement->execute([$current_user_id]);

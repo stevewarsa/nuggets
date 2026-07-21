@@ -19,7 +19,7 @@ $stmt = $pdo->prepare("
     FROM nugget n 
     LEFT JOIN tag_nugget tn ON n.nugget_id = tn.nugget_id AND tn.user_id = n.user_id
     LEFT JOIN tag t ON tn.tag_id = t.tag_id AND t.user_id = n.user_id
-    WHERE n.user_id = ?
+    WHERE n.user_id = ? OR n.global_fl = 'Y'
 ");
 
 /** @var string $current_user_id his is populated inside connect.php */
