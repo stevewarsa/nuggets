@@ -10,8 +10,8 @@ DRY_RUN = False  # Set to False to actually execute inserts on MariaDB
 
 MARIADB_CONFIG = {
     'host': '127.0.0.1',       # Points to your local machine (localhost)
-    'user': 'devuser',            # Default administrative user
-    'password': 'Galatians2v20',            # XAMPP leaves this blank by default
+    'user': 'devuser',         # Default administrative user
+    'password': 'Galatians2v20',
     'database': 'nuggets',     # The target database name
     'port': 3306,              # Default network port for MariaDB
     'charset': 'utf8mb4',      # Essential for special text symbols and accents
@@ -38,7 +38,6 @@ MIGRATION_MAP = {
     'memory_passage': {
         'target': 'memory_passage',
         'columns': ['passage_id', 'preferred_translation_cd', 'last_viewed_str', 'last_viewed_num', 'frequency_days'],
-        # Explicitly matching the exact index positions of your columns array + user_id
         'insert_query': """INSERT INTO memory_passage (user_id, passage_id, preferred_translation_cd, last_viewed_str, last_viewed_num, frequency_days) VALUES (%s, %s, %s, %s, %s, %s);""",
         'has_user_id': True
     },
@@ -143,7 +142,8 @@ def migrate_data():
     # Connect to SQLite source
     try:
         sqlite_conn = sqlite3.connect(SQLITE_DB_PATH)
-        sqlite_cursor = sqlite_conn.cursor()
+        # Configure the global connection handle row_factory to read named string keys instead of index arrays
+        sqlite_conn.row_factory = sqlite3.Row
         print("Connected to SQLite database.")
     except Exception as e:
         print(f"Error connecting to SQLite: {e}")
@@ -173,6 +173,7 @@ def migrate_data():
         else:
             print(f"Migrating table '{source_table}' -> '{meta['target']}'...")
 
+        sqlite_cursor = sqlite_conn.cursor()
         cols_str = ", ".join(meta['columns'])
         sqlite_query = f"SELECT {cols_str} FROM {source_table}"
 
@@ -182,14 +183,23 @@ def migrate_data():
 
             if not rows:
                 print(f"  No data found in source table '{source_table}'. Skipping.")
+                sqlite_cursor.close()
                 continue
 
             prepared_rows = []
             for row in rows:
+                # Build parameter structures safely matching the columns map configuration names
+                row_data = []
+                for col in meta['columns']:
+                    row_data.append(row[col])
+
+                final_tuple = tuple(row_data)
+
+                # Prepend user_id context safely if multi-tenancy column is tracked
                 if meta['has_user_id']:
-                    prepared_rows.append((DEFAULT_USER_ID,) + row)
+                    prepared_rows.append((DEFAULT_USER_ID,) + final_tuple)
                 else:
-                    prepared_rows.append(row)
+                    prepared_rows.append(final_tuple)
 
             if DRY_RUN:
                 for row_data in prepared_rows:
@@ -199,28 +209,20 @@ def migrate_data():
                 mariadb_cursor.executemany(meta['insert_query'], prepared_rows)
                 print(f"  Successfully inserted {len(prepared_rows)} rows into '{meta['target']}'.")
 
+            sqlite_cursor.close()
+
         except sqlite3.OperationalError:
             print(f"  Skipping '{source_table}': Table does not exist in SQLite source file.")
+            sqlite_cursor.close()
         except Exception as e:
             print(f"  Error processing table '{source_table}': {e}")
+            sqlite_cursor.close()
             if not DRY_RUN and mariadb_conn:
                 mariadb_conn.rollback()
             break
     else:
         if not DRY_RUN and mariadb_conn:
             mariadb_conn.commit()
-            print("\nMigration finished successfully. Transaction committed.")
-        elif DRY_RUN:
-            print("\n--- Dry Run Completed. No changes were committed. ---")
-
-    if not DRY_RUN and mariadb_cursor and mariadb_conn:
-        mariadb_cursor.execute("SET FOREIGN_KEY_CHECKS = 1;")
-        mariadb_cursor.close()
-        mariadb_conn.close()
-
-    sqlite_cursor.close()
-    sqlite_conn.close()
-
 
 if __name__ == '__main__':
     migrate_data()
