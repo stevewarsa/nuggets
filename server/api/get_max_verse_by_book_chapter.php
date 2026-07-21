@@ -1,30 +1,45 @@
-<?php /** @noinspection SqlNoDataSourceInspection */
+<?php
+/** @noinspection SqlNoDataSourceInspection */
 /** @noinspection SqlResolve */
 
-//header('Access-Control-Allow-Origin: *');
-header("Access-Control-Allow-Origin: *");
-header("Access-Control-Allow-Methods: GET, OPTIONS");
-header("Access-Control-Allow-Headers: Content-Type");
-header('Content-Type: application/json; charset=utf8');
-header('Content-Type: application/json; charset=utf8');
-$translation = $_GET['translation'];
-$db = new SQLite3('db/' . $translation . '.db');
-$results = $db->query('SELECT b.book_name, chapter, max(verse) as max_verse FROM book b, verse v where b._id = v.book_id and v.book_id = b._id group by b.book_name, chapter order by b._id, chapter');
+// Pulls in headers and connects to MariaDB via the single global connection file
+require_once 'connect.php';
 
-$arrayName = array();
-while ($row = $results->fetchArray()) {
-    $bookName = $row['book_name'];
-    $chapterVersePairs = null;
-    if (array_key_exists($bookName, $arrayName)) {
-        $chapterVersePairs = $arrayName[$bookName];
-    } else {
-        $chapterVersePairs = array();
+// Safe extraction of parameters coming via URL query parameters
+$translation = $_GET['translation'] ?? '';
+
+try {
+    // Single consolidated query pulling metrics grouped securely by the translation name string
+    $stmt = $pdo->prepare('
+        SELECT b.book_name, v.chapter, MAX(v.verse) AS max_verse 
+        FROM verse v
+        INNER JOIN book b ON b._id = v.book_id
+        INNER JOIN translation t ON t.translation_id = v.translation_id
+        WHERE t.translation_name = ?
+        GROUP BY b.book_name, v.chapter, b._id
+        ORDER BY b._id, v.chapter
+    ');
+    $stmt->execute([$translation]);
+
+    $arrayName = array();
+    while ($row = $stmt->fetch()) {
+        $bookName = $row['book_name'];
+
+        if (!isset($arrayName[$bookName])) {
+            $arrayName[$bookName] = array();
+        }
+
+        // Cast numerical results cleanly to match original array payload specs
+        $arrayName[$bookName][] = array((int)$row['chapter'], (int)$row['max_verse']);
     }
-    array_push($chapterVersePairs, array($row['chapter'], $row['max_verse']));
-    $arrayName[$bookName] = $chapterVersePairs;
+
+    $responseJson = json_encode($arrayName);
+    error_log('Returning response JSON ' . $responseJson);
+
+    echo $responseJson;
+
+} catch (Exception $e) {
+    error_log("An error occurred in get_max_verse_by_book_chapter.php: " . $e->getMessage());
+    http_response_code(500);
+    echo json_encode(["error" => "Internal server error"]);
 }
-$db->close();
-$responseJson = json_encode($arrayName);
-error_log('Returning response JSON ' . $responseJson);
-print_r($responseJson);
-?>

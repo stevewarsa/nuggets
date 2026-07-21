@@ -1,62 +1,63 @@
-<?php /** @noinspection SqlDialectInspection */
+<?php
+/** @noinspection SqlDialectInspection */
 /** @noinspection SqlNoDataSourceInspection */
-header("Access-Control-Allow-Origin: *");
-header('Access-Control-Allow-Methods: GET, POST, PATCH, PUT, DELETE, OPTIONS');
-header('Access-Control-Allow-Headers: Origin, Content-Type, X-Auth-Token, X-Requested-With, Accept');
-header('Content-Type: application/json; charset=utf8; Accept: application/json');
 
-$request = file_get_contents('php://input');
-$input = json_decode($request);
+// Pulls in headers, connects to MariaDB, and automatically populates $pdo and $current_user_id
+require_once 'connect.php';
 
-$user = $input->user;
-$prompt = $input->prompt;
+// Reuse the pre-parsed JSON payload object populated by connect.php
+$input = $GLOBAL_JSON_INPUT;
+
+if (!$input || !isset($input->answer)) {
+    echo json_encode("error");
+    exit;
+}
+
+$prompt   = $input->prompt ?? null;
 $quoteTxt = $input->answer;
-$sourceId = $input->sourceId;
-$fromUser = $input->fromUser;
-error_log("Received data: user=" . $user . ", prompt=" . $prompt . ", quote=" . $quoteTxt . ", sourceId=" . $sourceId);
+$sourceId = $input->sourceId ?? null;
+$fromUser = $input->fromUser ?? null;
+
+error_log("Received data: user_id=" . $current_user_id . ", prompt=" . $prompt . ", quote=" . $quoteTxt . ", sourceId=" . $sourceId);
+
 $quoteId = -1;
 
-// now insert this quote
-$db = new SQLite3('db/memory_' . $user . '.db');
-if ($sourceId != null && $fromUser != null) {
-	$statement = $db->prepare("insert into quote (quote_tx, sent_from_user, approved, source_id) values (:quote_tx, :sent_from_user, 'Y', :source_id)");
-	$statement->bindValue(':quote_tx', $quoteTxt);
-	$statement->bindValue(':sent_from_user', $fromUser);
-	$statement->bindValue(':source_id', $sourceId);
-} else {
-	$statement = $db->prepare("insert into quote (quote_tx, approved) values (:quote_tx, 'Y')");
-	$statement->bindValue(':quote_tx', $quoteTxt);
-}
-$statement->execute();
-$statement->close();
+try {
+    // Determine the query structure securely based on input parameters and inject multi-tenant user_id
+    if ($sourceId !== null && $fromUser !== null) {
+        $statement = $pdo->prepare("
+            INSERT INTO quote (user_id, quote_tx, sent_from_user, approved, source_id) 
+            VALUES (?, ?, ?, 'Y', ?)
+        ");
+        $statement->execute([$current_user_id, $quoteTxt, $fromUser, $sourceId]);
+    } else {
+        $statement = $pdo->prepare("
+            INSERT INTO quote (user_id, quote_tx, approved) 
+            VALUES (?, ?, 'Y')
+        ");
+        $statement->execute([$current_user_id, $quoteTxt]);
+    }
 
-error_log("Inserted quote... now getting last quote id inserted");
+    // Capture the newly generated auto-increment id natively
+    $quoteId = (int)$pdo->lastInsertId();
 
-// now get the newly generated passage_id
-$results = $db->query('SELECT last_insert_rowid() as quote_id');
-while ($row = $results->fetchArray()) {
-    $quoteId = $row["quote_id"];
-    break;
-}
-if ($quoteId != -1) {
+    if ($quoteId !== 0) {
+        error_log("Last quote id retrieved successfully");
 
-	error_log("Last quote id retrieved");
-	$quote = new stdClass;
-	$quote->quoteId = $quoteId;
-    $quote->quoteTx = $quoteTxt;
-    $quote->approved = 'Y';
-    $quote->fromUser = $fromUser;
-    $quote->sourceId = $sourceId;
+        $quote = new stdClass;
+        $quote->quoteId = $quoteId;
+        $quote->quoteTx = $quoteTxt;
+        $quote->approved = 'Y';
+        $quote->fromUser = $fromUser;
+        $quote->sourceId = $sourceId;
 
-	error_log("Quote inserted, closing database and returning Quote object");
+        echo json_encode($quote);
+    } else {
+        error_log("Last Quote ID inserted not found - returning error");
+        echo json_encode("error");
+    }
 
-	$db->close();
-
-	print_r(json_encode($quote));
-} else {
-
-	$db->close();
-
-	error_log("Last Quote ID inserted not found - returning error");
-	print_r(json_encode("error"));
+} catch (Exception $e) {
+    error_log("An error occurred in add_nonbible_memory_fact.php: " . $e->getMessage());
+    echo json_encode("error");
 }

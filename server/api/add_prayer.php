@@ -3,60 +3,65 @@
 /** @noinspection PhpParamsInspection */
 /** @noinspection SqlNoDataSourceInspection */
 /** @noinspection SqlDialectInspection */
-header("Access-Control-Allow-Origin: *");
-header("Access-Control-Allow-Methods: GET, POST, PATCH, PUT, DELETE, OPTIONS");
-header("Access-Control-Allow-Headers: Origin, Content-Type, X-Auth-Token, X-Requested-With, Accept");
-header("Content-Type: application/json; charset=utf8; Accept: application/json");
 
-$request = file_get_contents("php://input");
-$input = json_decode($request);
+// Pulls in headers, connects to MariaDB, and automatically populates $pdo and $current_user_id
+require_once 'connect.php';
 
-$user = $input->userId;
-$prayerTitleTx = $input->prayerTitleTx;
-$prayerDetailsTx = $input->prayerDetailsTx;
-$prayerSubjectPersonName = $input->prayerSubjectPersonName;
-$prayerPriorityCd = isset($input->prayerPriorityCd) ? trim($input->prayerPriorityCd) : '';
-$db = null;
+// Reuse the pre-parsed JSON payload object populated by connect.php
+$input = $GLOBAL_JSON_INPUT;
+
+if (!$input) {
+    echo json_encode("error");
+    exit;
+}
+
+$prayerTitleTx           = $input->prayerTitleTx ?? '';
+$prayerDetailsTx         = $input->prayerDetailsTx ?? '';
+$prayerSubjectPersonName = $input->prayerSubjectPersonName ?? '';
+$prayerPriorityCd        = isset($input->prayerPriorityCd) ? trim($input->prayerPriorityCd) : '';
+
 try {
-    $db = new SQLite3("db/memory_$user.db");
+    // Begin a native SQL transaction block to ensure atomic integrity across tables
+    $pdo->beginTransaction();
 
-    // --- Insert into prayer table ---
-    $statement = $db->prepare("
-        INSERT INTO prayer (prayer_title_tx, prayer_desc_tx, prayer_subject_person_nm)
-        VALUES (:prayer_title, :prayer_desc, :prayer_subject_person)
+    // --- Step 1: Insert into the multi-tenant prayer table ---
+    $statement = $pdo->prepare("
+        INSERT INTO prayer (user_id, prayer_title_tx, prayer_desc_tx, prayer_subject_person_nm) 
+        VALUES (?, ?, ?, ?)
     ");
-    $statement->bindValue(":prayer_title", $prayerTitleTx);
-    $statement->bindValue(":prayer_desc", $prayerDetailsTx);
-    $statement->bindValue(":prayer_subject_person", $prayerSubjectPersonName);
-    $statement->execute();
-    $statement->close();
+    $statement->execute([
+        $current_user_id,
+        $prayerTitleTx,
+        $prayerDetailsTx,
+        $prayerSubjectPersonName
+    ]);
 
-    // --- Get the newly generated prayer_id ---
-    $results = $db->query("SELECT last_insert_rowid() AS prayer_id");
-    $prayerId = -1;
-    if ($row = $results->fetchArray(SQLITE3_ASSOC)) {
-        $prayerId = $row["prayer_id"];
-    }
+    // Grab the auto-incremented primary key generated natively by MariaDB
+    $prayerId = (int)$pdo->lastInsertId();
 
-    // --- Conditionally insert into prayer_frequency ---
+    // --- Step 2: Conditionally insert into prayer_frequency ---
     if ($prayerId > 0 && $prayerPriorityCd !== '') {
-        $freqStmt = $db->prepare("
-            INSERT INTO prayer_frequency (prayer_id, prayer_priority_cd)
-            VALUES (:prayer_id, :prayer_priority_cd)
+        $freqStmt = $pdo->prepare("
+            INSERT INTO prayer_frequency (prayer_id, prayer_priority_cd) 
+            VALUES (?, ?)
         ");
-        $freqStmt->bindValue(":prayer_id", $prayerId);
-        $freqStmt->bindValue(":prayer_priority_cd", $prayerPriorityCd);
-        $freqStmt->execute();
-        $freqStmt->close();
+        $freqStmt->execute([
+            $prayerId,
+            $prayerPriorityCd
+        ]);
         error_log("[add_prayer.php] Inserted prayer_frequency for prayer_id={$prayerId}");
     }
 
-    $db->close();
+    // Commit changes safely to MariaDB
+    $pdo->commit();
 
-    print_r(json_encode($prayerId));
+    echo json_encode($prayerId);
+
 } catch (Exception $e) {
-    if ($db) $db->close();
+    // Roll back changes if any step in the sequence fails
+    if ($pdo->inTransaction()) {
+        $pdo->rollBack();
+    }
     error_log("An error occurred while adding the prayer: " . $e->getMessage());
-    print_r(json_encode("error"));
+    echo json_encode("error");
 }
-?>

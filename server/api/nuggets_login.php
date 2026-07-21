@@ -1,50 +1,36 @@
-<?php /** @noinspection SqlNoDataSourceInspection */
+<?php
+/** @noinspection SqlNoDataSourceInspection */
 /** @noinspection SqlDialectInspection */
-header('Access-Control-Allow-Origin: *');
-header("Access-Control-Allow-Methods: GET, OPTIONS");
-header("Access-Control-Allow-Headers: Content-Type");
-header('Content-Type: application/json; charset=utf8');
 
-$user = $_GET["user"];
-$copyUser = isset($_GET["copyUser"]) ? $_GET["copyUser"] : null;
+// Pulls in headers and connects to MariaDB via the single global connection file
+require_once 'connect.php';
 
-error_log("[nuggets_login.php] User " . $user . " is logging into Nuggets...");
-$loginMessage = "success";
-$filename = "db/memory_" . $user . ".db";
-if (file_exists($filename)) {
-    error_log("[nuggets_login.php] successfully logged in existing user " . $user . "! Returning 'success'.");
-    print_r(json_encode($loginMessage));
-} else {
-    error_log("[nuggets_login.php] The file " . $filename . " does not exist, copying template to create new database.");
-    $dbTemplateName = "template";
-    if ($copyUser != null) {
-        // this is a new user and the user would like to copy the database of an existing user to create his/her db
-        error_log("[nuggets_login.php] new user " . $user . " would like to create their db as a copy of user " . $copyUser);
-        $dbTemplateName = $copyUser;
-    }
+$user = $_GET["user"] ?? '';
 
-    copy("db/memory_" . $dbTemplateName . ".db", $filename);
-    if ($copyUser == null) {
-        // Since the user is not copying db from another user, set the default Bible translation...
-        error_log("[nuggets_login.php] successfully created db for user " . $user . "! Setting preferred translation to NIV");
-        // now update the email preference in the from user's database
-        $db = new SQLite3($filename);
-        $statement = $db->prepare("update preferences set value = :translation where key = :key");
-        $statement->bindValue(":key", "preferred_translation");
-        $statement->bindValue(":translation", "niv");
-        $statement->execute();
-        $statement->close();
+error_log("[nuggets_login.php] User " . $user . " is attempting to log into Nuggets...");
 
-        if ($db->changes() < 1) {
-            // there was no matching preference, so insert it
-            $statement = $db->prepare("insert into preferences (key,value) values (:key, :value)");
-            $statement->bindValue(":key", "preferred_translation");
-            $statement->bindValue(":value", "niv");
-            $statement->execute();
-            $statement->close();
-        }
-        $db->close();
-    }
-    print_r(json_encode($loginMessage));
+if (empty(trim($user))) {
+    echo json_encode("error");
+    exit;
 }
 
+try {
+    // Perform a safe parameterized lookup to confirm account existence
+    $statement = $pdo->prepare("SELECT COUNT(*) AS user_exists FROM user WHERE user_nm = ?");
+    $statement->execute([trim($user)]);
+    $row = $statement->fetch();
+
+    if ($row && (int)$row['user_exists'] > 0) {
+        error_log("[nuggets_login.php] Successfully logged in existing user " . $user . "! Returning 'success'.");
+        echo json_encode("success");
+    } else {
+        error_log("[nuggets_login.php] User profile '" . $user . "' not found in the user table. Denying entry.");
+        // Returns a non-success flag to trigger React's failure hooks cleanly
+        echo json_encode("unauthorized");
+    }
+
+} catch (Exception $e) {
+    error_log("[nuggets_login.php] - An operational error occurred during login: " . $e->getMessage());
+    http_response_code(500);
+    echo json_encode("error");
+}

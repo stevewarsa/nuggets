@@ -1,30 +1,32 @@
-<?php /** @noinspection SqlResolve */
+<?php
+/** @noinspection SqlResolve */
 /** @noinspection SqlNoDataSourceInspection */
-/** @noinspection PhpParamsInspection */
-header("Access-Control-Allow-Origin: *");
-header("Access-Control-Allow-Methods: GET, OPTIONS");
-header("Access-Control-Allow-Headers: Content-Type");
-header("Content-Type: application/json; charset=utf8");
 
-$user = $_GET["user"];
-$db = new SQLite3("db/memory_$user.db");
+// Pulls in headers, connects to MariaDB, and automatically populates $pdo and $current_user_id
+require_once 'connect.php';
 
-$results = $db->query("
-SELECT 
-    n.nugget_id,
-    n.book_id,
-    n.chapter,
-    n.start_verse,
-    n.end_verse,
-    t.tag_id,
-    t.tag_name
-FROM nugget n
-LEFT JOIN tag_nugget tn ON n.nugget_id = tn.nugget_id
-LEFT JOIN tag t ON tn.tag_id = t.tag_id
+// Prepare multi-tenant isolated query
+/** @var PDO $pdo this is populated inside connect.php */
+$stmt = $pdo->prepare("
+    SELECT 
+        n.nugget_id, 
+        n.book_id, 
+        n.chapter, 
+        n.start_verse, 
+        n.end_verse, 
+        t.tag_id, 
+        t.tag_name 
+    FROM nugget n 
+    LEFT JOIN tag_nugget tn ON n.nugget_id = tn.nugget_id AND tn.user_id = n.user_id
+    LEFT JOIN tag t ON tn.tag_id = t.tag_id AND t.user_id = n.user_id
+    WHERE n.user_id = ?
 ");
 
+/** @var string $current_user_id his is populated inside connect.php */
+$stmt->execute([$current_user_id]);
 $passages = array();
-while ($row = $results->fetchArray()) {
+
+while ($row = $stmt->fetch()) {
     $nuggetId = $row["nugget_id"];
 
     // If we haven't seen this nugget yet, create the base object
@@ -36,7 +38,7 @@ while ($row = $results->fetchArray()) {
         $obj->startVerse = (int)$row["start_verse"];
         $obj->endVerse = (int)$row["end_verse"];
 
-        // You may want to initialize these even if not set in DB yet
+        // Match original schema object definitions
         $obj->bookName = "";
         $obj->translationId = "";
         $obj->translationName = "";
@@ -46,7 +48,7 @@ while ($row = $results->fetchArray()) {
         $obj->last_viewed_num = 0;
         $obj->passageRefAppendLetter = "";
         $obj->verses = array();
-        $obj->topics = array();  // will fill below
+        $obj->topics = array();
         $obj->explanation = "";
 
         $passages[$nuggetId] = $obj;
@@ -61,5 +63,6 @@ while ($row = $results->fetchArray()) {
     }
 }
 
-$db->close();
-print_r(json_encode(array_values($passages)));
+// print_r combined with json_encode adds messy string debug formats.
+// Echoing raw json_encode outputs a clean production payload directly to React.
+echo json_encode(array_values($passages));

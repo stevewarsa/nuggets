@@ -1,42 +1,38 @@
-<?php /** @noinspection SqlNoDataSourceInspection */
+<?php
+/** @noinspection SqlNoDataSourceInspection */
 /** @noinspection SqlResolve */
 /** @noinspection PhpParamsInspection */
-header('Access-Control-Allow-Origin: *');
-header("Access-Control-Allow-Methods: GET, OPTIONS");
-header("Access-Control-Allow-Headers: Content-Type");
-header('Content-Type: application/json; charset=utf8');
 
-if (!isset($_GET['userId']) || !isset($_GET['prayerId'])) {
-    print_r(json_encode("error"));
+// Pulls in headers, connects to MariaDB, and automatically populates $pdo and $current_user_id
+require_once 'connect.php';
+
+// Safe extraction of parameters coming via URL query parameters
+$prayerId = $_GET['prayerId'] ?? null;
+
+if ($prayerId === null) {
+    echo json_encode("error");
     exit;
 }
-$userId = $_GET['userId'];
-$prayerId = $_GET['prayerId'];
 
-error_log("[archive_prayer.php] Archiving prayer for user $userId with prayerId $prayerId...");
+error_log("[archive_prayer.php] Archiving prayer for user_id $current_user_id with prayerId $prayerId...");
 
-$db = new SQLite3("db/memory_$userId.db");
+$returnVal = "error";
 
 try {
-    /** @noinspection SqlResolve */
-    $statement = $db->prepare("update prayer set archive_fl = 'Y' where prayer_id = :prayer_id");
-    $statement->bindValue(':prayer_id', $prayerId);
-    $statement->execute();
-} catch (PDOException $pdoException) {
-    // Handle PDOException, which is specific to database operations
-    error_log("[archive_prayer.php] - An error occurred while archiving the prayer - PDOException: " . $pdoException->getMessage());
+    // Isolate the operation to the current multi-tenant user
+    $statement = $pdo->prepare("UPDATE prayer SET archive_fl = 'Y' WHERE prayer_id = ? AND user_id = ?");
+    $statement->execute([$prayerId, $current_user_id]);
+
+    // Check if any rows were actually modified
+    $numChanges = $statement->rowCount();
+    error_log("[archive_prayer.php] Archiving prayer for user_id $current_user_id with prayerId $prayerId... There were $numChanges rows updated.");
+
+    if ($numChanges > 0) {
+        $returnVal = "success";
+    }
+
 } catch (Exception $e) {
     error_log("[archive_prayer.php] - An error occurred while archiving the prayer: " . $e->getMessage());
 }
-if (isset($statement)) {
-    $statement->close();
-}
-// now see if any rows were updated
-$returnVal = "error";
-$numChanges = $db->changes();
-error_log("[archive_prayer.php] Archiving prayer for user $userId with prayerId $prayerId...  There were $numChanges ");
-if ($numChanges > 0) {
-    $returnVal = "success";
-}
-$db->close();
-print_r(json_encode($returnVal));
+
+echo json_encode($returnVal);

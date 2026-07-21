@@ -1,145 +1,152 @@
 <?php
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: GET, POST, PATCH, PUT, DELETE, OPTIONS');
-header('Access-Control-Allow-Headers: Origin, Content-Type, X-Auth-Token');
+/** @noinspection SqlResolve */
+/** @noinspection SqlNoDataSourceInspection */
 
-ini_set ('memory_limit', '150M');
-include_once('./Passage.php');
-$inputJSON = file_get_contents('php://input');
-$input= json_decode( $inputJSON, TRUE );
-$translations = $input['translations'];
-$testament = $input['testament'];
-$book = $input['book'];
-$txt = $input['searchPhrase'];
-$user = $input['user'];
-error_log("Here is the search string sent in: ");
-error_log($txt);
-$selectSql = "select chapter, verse, b.book_name, b._id from verse v, book b where b._id = v.book_id ";
-if ($testament == 'both') {
-    // no restriction on books...
-    error_log("no restriction on books...");
-} else if ($testament == 'new') {
-    // filter on new testament
-    error_log("filter on new testament...");
-    $selectSql .= "and v.book_id >= 40 ";
-} else if ($testament == 'old') {
-    // filter on old testament
-    error_log("filter on old testament...");
-    $selectSql .= "and v.book_id <= 39 ";
-} else if ($testament == 'gospels') {
-    // filter on old testament
-    error_log("filter on the Gospels...");
-    $selectSql .= "and v.book_id >= 40 and v.book_id <= 43 ";
-} else if ($testament == 'pauls_letters') {
-    // filter on the Apostle Paul's Letters
-    error_log("filter on the Apostle Paul's Letters...");
-    $selectSql .= "and v.book_id >= 45 and v.book_id <= 57 ";
-} else if ($testament == 'non_pauline_letters') {
-    // filter on the non-Pauline Epistles
-    error_log("filter on the non-Pauline Epistles...");
-    $selectSql .= "and v.book_id >= 58 and v.book_id <= 65 ";
+// Imports headers, establishes $pdo, parses json payload, and isolates $current_user_id
+require_once 'connect.php';
+include_once('./Passage.php'); // Keeps your native OOP class models
+
+// Grab the pre-parsed JSON parameters safely from our connect.php global wrapper
+$input = json_decode(json_encode($GLOBAL_JSON_INPUT), true);
+
+$translations = $input['translations'] ?? [];
+$testament    = $input['testament'] ?? 'both';
+$book         = $input['book'] ?? 'All';
+$txt          = $input['searchPhrase'] ?? '';
+
+error_log("[bible_search.php] Received search string: " . $txt);
+
+if (empty($translations)) {
+    echo json_encode([]);
+    exit;
 }
-if ($book != null && $book != "All") {
-    $selectSql .= "and b.book_name = '" . $book . "' ";
+
+// --- Step 1: Map text translation names to MariaDB translation_ids ---
+$transPlaceholders = implode(',', array_fill(0, count($translations), '?'));
+$transMapStmt = $pdo->prepare("SELECT translation_id, translation_name FROM translation WHERE translation_name IN ($transPlaceholders)");
+$transMapStmt->execute($translations);
+
+$translationIdMap = [];
+while ($tRow = $transMapStmt->fetch()) {
+    $translationIdMap[$tRow['translation_id']] = $tRow['translation_name'];
 }
-$modSearchString = strtoupper($txt);
-error_log($modSearchString);
+$translationIds = array_keys($translationIdMap);
+
+if (empty($translationIds)) {
+    echo json_encode([]);
+    exit;
+}
+
+// --- Step 2: Build the Main Optimized Search Query ---
+$params = [];
+
+// Removed UPPER() from both the inner subquery and outer query to let MariaDB handle case-insensitivity natively
+$selectSql = "
+    SELECT 
+        v.chapter, 
+        v.verse, 
+        v.verse_part_id, 
+        v.verse_text, 
+        v.is_words_of_christ,
+        v.translation_id,
+        b.book_name, 
+        b._id AS book_id
+    FROM verse v
+    INNER JOIN book b ON b._id = v.book_id
+    INNER JOIN (
+        SELECT DISTINCT v2.translation_id, v2.book_id, v2.chapter, v2.verse
+        FROM verse v2
+        WHERE v2.translation_id IN (" . implode(',', array_fill(0, count($translationIds), '?')) . ")
+          AND v2.verse_text LIKE ?
+    ) matches ON v.translation_id = matches.translation_id 
+             AND v.book_id = matches.book_id 
+             AND v.chapter = matches.chapter 
+             AND v.verse = matches.verse
+    WHERE v.translation_id IN (" . implode(',', array_fill(0, count($translationIds), '?')) . ")
+";
+
+// Bind params for the inner subquery lookups
+$params = array_merge($params, $translationIds);
+
+// Format the wildcard string - REMOVED strtoupper() so the raw keyword maps directly
+$modSearchString = $txt;
 $modSearchString = str_replace('*', '%', $modSearchString);
-error_log($modSearchString);
-
-if (!(strpos($modSearchString, "%") === 0)) {
+if (strpos($modSearchString, "%") !== 0) {
     $modSearchString = "%" . $modSearchString;
 }
-error_log($modSearchString);
-
-if (!((strpos($modSearchString, "%") + 1) === strlen($modSearchString))) {
+if (substr($modSearchString, -1) !== "%") {
     $modSearchString = $modSearchString . "%";
 }
-error_log($modSearchString);
-//$modSearchString = sqlite_escape_string($modSearchString);
-$selectSql .= " and upper(verse_text) like :searchString order by b._id, chapter, verse";
-error_log($selectSql);
-//error_log($modSearchString);
+$params[] = $modSearchString;
+
+// Bind params for the outer query filters
+$params = array_merge($params, $translationIds);
+
+// Inject logical testament restrictions into the outer selection pool
+if ($testament == 'new') {
+    $selectSql .= " AND v.book_id >= 40";
+} else if ($testament == 'old') {
+    $selectSql .= " AND v.book_id <= 39";
+} else if ($testament == 'gospels') {
+    $selectSql .= " AND v.book_id >= 40 AND v.book_id <= 43";
+} else if ($testament == 'pauls_letters') {
+    $selectSql .= " AND v.book_id >= 45 AND v.book_id <= 57";
+} else if ($testament == 'non_pauline_letters') {
+    $selectSql .= " AND v.book_id >= 58 AND v.book_id <= 65";
+}
+
+if ($book != null && $book != "All") {
+    $selectSql .= " AND b.book_name = ?";
+    $params[] = $book;
+}
+
+$selectSql .= " ORDER BY v.translation_id, b._id, v.chapter, v.verse, v.verse_part_id";
+
+// --- Step 3: Stream and Assemble the Object Model Tree ---
+$stmt = $pdo->prepare($selectSql);
+$stmt->execute($params);
 
 $arrayName = array();
-foreach ($translations as $translation) {
-	error_log('Opening translation database: ' . $translation . '...');
-	$db = new SQLite3('db/' . $translation . '.db');
-	$statement = $db->prepare($selectSql);
-	$statement->bindValue(':searchString', $modSearchString);
-	$results = $statement->execute();
-	$resultsForTranslation = array();
-	while ($row = $results->fetchArray()) {
-		$passage = new Passage();
-		$passage->passageId = -1;
-		$passage->bookId = $row["_id"];
-		$passage->bookName = $row["book_name"];
-		$passage->chapter = $row["chapter"];
-		$passage->startVerse = $row["verse"];
-		$passage->endVerse = $row["verse"];
-		$passage->translationId = $translation;
-		$passage->translationName = $translation;
-		array_push($resultsForTranslation, $passage);
-	}
-	$statement->close();
-	foreach ($resultsForTranslation as $psg) {
-		//error_log("book_id=" . $psg->bookId);
-		//error_log("book_name=" . $psg->bookName);
-		//error_log("chapter=" . $psg->chapter);
-		//error_log("startVerse=" . $psg->startVerse);
-		$verse = new Verse();
-		$verse->passageId = -1;
-		$versePartSql = 'select verse, verse_part_id, verse_text, is_words_of_christ, book_name from verse, book where book_id = _id and book_id = ' . $psg->bookId . ' and chapter = ' . $psg->chapter . ' and verse = ' . $psg->startVerse . ' order by verse, verse_part_id';
-		$results = $db->query($versePartSql);
-		//error_log("Here is the versePartSql: ");
-		//error_log($versePartSql);
-		while ($row = $results->fetchArray()) {
-			$currentVerse = $row["verse"];
-			$versePart = new VersePart();
-			$versePart->verseNumber = $currentVerse;
-			$versePart->versePartId = $row["verse_part_id"];
-			$versePart->verseText = $row["verse_text"];
-			if ($row["is_words_of_christ"] == "Y") {
-				$versePart->wordsOfChrist = TRUE;
-			} else {
-				$versePart->wordsOfChrist = FALSE;
-			}
-			//error_log("Adding verse text to verse " . $currentVerse . ":");
-			//error_log($versePart->verseText);
-			$verse->addVersePart($versePart);
-		}
-		$psg->addVerse($verse);
-	}
-	$db->close();
-	$db = null;
-	$arrayName = array_merge($arrayName, $resultsForTranslation);
+$passageGroup = [];
+
+while ($row = $stmt->fetch()) {
+    $tName = $translationIdMap[$row['translation_id']];
+    $groupKey = $tName . "_" . $row['book_id'] . "_" . $row['chapter'] . "_" . $row['verse'];
+
+    if (!isset($passageGroup[$groupKey])) {
+        $passage = new Passage();
+        $passage->passageId = -1;
+        $passage->bookId = $row["book_id"];
+        $passage->bookName = $row["book_name"];
+        $passage->chapter = $row["chapter"];
+        $passage->startVerse = $row["verse"];
+        $passage->endVerse = $row["verse"];
+        $passage->translationId = $tName;
+        $passage->translationName = $tName;
+
+        $verseObj = new Verse();
+        $verseObj->passageId = -1;
+
+        $passage->addVerse($verseObj);
+        $passageGroup[$groupKey] = [
+                'passage' => $passage,
+                'verse'   => $verseObj
+        ];
+    }
+
+    $versePart = new VersePart();
+    $versePart->verseNumber = $row["verse"];
+    $versePart->versePartId = $row["verse_part_id"];
+    $versePart->verseText = $row["verse_text"];
+    $isWOC = $row["is_words_of_christ"];
+    $versePart->wordsOfChrist = ($isWOC === "Y" || $isWOC === "y" || $isWOC === "1" || $isWOC === 1 || $isWOC === true);
+
+    $passageGroup[$groupKey]['verse']->addVersePart($versePart);
 }
 
-
-// now update the preferred translation to the translation being used on this request
-if (sizeof($translations) == 1) {
-	$db = new SQLite3('db/memory_' . $user . '.db');
-	$statement = $db->prepare('update preferences set value = :selectedTranslation where key = :key');
-	$statement->bindValue(':key', 'preferred_translation');
-	$statement->bindValue(':selectedTranslation', $translations[0]);
-	$statement->execute();
-	$statement->close();
-
-	if ($db->changes() < 1) {
-		error_log("There were no updates made so inserting new preference for preferred_translation with value " . $translation);
-		// there was no matching preference, so insert it
-		$statement = $db->prepare('insert into preferences (key,value) values (:key, :value)');
-		$statement->bindValue(':key', 'preferred_translation');
-		$statement->bindValue(':value', $translation);
-		$statement->execute();
-		$statement->close();
-	}
-	$db->close();
+foreach ($passageGroup as $group) {
+    $arrayName[] = $group['passage'];
 }
-header('Content-Type: application/json; charset=utf8');
-$responseToSend = json_encode($arrayName);
-error_log("Sending back JSON:");
-error_log($responseToSend);
-print_r($responseToSend);
 
-?>
+// Standard output return handling (preferences block safely removed)
+echo json_encode($arrayName);

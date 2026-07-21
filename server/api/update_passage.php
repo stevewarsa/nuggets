@@ -1,115 +1,80 @@
-<?php /** @noinspection SqlNoDataSourceInspection */
+<?php
+/** @noinspection SqlNoDataSourceInspection */
 /** @noinspection PhpParamsInspection */
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: GET, POST, PATCH, PUT, DELETE, OPTIONS');
-header('Access-Control-Allow-Headers: Origin, Content-Type, X-Auth-Token');
 
-$request = file_get_contents('php://input');
-$input = json_decode($request);
-error_log("[update_passage.php] Here is the incoming request:\n" . $request);
+// Pulls in headers, connects to MariaDB, and automatically populates $pdo and $current_user_id
+require_once 'connect.php';
 
-$user = $input->user;
-$passageId = $input->passage->passageId;
-$chapter = $input->passage->chapter;
-$startVerse = $input->passage->startVerse;
-$endVerse = $input->passage->endVerse;
-$translation =  $input->passage->translationName;
-$frequency = $input->passage->frequencyDays;
-$newText = $input->newText;
-$passageRefAppendLetter = $input->passageRefAppendLetter;
-$explanation = $input->passage->explanation;
+$input = $GLOBAL_JSON_INPUT;
 
-// update this passage
-$db = new SQLite3("db/memory_$user.db");
-$db->busyTimeout(250);
-if (isset($explanation)) {
-    error_log("update_passage.php - explanation is set to $explanation. First trying to update it...");
-    try {
-        /** @noinspection SqlResolve */
-        $statement = $db->prepare('update passage_explanation set explanation = :explanation where passage_id = :passage_id');
-        $statement->bindValue(':explanation', $explanation);
-        $statement->bindValue(':passage_id', $passageId);
-        $statement->execute();
-    } catch (PDOException $pdoException) {
-        // Handle PDOException, which is specific to database operations
-        error_log("update_passage.php - An error occurred while updating the explanation - PDOException: " . $pdoException->getMessage());
-    } catch (Exception $e) {
-        error_log("update_passage.php - An error occurred while updating the explanation: " . $e->getMessage());
-    }
-    if (isset($statement)) {
-        $statement->close();
-    }
-    // now see if any rows were updated
-    if ($db->changes() < 1) {
-        error_log("update_passage.php - explanation is set to " . $explanation . ". Didn't update, so now inserting...");
-        try {
-            /** @noinspection SqlResolve */
-            $statement = $db->prepare('insert into passage_explanation (passage_id, explanation) values (:passage_id, :explanation)');
-            $statement->bindValue(':passage_id', $passageId);
-            $statement->bindValue(':explanation', $explanation);
-            $statement->execute();
-        } catch (PDOException $pdoException) {
-            // Handle PDOException, which is specific to database operations
-            error_log("update_passage.php - An error occurred while inserting the explanation - PDOException: " . $pdoException->getMessage());
-        } catch (Exception $e) {
-            error_log("update_passage.php - An error occurred while inserting the explanation: " . $e->getMessage());
-        }
-        if (isset($statement)) {
-            $statement->close();
-        }
-    }
-}
-/** @noinspection SqlResolve */
-$statement = $db->prepare('update passage set chapter = :chapter, start_verse = :start_verse, end_verse = :end_verse where passage_id = :passage_id');
-$statement->bindValue(':chapter', $chapter);
-$statement->bindValue(':start_verse', $startVerse);
-$statement->bindValue(':end_verse', $endVerse);
-$statement->bindValue(':passage_id', $passageId);
-$statement->execute();
-$statement->close();
-
-/** @noinspection SqlResolve */
-$statement = $db->prepare('update memory_passage set preferred_translation_cd = :preferred_translation_cd, frequency_days = :frequency_days where passage_id = :passage_id');
-$statement->bindValue(':preferred_translation_cd', $translation);
-$statement->bindValue(':frequency_days', $frequency);
-$statement->bindValue(':passage_id', $passageId);
-$statement->execute();
-$statement->close();
-
-if (isset($newText)) {
-    // first try to update the record...
-    /** @noinspection SqlResolve */
-    $statement = $db->prepare('update passage_text_override set verse_num = :verse_num, override_text = :override_text, passage_ref_append_letter = :passage_ref_append_letter where passage_id = :passage_id');
-    $statement->bindValue(':verse_num', $startVerse);
-    $statement->bindValue(':override_text', $newText);
-    $statement->bindValue(':passage_ref_append_letter', $passageRefAppendLetter);
-    $statement->bindValue(':passage_id', $passageId);
-    $statement->execute();
-    $statement->close();
-    // now see if any rows were updated
-    if ($db->changes() < 1) {
-        // no rows were updated, so do the insert...
-        /** @noinspection SqlResolve */
-        $statement = $db->prepare('insert into passage_text_override (passage_id,verse_num,override_text,passage_ref_append_letter) values (:passage_id, :verse_num, :override_text, :passage_ref_append_letter)');
-        $statement->bindValue(':passage_id', $passageId);
-        $statement->bindValue(':verse_num', $startVerse);
-        $statement->bindValue(':override_text', $newText);
-        $statement->bindValue(':passage_ref_append_letter', $passageRefAppendLetter);
-        $statement->execute();
-        $statement->close();
-    }
-} else if (isset($passageRefAppendLetter)) {
-    // No new text sent, but passage ref append letter set, so update it
-    /** @noinspection SqlResolve */
-    $statement = $db->prepare('update passage_text_override set passage_ref_append_letter = :passage_ref_append_letter where passage_id = :passage_id');
-    $statement->bindValue(':passage_ref_append_letter', $passageRefAppendLetter);
-    $statement->bindValue(':passage_id', $passageId);
-    $statement->execute();
-    $statement->close();
+if (!$input || !isset($input->passage)) {
+    echo json_encode("error");
+    exit;
 }
 
-$db->close();
+error_log("[update_passage.php] Processing update for user_id: " . $current_user_id);
 
-header('Content-Type: application/json; charset=utf8');
+$passageId               = $input->passage->passageId;
+$chapter                 = $input->passage->chapter;
+$startVerse              = $input->passage->startVerse;
+$endVerse                = $input->passage->endVerse;
+$translation             = $input->passage->translationName;
+$frequency               = $input->passage->frequencyDays;
+$newText                 = $input->newText ?? null;
+$passageRefAppendLetter = $input->passageRefAppendLetter ?? null;
+$explanation             = $input->passage->explanation ?? null;
 
-print_r(json_encode("success"));
+try {
+    $pdo->beginTransaction();
+
+    // --- Step 1: Verify Parent Ownership (Multi-Tenant Security Check) ---
+    $checkStmt = $pdo->prepare("SELECT COUNT(*) FROM passage WHERE passage_id = ? AND user_id = ?");
+    $checkStmt->execute([$passageId, $current_user_id]);
+    if ((int)$checkStmt->fetchColumn() === 0) {
+        throw new Exception("Unauthorized: User does not own passage_id {$passageId}");
+    }
+
+    // --- Step 2: Update core passage data ---
+    $statement = $pdo->prepare('UPDATE passage SET chapter = ?, start_verse = ?, end_verse = ? WHERE passage_id = ? AND user_id = ?');
+    $statement->execute([$chapter, $startVerse, $endVerse, $passageId, $current_user_id]);
+
+    // --- Step 3: Update core memory configurations ---
+    $statement = $pdo->prepare('UPDATE memory_passage SET preferred_translation_cd = ?, frequency_days = ? WHERE passage_id = ? AND user_id = ?');
+    $statement->execute([$translation, $frequency, $passageId, $current_user_id]);
+
+    // --- Step 4: Handle explanation details using native UPSERT ---
+    if ($explanation !== null) {
+        $statement = $pdo->prepare('
+            INSERT INTO passage_explanation (passage_id, explanation) 
+            VALUES (?, ?) 
+            ON DUPLICATE KEY UPDATE explanation = VALUES(explanation)
+        ');
+        $statement->execute([$passageId, $explanation]);
+    }
+
+    // --- Step 5: Handle text overrides using conditional updates ---
+    if ($newText !== null) {
+        $statement = $pdo->prepare('
+            INSERT INTO passage_text_override (passage_id, verse_num, override_text, passage_ref_append_letter) 
+            VALUES (?, ?, ?, ?) 
+            ON DUPLICATE KEY UPDATE 
+                verse_num = VALUES(verse_num), 
+                override_text = VALUES(override_text), 
+                passage_ref_append_letter = VALUES(passage_ref_append_letter)
+        ');
+        $statement->execute([$passageId, $startVerse, $newText, $passageRefAppendLetter]);
+    } else if ($passageRefAppendLetter !== null) {
+        $statement = $pdo->prepare('UPDATE passage_text_override SET passage_ref_append_letter = ? WHERE passage_id = ?');
+        $statement->execute([$passageRefAppendLetter, $passageId]);
+    }
+
+    $pdo->commit();
+    echo json_encode("success");
+
+} catch (Exception $e) {
+    if ($pdo->inTransaction()) {
+        $pdo->rollBack();
+    }
+    error_log("[update_passage.php] - Fail crash occurred: " . $e->getMessage());
+    echo json_encode("error");
+}

@@ -1,33 +1,31 @@
-<?php /** @noinspection PhpParamsInspection */
+<?php
+/** @noinspection PhpParamsInspection */
 /** @noinspection SqlNoDataSourceInspection */
 /** @noinspection SqlResolve */
-header("Access-Control-Allow-Origin: *");
-header('Access-Control-Allow-Methods: GET, POST, PATCH, PUT, DELETE, OPTIONS');
-header('Access-Control-Allow-Headers: Origin, Content-Type, X-Auth-Token, X-Requested-With, Accept');
-header('Content-Type: application/json; charset=utf8; Accept: application/json');
 
-$user = $_GET["user"];
-error_log("get_additional_links.php - Received data: user=" . $user);
+// Pulls in headers, connects to MariaDB, and automatically populates $pdo and $current_user_id
+require_once 'connect.php';
 
-$db = new SQLite3('db/memory_' . $user . '.db');
-$createTable = "CREATE TABLE IF NOT EXISTS additional_link (
-                            key_tx TEXT PRIMARY KEY,
-                            label TEXT,
-                            action TEXT,
-                            created_dt DATETIME DEFAULT CURRENT_TIMESTAMP
-                        )";
-$db->exec($createTable);
-$results = $db->query("select key_tx, label, action from additional_link");
+error_log("get_additional_links.php - Received data for user_id=" . $current_user_id);
 
-$linksArray = array();
-while ($row = $results->fetchArray()) {
-    $link = new stdClass;
-    $link->key = $row['key_tx'];
-    $link->label = $row['label'];
-    $link->action = $row['action'];
-    array_push($linksArray, $link);
+try {
+    // Select entries filtered cleanly by the multi-tenant user_id column
+    $statement = $pdo->prepare("SELECT key_tx, label, action FROM additional_link WHERE user_id = ?");
+    $statement->execute([$current_user_id]);
+
+    $linksArray = array();
+    while ($row = $statement->fetch()) {
+        $link = new stdClass;
+        $link->key = $row['key_tx'];
+        $link->label = $row['label'];
+        $link->action = $row['action'];
+        $linksArray[] = $link;
+    }
+
+    echo json_encode($linksArray);
+
+} catch (Exception $e) {
+    error_log("An error occurred in get_additional_links.php: " . $e->getMessage());
+    http_response_code(500);
+    echo json_encode(["error" => "Internal server error"]);
 }
-$db->close();
-$responseJson = json_encode($linksArray);
-print_r($responseJson);
-?>

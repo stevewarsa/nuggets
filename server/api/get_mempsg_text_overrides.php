@@ -1,38 +1,48 @@
 <?php
-header("Access-Control-Allow-Origin: *");
-header("Access-Control-Allow-Methods: GET, OPTIONS");
-header("Access-Control-Allow-Headers: Content-Type");
-header('Content-Type: application/json; charset=utf8');
+/** @noinspection SqlResolve */
+/** @noinspection SqlNoDataSourceInspection */
 
-//header('Access-Control-Allow-Origin: *');
-include_once('./Passage.php');
+// Pulls in headers, connects to MariaDB, and automatically populates $pdo and $current_user_id
+require_once 'connect.php';
+include_once('./Passage.php'); // Keeps your native OOP class models
 
-$user = $_GET['user'];
+try {
+    // Because passage_text_override doesn't have user_id, we join passage to enforce multi-tenant separation
+    $statement = $pdo->prepare("
+        SELECT 
+            p_to.passage_id, 
+            p_to.passage_ref_append_letter, 
+            p_to.verse_num, 
+            p_to.override_text, 
+            p_to.words_of_christ
+        FROM passage_text_override p_to
+        INNER JOIN passage p ON p.passage_id = p_to.passage_id
+        WHERE p.user_id = ?
+    ");
+    $statement->execute([$current_user_id]);
 
-$db = new SQLite3('db/memory_' . $user . '.db');
-$statement = $db->prepare('select * from passage_text_override');
-$results = $statement->execute();
-$psgArray = array();
-while ($row = $results->fetchArray()) {
-	$passage = new Passage();
-	$passage->passageId = $row["passage_id"];
-	$passage->passageRefAppendLetter = $row["passage_ref_append_letter"];
-	$verse = new Verse();
-	$passage->addVerse($verse);
-    $versePart = new VersePart();
-    $versePart->verseNumber = $row["verse_num"];
-    $versePart->verseText = $row["override_text"];
-    if ($row["words_of_christ"] == "Y") {
-        $versePart->wordsOfChrist = TRUE;
-    } else {
-        $versePart->wordsOfChrist = FALSE;
+    $psgArray = array();
+    while ($row = $statement->fetch()) {
+        $passage = new Passage();
+        $passage->passageId               = (int)$row["passage_id"];
+        $passage->passageRefAppendLetter = $row["passage_ref_append_letter"];
+
+        $verse = new Verse();
+        $passage->addVerse($verse);
+
+        $versePart = new VersePart();
+        $versePart->verseNumber = (int)$row["verse_num"];
+        $versePart->verseText   = $row["override_text"];
+        $versePart->wordsOfChrist = ($row["words_of_christ"] === "Y");
+
+        $verse->addVersePart($versePart);
+        $psgArray[] = $passage;
     }
-    $verse->addVersePart($versePart);
-	array_push($psgArray, $passage);
-}
 
-$statement->close();
-$db->close();
-header('Content-Type: application/json; charset=utf8');
-print_r(json_encode($psgArray));
-?>
+    echo json_encode($psgArray);
+
+} catch (Exception $e) {
+    error_log("An error occurred in get_mempsg_text_overrides.php: " . $e->getMessage());
+    http_response_code(500);
+    echo json_encode(["error" => "Internal server error"]);
+}

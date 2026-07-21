@@ -1,44 +1,63 @@
-<?php /** @noinspection SqlNoDataSourceInspection */
+<?php
+/** @noinspection SqlNoDataSourceInspection */
 /** @noinspection SqlDialectInspection */
-header('Access-Control-Allow-Origin: *');
-header("Access-Control-Allow-Methods: GET, OPTIONS");
-header("Access-Control-Allow-Headers: Content-Type");
-header('Content-Type: application/json; charset=utf8');
 
-$user = $_GET['user'];
-$includeQuoteText = $_GET['includeQuoteText'];
+// Pulls in headers, connects to MariaDB, and automatically populates $pdo and $current_user_id
+require_once 'connect.php';
 
-$db = new SQLite3('db/memory_' . $user . '.db');
-$quotesByQuoteId = array();
-if ($includeQuoteText == "true") {
-	$results = $db->query("SELECT q.quote_id, tag_id, quote_tx, approved, sent_from_user, source_id " .
-		"FROM quote q LEFT OUTER JOIN quote_tag qt on q.quote_id = qt.quote_id");
-} else {
-	$results = $db->query("SELECT q.quote_id, tag_id, approved, sent_from_user, source_id " .
-		"FROM quote q LEFT OUTER JOIN quote_tag qt on q.quote_id = qt.quote_id");
-}
-while ($row = $results->fetchArray()) {
-    if (!array_key_exists($row['quote_id'], $quotesByQuoteId)) {
-        $quote = new stdClass;
-        $quote->quoteId = $row['quote_id'];
-		if ($includeQuoteText == "true") {
-			$quote->quoteTx = $row['quote_tx'];
-		} else {
-			$quote->quoteTx = null;
-		}
-        $quote->approved = $row['approved'];
-        $quote->fromUser = $row['sent_from_user'];
-        $quote->sourceId = $row['source_id'];
-        $quote->tagIds = array();
-        if ($row['tag_id'] != null) {
-            array_push($quote->tagIds, $row['tag_id']);
-        }
-        $quotesByQuoteId[$row['quote_id']] = $quote;
+$includeQuoteText = $_GET['includeQuoteText'] ?? 'false';
+
+try {
+    // Dynamically adjust select list fields based on request configurations
+    if ($includeQuoteText === "true") {
+        $queryStr = "
+            SELECT q.quote_id, qt.tag_id, q.quote_tx, q.approved, q.sent_from_user, q.source_id 
+            FROM quote q 
+            LEFT JOIN quote_tag qt ON q.quote_id = qt.quote_id
+            WHERE q.user_id = ?
+        ";
     } else {
-        if ($row['tag_id'] != null) {
-            array_push($quotesByQuoteId[$row['quote_id']]->tagIds, $row['tag_id']);
+        $queryStr = "
+            SELECT q.quote_id, qt.tag_id, q.approved, q.sent_from_user, q.source_id 
+            FROM quote q 
+            LEFT JOIN quote_tag qt ON q.quote_id = qt.quote_id
+            WHERE q.user_id = ?
+        ";
+    }
+
+    $statement = $pdo->prepare($queryStr);
+    $statement->execute([$current_user_id]);
+
+    $quotesByQuoteId = array();
+
+    while ($row = $statement->fetch()) {
+        $quoteId = (int)$row['quote_id'];
+
+        if (!isset($quotesByQuoteId[$quoteId])) {
+            $quote = new stdClass;
+            $quote->quoteId  = $quoteId;
+            $quote->quoteTx  = ($includeQuoteText === "true") ? $row['quote_tx'] : null;
+            $quote->approved = $row['approved'];
+            $quote->fromUser = $row['sent_from_user'];
+            $quote->sourceId = $row['source_id'] !== null ? (int)$row['source_id'] : null;
+            $quote->tagIds   = array();
+
+            if ($row['tag_id'] !== null) {
+                $quote->tagIds[] = (int)$row['tag_id'];
+            }
+
+            $quotesByQuoteId[$quoteId] = $quote;
+        } else {
+            if ($row['tag_id'] !== null) {
+                $quotesByQuoteId[$quoteId]->tagIds[] = (int)$row['tag_id'];
+            }
         }
     }
+
+    echo json_encode(array_values($quotesByQuoteId));
+
+} catch (Exception $e) {
+    error_log("An error occurred in get_quote_list.php: " . $e->getMessage());
+    http_response_code(500);
+    echo json_encode(["error" => "Internal server error"]);
 }
-$db->close();
-print_r(json_encode(array_values($quotesByQuoteId)));

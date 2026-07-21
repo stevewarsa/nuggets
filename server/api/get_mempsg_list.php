@@ -1,56 +1,60 @@
-<?php /** @noinspection PhpParamsInspection */
-header("Access-Control-Allow-Origin: *");
-header("Access-Control-Allow-Methods: GET, OPTIONS");
-header("Access-Control-Allow-Headers: Content-Type");
-header('Content-Type: application/json; charset=utf8');
+<?php
+/** @noinspection PhpParamsInspection */
+/** @noinspection SqlResolve */
+/** @noinspection SqlNoDataSourceInspection */
 
+// Pulls in headers, connects to MariaDB, and automatically populates $pdo and $current_user_id
+require_once 'connect.php';
 include_once './Book.php';
 include_once './Passage.php';
-$db = new SQLite3('db/niv.db');
-/** @noinspection SqlResolve */
-$results = $db->query('select _id, book_name, (select max(chapter) from verse where book_id = _id) as last_chapter from book');
 
-$books = array();
-while ($row = $results->fetchArray()) {
-    $book = new Book();
-    $book->bookId = $row['_id'];
-    $book->bookName = $row['book_name'];
-    $book->maxChapter = $row['last_chapter'];
-    $books[$row['_id']] = $book;
+try {
+    // A single optimized multi-tenant query pulling all structural properties simultaneously
+    // Replaced implicit joins with explicit JOIN structures and dropped the 'queued' constraint entirely
+    $statement = $pdo->prepare("
+        SELECT 
+            p.passage_id, 
+            p.book_id, 
+            p.chapter, 
+            p.start_verse, 
+            p.end_verse,
+            b.book_name,
+            m.preferred_translation_cd, 
+            m.frequency_days, 
+            m.last_viewed_str, 
+            m.last_viewed_num,
+            pe.explanation
+        FROM passage p
+        INNER JOIN memory_passage m ON m.passage_id = p.passage_id AND m.user_id = p.user_id
+        INNER JOIN book b ON b._id = p.book_id
+        LEFT JOIN passage_explanation pe ON pe.passage_id = p.passage_id
+        WHERE p.user_id = ?
+    ");
+
+    $statement->execute([$current_user_id]);
+    $psgArray = array();
+
+    while ($row = $statement->fetch()) {
+        $passage = new Passage();
+        $passage->passageId       = (int)$row['passage_id'];
+        $passage->bookId          = (int)$row['book_id'];
+        $passage->bookName        = $row['book_name'];
+        $passage->chapter         = (int)$row['chapter'];
+        $passage->startVerse      = (int)$row['start_verse'];
+        $passage->endVerse        = (int)$row['end_verse'];
+        $passage->translationName = $row['preferred_translation_cd'];
+        $passage->frequencyDays   = (int)$row['frequency_days'];
+        $passage->last_viewed_str = $row['last_viewed_str'];
+        $passage->last_viewed_num = $row['last_viewed_num'] !== null ? (int)$row['last_viewed_num'] : 0;
+        $passage->explanation     = $row['explanation'] ?? "";
+
+        $psgArray[] = $passage;
+    }
+
+    echo json_encode($psgArray);
+
+} catch (Exception $e) {
+    error_log("An error occurred in get_mempsg_list.php: " . $e->getMessage());
+    http_response_code(500);
+    echo json_encode(["error" => "Internal server error"]);
 }
-
-$db->close();
-
-$user = $_GET['user'];
-$db = new SQLite3('db/memory_' . $user . '.db');
-if (array_key_exists('queued', $_GET)) {
-    $queued = $_GET['queued'];
-    /** @noinspection SqlResolve */
-	$results = $db->query("select p.passage_id, explanation, book_id, chapter, start_verse, end_verse, m.preferred_translation_cd, frequency_days, last_viewed_str, last_viewed_num from passage p, memory_passage m LEFT OUTER JOIN passage_explanation pe on pe.passage_id = p.passage_id where m.passage_id = p.passage_id and queued = '" . $queued . "'");
-} else {
-    /** @noinspection SqlResolve */
-	$results = $db->query("select p.passage_id, explanation, book_id, chapter, start_verse, end_verse, m.preferred_translation_cd, frequency_days, last_viewed_str, last_viewed_num from passage p, memory_passage m LEFT OUTER JOIN passage_explanation pe on pe.passage_id = p.passage_id where m.passage_id = p.passage_id and queued = 'N'");
-}
-
-$psgArray = array();
-while ($row = $results->fetchArray()) {
-    $passage = new Passage();
-    $passage->passageId = $row['passage_id'];
-    $passage->bookId = $row['book_id'];
-    $passage->bookName = $books[$row['book_id']]->bookName;
-    $passage->chapter = $row['chapter'];
-    $passage->startVerse = $row['start_verse'];
-    $passage->endVerse = $row['end_verse'];
-    $passage->translationName = $row['preferred_translation_cd'];
-    $passage->frequencyDays = $row['frequency_days'];
-    $passage->last_viewed_str = $row['last_viewed_str'];
-    $passage->last_viewed_num = $row['last_viewed_num'];
-    $passage->explanation = $row['explanation'];
-
-    array_push($psgArray, $passage);
-}
-
-$db->close();
-
-print_r(json_encode($psgArray));
-

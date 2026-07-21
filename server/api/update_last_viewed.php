@@ -1,26 +1,40 @@
 <?php
-header('Access-Control-Allow-Origin: *');
-header("Access-Control-Allow-Methods: GET, OPTIONS");
-header("Access-Control-Allow-Headers: Content-Type");
+/** @noinspection SqlResolve */
+/** @noinspection SqlNoDataSourceInspection */
 
-$user = $_GET['user'];
-$passageId = $_GET['passageId'];
-$lastViewedNum = $_GET['lastViewedNum'];
-$lastViewedStr = urldecode($_GET['lastViewedStr']);
+// Pulls in headers, connects to MariaDB, and automatically populates $pdo and $current_user_id
+require_once 'connect.php';
 
-// update this passage 
-$db = new SQLite3('db/memory_' . $user . '.db', SQLITE3_OPEN_READWRITE);
-$statement = $db->prepare('update memory_passage set last_viewed_str = :last_viewed_str, last_viewed_num = :last_viewed_num where passage_id = :passage_id');
-$statement->bindValue(':last_viewed_str', $lastViewedStr);
-$statement->bindValue(':last_viewed_num', $lastViewedNum);
-$statement->bindValue(':passage_id', $passageId);
-$statement->execute();
-$statement->close();
+// Safe extraction of parameters coming via URL query parameters
+$passageId     = $_GET['passageId'] ?? null;
+$lastViewedNum = $_GET['lastViewedNum'] ?? null;
+$lastViewedStr = isset($_GET['lastViewedStr']) ? urldecode($_GET['lastViewedStr']) : null;
 
-$db->close();
+if ($passageId === null) {
+    echo json_encode("error");
+    exit;
+}
 
-header('Content-Type: application/json; charset=utf8');
+try {
+    // Isolate the update operation strictly to the current multi-tenant user's record
+    $statement = $pdo->prepare('
+        UPDATE memory_passage 
+        SET last_viewed_str = ?, 
+            last_viewed_num = ? 
+        WHERE passage_id = ? AND user_id = ?
+    ');
 
-print_r(json_encode("success"));
+    $statement->execute([
+        $lastViewedStr,
+        $lastViewedNum !== null ? (int)$lastViewedNum : null,
+        (int)$passageId,
+        $current_user_id
+    ]);
 
-?>
+    echo json_encode("success");
+
+} catch (Exception $e) {
+    error_log("An error occurred in update_last_viewed.php: " . $e->getMessage());
+    http_response_code(500);
+    echo json_encode("error");
+}

@@ -1,42 +1,43 @@
-<?php /** @noinspection PhpParamsInspection */
+<?php
+/** @noinspection PhpParamsInspection */
 /** @noinspection SqlResolve */
 /** @noinspection SqlNoDataSourceInspection */
-header("Access-Control-Allow-Origin: *");
-header('Access-Control-Allow-Methods: GET, POST, PATCH, PUT, DELETE, OPTIONS');
-header('Access-Control-Allow-Headers: Origin, Content-Type, X-Auth-Token, X-Requested-With, Accept');
-header('Content-Type: application/json; charset=utf8; Accept: application/json');
 
-$request = file_get_contents('php://input');
-$input = json_decode($request);
-error_log("add_additional_link.php - Here is the JSON received: ");
-error_log($request);
+// Pulls in headers, connects to MariaDB, and automatically populates $pdo and $current_user_id
+require_once 'connect.php';
 
-$user = $input->user;
-$key = $input->key;
-$label = $input->label;
-$action = $input->action;
-error_log("add_additional_link.php - Received data: user=" . $user . ", key=" . $key . ", label=" . $label . ", action=" . $action);
+// Reuse the pre-parsed JSON payload object populated by connect.php
+$input = $GLOBAL_JSON_INPUT;
 
-$db = new SQLite3('db/memory_' . $user . '.db');
-$createTable = "CREATE TABLE IF NOT EXISTS additional_link (
-                            key_tx TEXT PRIMARY KEY,
-                            label TEXT,
-                            action TEXT,
-                            created_dt DATETIME DEFAULT CURRENT_TIMESTAMP
-                        )";
-try {
-    $db->exec($createTable);
-    $statement = $db->prepare("insert into additional_link (key_tx, label, action) values (:key,:label,:action)");
-    $statement->bindValue(':key', $key);
-    $statement->bindValue(':label', $label);
-    $statement->bindValue(':action', $action);
-    $statement->execute();
-    $statement->close();
-    error_log("Inserted new link...");
-	$db->close();
-	print_r(json_encode("success"));
-} catch (Exception $e) {
-	$db->close();
-	print_r(json_encode("error"));
+if (!$input || !isset($input->key)) {
+    echo json_encode("error");
+    exit;
 }
-?>
+
+$key    = $input->key;
+$label  = $input->label ?? null;
+$action = $input->action ?? null;
+
+error_log("add_additional_link.php - Received data: user_id=" . $current_user_id . ", key=" . $key . ", label=" . $label . ", action=" . $action);
+
+try {
+    // Insert statement explicitly tracking the global multi-tenant user_id column
+    $statement = $pdo->prepare("
+        INSERT INTO additional_link (user_id, key_tx, label, action) 
+        VALUES (?, ?, ?, ?)
+    ");
+
+    $statement->execute([
+        $current_user_id,
+        $key,
+        $label,
+        $action
+    ]);
+
+    error_log("Inserted new link successfully...");
+    echo json_encode("success");
+
+} catch (Exception $e) {
+    error_log("An error occurred in add_additional_link.php: " . $e->getMessage());
+    echo json_encode("error");
+}

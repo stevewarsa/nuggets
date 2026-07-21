@@ -1,32 +1,41 @@
 <?php
-header('Access-Control-Allow-Origin: *');
-header("Access-Control-Allow-Methods: GET, OPTIONS");
-header("Access-Control-Allow-Headers: Content-Type");
-header('Content-Type: application/json; charset=utf8');
+/** @noinspection SqlResolve */
+/** @noinspection SqlNoDataSourceInspection */
 
-if (!array_key_exists("user", $_GET) || !array_key_exists("dayOfWeek", $_GET) || !array_key_exists("book", $_GET) || !array_key_exists("bookId", $_GET) || !array_key_exists("chapter", $_GET)) {
-    error_log("input variables don't exist - may be options call - exiting");
+// Pulls in unified CORS headers, handles OPTIONS requests, and connects to MariaDB
+require_once 'connect.php';
+
+// Check for required URL parameter criteria matching original validation rules
+if (!isset($_GET['dayOfWeek'], $_GET['book'], $_GET['bookId'], $_GET['chapter'])) {
+    error_log("Input variables don't exist - exiting");
+    echo json_encode("error");
     exit();
 }
-$user = $_GET['user'];
+
 $dayOfWeek = $_GET['dayOfWeek'];
-$book = $_GET['book'];
-$bookId = $_GET['bookId'];
-$chapter = $_GET['chapter'];
+$book      = $_GET['book'];
+$bookId    = $_GET['bookId'];
+$chapter   = $_GET['chapter'];
 
+try {
+    // Insert statement with explicit multi-tenant user_id tracking
+    $statement = $pdo->prepare('
+        INSERT INTO reading_plan_progress (user_id, day_of_week, book_name, book_id, chapter) 
+        VALUES (?, ?, ?, ?, ?)
+    ');
 
-// Insert a new book/chapter read record 
-$db = new SQLite3('db/memory_' . $user . '.db', SQLITE3_OPEN_READWRITE);
-$statement = $db->prepare('insert into reading_plan_progress(day_of_week,book_name,book_id,chapter) values(:day_of_week,:book_name,:book_id,:chapter)');
-$statement->bindValue(':day_of_week', $dayOfWeek);
-$statement->bindValue(':book_name', $book);
-$statement->bindValue(':book_id', $bookId);
-$statement->bindValue(':chapter', $chapter);
-$statement->execute();
-$statement->close();
+    $statement->execute([
+        $current_user_id,
+        $dayOfWeek,
+        $book,
+        (int)$bookId,
+        (int)$chapter
+    ]);
 
-$db->close();
+    echo json_encode("success");
 
-print_r(json_encode("success"));
-
-?>
+} catch (Exception $e) {
+    error_log("An error occurred in update_reading_plan.php: " . $e->getMessage());
+    http_response_code(500);
+    echo json_encode("error");
+}

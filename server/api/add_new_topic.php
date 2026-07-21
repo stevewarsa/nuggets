@@ -1,42 +1,41 @@
-<?php /** @noinspection PhpParamsInspection */
+<?php
+/** @noinspection PhpParamsInspection */
 /** @noinspection SqlDialectInspection */
 /** @noinspection SqlNoDataSourceInspection */
-header("Access-Control-Allow-Origin: *");
-header("Access-Control-Allow-Methods: GET, POST, PATCH, PUT, DELETE, OPTIONS");
-header("Access-Control-Allow-Headers: Origin, Content-Type, X-Auth-Token, X-Requested-With, Accept");
-header("Content-Type: application/json; charset=utf8; Accept: application/json");
 
-$request = file_get_contents("php://input");
-error_log("Received data:" . $request);
-$input = json_decode($request);
+// Pulls in headers, connects to MariaDB, and automatically populates $pdo and $current_user_id
+require_once 'connect.php';
 
-$user = $input->user;
-$topicNm = $input->topicNm;
+// Reuse the pre-parsed JSON payload object populated by connect.php
+$input = $GLOBAL_JSON_INPUT;
+
+$topicNm = $input->topicNm ?? null;
 
 $response = new stdClass;
 $response->topicId = -1;
 $response->message = "error";
 
-if (!$topicNm || empty($topicNm) || $topicNm == "") {
+if (!$topicNm || empty(trim($topicNm))) {
     error_log("Topic was empty, returning...");
-    print_r(json_encode($response));
-    return;
+    echo json_encode($response);
+    exit;
 }
-$db = new SQLite3("db/memory_" . $user . ".db");
-error_log("Inserting new topic " . $topicNm . "...");
-$statement = $db->prepare("insert into tag (tag_name) values (:topicName)");
-$statement->bindValue(":topicName", $topicNm);
-$statement->execute();
-$statement->close();
-// now get the newly generated tag_id
-error_log("Inserted tag/topic " . $topicNm . "... now getting last tag id inserted");
-$results = $db->query("SELECT last_insert_rowid() as topic_id");
-while ($row = $results->fetchArray()) {
-    $response->topicId = $row["topic_id"];
-    $response->message = "success";
-    error_log("New topic id " . $response->topicId . " retrieved");
-    break;
-}
-$db->close();
 
-print_r(json_encode($response));
+error_log("Inserting new topic " . $topicNm . " for user_id=" . $current_user_id . "...");
+
+try {
+    // Insert statement with multi-tenant isolation tracking
+    $statement = $pdo->prepare("INSERT INTO tag (user_id, tag_name) VALUES (?, ?)");
+    $statement->execute([$current_user_id, trim($topicNm)]);
+
+    // Get the newly generated tag_id using MariaDB's native mechanism
+    $response->topicId = (int)$pdo->lastInsertId();
+    $response->message = "success";
+
+    error_log("New topic id " . $response->topicId . " retrieved successfully.");
+
+} catch (Exception $e) {
+    error_log("An error occurred in add_new_topic.php: " . $e->getMessage());
+}
+
+echo json_encode($response);

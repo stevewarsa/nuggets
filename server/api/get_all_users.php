@@ -1,31 +1,40 @@
 <?php
-header("Access-Control-Allow-Origin: *");
-header("Access-Control-Allow-Methods: GET, OPTIONS");
-header("Access-Control-Allow-Headers: Content-Type");
-header('Content-Type: application/json; charset=utf8');
+/** @noinspection SqlResolve */
+/** @noinspection SqlNoDataSourceInspection */
 
-function newest($a, $b) {
-    return filemtime($b) - filemtime($a);
-}
+// Pulls in headers and connects to MariaDB via the single global connection file
+require_once 'connect.php';
 
-$userArray = array();
-$files = glob('db/memory_*.db');
-uasort($files, "newest");
-foreach ($files as $file) {
-	$fname = basename($file);
-	if ($fname == 'memory_.db' || $fname == 'memory_template.db' || $fname == 'memory_template.db.old' || $fname == 'memory_template.db.bak') {
-		continue;
+try {
+	// Query the registered multi-tenant accounts out of the target table
+	$stmt = $pdo->query("SELECT user_id, user_nm FROM user ORDER BY user_nm ASC");
+
+	$userArray = array();
+
+	// We get a fallback timestamp for our mocked file metrics
+	$mockTime = time();
+	$mockDate = date('F d Y, H:i:s', $mockTime);
+
+	while ($row = $stmt->fetch()) {
+		$userName = $row['user_nm'];
+
+		$obj = new stdClass;
+		// Mocking the legacy filesystem properties so your React front-end doesn't crash
+		$obj->userName     = $userName;
+		$obj->fileName     = "memory_" . $userName . ".db";
+		$obj->numLastMod   = $mockTime;
+		$obj->lastModified = $mockDate;
+
+		// Optional: If your React app starts using the actual database ID, it's ready here
+		$obj->userId       = (int)$row['user_id'];
+
+		$userArray[] = $obj;
 	}
-	$parts = explode("_", $fname);
-	$userName = explode(".db", $parts[1]);
-	$numLastMod = filemtime($file);
-	$lastModified = date('F d Y, H:i:s',$numLastMod);
-	$obj = new stdClass;
-	$obj->fileName = $fname;
-	$obj->userName = $userName[0];
-	$obj->numLastMod = $numLastMod;
-	$obj->lastModified = $lastModified;
-	array_push($userArray, $obj);
+
+	echo json_encode($userArray);
+
+} catch (Exception $e) {
+	error_log("An error occurred in get_all_users.php: " . $e->getMessage());
+	http_response_code(500);
+	echo json_encode(["error" => "Internal server error"]);
 }
-print_r(json_encode($userArray));
-?>

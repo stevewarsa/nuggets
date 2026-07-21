@@ -1,23 +1,35 @@
 <?php
-header("Access-Control-Allow-Origin: *");
-header("Access-Control-Allow-Methods: GET, OPTIONS");
-header("Access-Control-Allow-Headers: Content-Type");
-header('Content-Type: application/json; charset=utf8');
+/** @noinspection SqlResolve */
+/** @noinspection SqlNoDataSourceInspection */
 
-$user = $_GET['user'];
+// Pulls in headers, connects to MariaDB, and automatically populates $pdo and $current_user_id
+require_once 'connect.php';
 
-$db = new SQLite3('db/memory_' . $user . '.db');
-$results = $db->query("SELECT day_of_week, book_name, book_id, chapter, date_read FROM reading_plan_progress order by date_read DESC, chapter DESC");
-$readingRecords = array();
-while ($row = $results->fetchArray()) {
-	$obj = new stdClass;
-	$obj->bookId = $row['book_id'];
-	$obj->bookName = $row['book_name'];
-	$obj->chapter = $row['chapter'];
-  $obj->dateRead = $row['date_read'];
-  $obj->dayOfWeek = $row['day_of_week'];
-  array_push($readingRecords, $obj);
+try {
+	// Select and sort data while safely restricting data access via user_id
+	$statement = $pdo->prepare("
+        SELECT day_of_week, book_name, book_id, chapter, date_read 
+        FROM reading_plan_progress 
+        WHERE user_id = ? 
+        ORDER BY date_read DESC, chapter DESC
+    ");
+	$statement->execute([$current_user_id]);
+
+	$readingRecords = array();
+	while ($row = $statement->fetch()) {
+		$obj = new stdClass;
+		$obj->bookId    = (int)$row['book_id'];
+		$obj->bookName  = $row['book_name'];
+		$obj->chapter   = (int)$row['chapter'];
+		$obj->dateRead  = $row['date_read'];
+		$obj->dayOfWeek = $row['day_of_week'];
+		$readingRecords[] = $obj;
+	}
+
+	echo json_encode($readingRecords);
+
+} catch (Exception $e) {
+	error_log("An error occurred in get_all_reading_plan_progress.php: " . $e->getMessage());
+	http_response_code(500);
+	echo json_encode(["error" => "Internal server error"]);
 }
-$db->close();
-print_r(json_encode($readingRecords));
-?>

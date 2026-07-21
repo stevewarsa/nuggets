@@ -1,42 +1,60 @@
-<?php /** @noinspection PhpParamsInspection */
+<?php
+/** @noinspection PhpParamsInspection */
 /** @noinspection SqlResolve */
 /** @noinspection SqlDialectInspection */
 /** @noinspection SqlNoDataSourceInspection */
-header("Access-Control-Allow-Origin: *");
-header("Access-Control-Allow-Methods: GET, POST, PATCH, PUT, DELETE, OPTIONS");
-header("Access-Control-Allow-Headers: Origin, Content-Type, X-Auth-Token, X-Requested-With, Accept");
-header("Content-Type: application/json; charset=utf8; Accept: application/json");
 
-$request = file_get_contents("php://input");
-$input = json_decode($request);
+// Pulls in headers, connects to MariaDB, and automatically populates $pdo and $current_user_id
+require_once 'connect.php';
 
-$user = $input->user;
-$topicIds = $input->topicIds;
-$passageId = $input->passageId;
-error_log("[add_passage_topic.php] Received data: user=$user, topicIds=" . json_encode($topicIds) . ", passageId=$passageId");
+// Reuse the pre-parsed JSON payload object populated by connect.php
+$input = $GLOBAL_JSON_INPUT;
 
-$db = new SQLite3("db/memory_$user.db");
+if (!$input) {
+    echo json_encode("error");
+    exit;
+}
 
-$response = null;
+$topicIds  = $input->topicIds ?? [];
+$passageId = $input->passageId ?? 0;
+
+error_log("[add_passage_topic.php] Received data: user_id=$current_user_id, topicIds=" . json_encode($topicIds) . ", passageId=$passageId");
+
+$response = "error";
+
 if (count($topicIds) != 0 && $passageId > 0) {
     error_log("[add_passage_topic.php] Adding passage/topic mappings...");
-    foreach ($topicIds as $topicId) {
-        $statement = $db->prepare("insert into tag_nugget (tag_id, nugget_id) values(:tagId, :passageId)");
-        $statement->bindValue(":tagId", $topicId);
-        $statement->bindValue(":passageId", $passageId);
-        $statement->execute();
-        $statement->close();
-        $statement = null;
+
+    try {
+        // Encase the multi-row insert loop inside a database transaction for top performance
+        $pdo->beginTransaction();
+
+        $statement = $pdo->prepare("
+            INSERT INTO tag_nugget (user_id, tag_id, nugget_id) 
+            VALUES (?, ?, ?)
+        ");
+
+        foreach ($topicIds as $topicId) {
+            $statement->execute([
+                $current_user_id,
+                (int)$topicId,
+                (int)$passageId
+            ]);
+        }
+
+        $pdo->commit();
+        $response = "success";
+        error_log("[add_passage_topic.php] passage/topic mappings added. sending back success");
+
+    } catch (Exception $e) {
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+        error_log("[add_passage_topic.php] Database execution crash: " . $e->getMessage());
+        $response = "error";
     }
-
-    $response = "success";
-    error_log("[add_passage_topic.php] passage/topic mappings added. sending back success");
 } else {
-    error_log("[add_passage_topic.php] Unable to add passage/topic mappings - topicIds=" . json_encode($topicIds) . ", passageId=$passageId. sending back error");
-    $response = "error";
+    error_log("[add_passage_topic.php] Unable to add passage/topic mappings - criteria unmet.");
 }
-error_log("[add_passage_topic.php] passage/topic mapping closing database connection");
-$db->close();
-error_log("[add_passage_topic.php] passage/topic mapping - database connection closed");
 
-print_r(json_encode($response));
+echo json_encode($response);

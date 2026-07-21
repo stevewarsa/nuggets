@@ -1,51 +1,48 @@
-<?php /** @noinspection SqlResolve */
+<?php
+/** @noinspection SqlResolve */
 /** @noinspection PhpParamsInspection */
 /** @noinspection SqlNoDataSourceInspection */
 /** @noinspection SqlDialectInspection */
-header("Access-Control-Allow-Origin: *");
-header("Access-Control-Allow-Methods: GET, OPTIONS");
-header("Access-Control-Allow-Headers: Content-Type");
 
-$user = $_GET["user"];
-$translation = $_GET["translation"];
-$book = $_GET["book"];
+// Pulls in headers, connects to MariaDB, and automatically populates $pdo and $current_user_id
+require_once 'connect.php';
 
-// first get the book id based on the book name
-$translDb = new SQLite3("db/" . $translation . ".db");
-$translStmt = $translDb->prepare("select _id from book where book_name = :book_name");
-$translStmt->bindValue(":book_name", $book);
-$translResults = $translStmt->execute();
-$bookId = -1;
-while ($translRow = $translResults->fetchArray()) {
-    $bookId = $translRow["_id"];
-    break;
-}
-$translStmt->close();
-$translDb->close();
+// Safe extraction of parameters coming via URL query parameters
+$translation = $_GET['translation'] ?? '';
+$book        = $_GET['book'] ?? '';
+$chapter     = $_GET['chapter'] ?? 0;
+$startVerse  = $_GET['start'] ?? 0;
+$endVerse    = $_GET['end'] ?? 0;
 
-$chapter = $_GET["chapter"];
-$startVerse = $_GET["start"];
-$endVerse = $_GET["end"];
+// --- Step 1: Look up book_id inside the shared database ---
+$translStmt = $pdo->prepare('SELECT _id FROM book WHERE book_name = ?');
+$translStmt->execute([$book]);
+$bookRow = $translStmt->fetch();
+$bookId = $bookRow ? (int)$bookRow["_id"] : -1;
 
-// now insert this as a passage 
-$db = new SQLite3("db/memory_$user.db");
-$statement = $db->prepare("insert into nugget (book_id, chapter, start_verse, end_verse) values(:book_id,:chapter,:start_verse,:end_verse)");
-$statement->bindValue(":book_id", $bookId);
-$statement->bindValue(":chapter", $chapter);
-$statement->bindValue(":start_verse", $startVerse);
-$statement->bindValue(":end_verse", $endVerse);
-$statement->execute();
-$statement->close();
-
-// now get the newly generated passage_id
-$results = $db->query("SELECT last_insert_rowid() as nugget_id");
 $nuggetId = -1;
-while ($row = $results->fetchArray()) {
-    $nuggetId = $row["nugget_id"];
-    break;
+
+try {
+    // --- Step 2: Insert into the multi-tenant nugget table ---
+    $statement = $pdo->prepare('
+        INSERT INTO nugget (user_id, book_id, chapter, start_verse, end_verse) 
+        VALUES (?, ?, ?, ?, ?)
+    ');
+    $statement->execute([
+        $current_user_id,
+        $bookId,
+        $chapter,
+        $startVerse,
+        $endVerse
+    ]);
+
+    // Grab the auto-incremented primary key generated natively by MariaDB
+    $nuggetId = (int)$pdo->lastInsertId();
+
+    echo json_encode($nuggetId);
+
+} catch (Exception $e) {
+    error_log("An error occurred in add_nonmemory_passage.php: " . $e->getMessage());
+    http_response_code(500);
+    echo json_encode("error");
 }
-$db->close();
-
-header("Content-Type: application/json; charset=utf8");
-
-print_r(json_encode($nuggetId));
