@@ -56,15 +56,22 @@ try {
         $deleteStmt->execute([$prayer->prayerId]);
         error_log("[update_prayer.php] Deleted prayer_frequency for prayer_id={$prayer->prayerId}");
     } else {
-        // Native MariaDB UPSERT pattern replaces separate SELECT COUNT and update/insert blocks
+        // Universally compatible MariaDB syntax (Works flawlessly on 10.4, 11.4, and up)
+        // Avoids MySQL-only AS aliases and avoids deprecated legacy functions
         $upsertStmt = $pdo->prepare('
-            INSERT INTO prayer_frequency (prayer_id, prayer_priority_cd, date_time_added) 
-            VALUES (?, ?, NOW()) 
-            ON DUPLICATE KEY UPDATE 
-                prayer_priority_cd = VALUES(prayer_priority_cd), 
-                date_time_added = NOW()
-        ');
-        $upsertStmt->execute([$prayer->prayerId, $priorityCd]);
+			INSERT INTO prayer_frequency (prayer_id, prayer_priority_cd, date_time_added) 
+			VALUES (?, ?, NOW()) 
+			ON DUPLICATE KEY UPDATE 
+				prayer_priority_cd = ?, 
+				date_time_added = NOW()
+		');
+
+        // Pass $priorityCd twice: once for the initial INSERT, once for the UPDATE fallback
+        $upsertStmt->execute([
+            $prayer->prayerId,
+            $priorityCd,
+            $priorityCd
+        ]);
         error_log("[update_prayer.php] Handled upsert for prayer_frequency on prayer_id={$prayer->prayerId}");
     }
 
