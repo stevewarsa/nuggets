@@ -139,7 +139,8 @@ const BiblePassage: React.FC<BiblePassageProps> = ({
         if (scrollToVerse !== -1 && localPassage?.verses?.length) {
             const element = document.getElementById('' + scrollToVerse);
             if (element) {
-                const topPos = element.getBoundingClientRect().top + window.scrollY;
+                // Note - I'm hard coding an offset here so that the top of the verse text is not cut off
+                const topPos = element.getBoundingClientRect().top + window.scrollY - 16;
                 window.scrollTo({
                     top: topPos, // scroll so that the element is at the top of the view
                     behavior: 'smooth', // smooth scroll
