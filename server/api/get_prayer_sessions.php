@@ -33,7 +33,7 @@ try {
             'sessionId'    => (int)$row['session_id'],
             'prayerId'     => (int)$row['prayer_id'],
             'userId'       => $row['user_id'],
-            'dateTime'     => $row['prayer_date_time'],
+            'dateTime'     => formatUtcIso8601($row['prayer_date_time']),
             'prayerNoteTx' => $row['prayer_note_tx']
         );
     }

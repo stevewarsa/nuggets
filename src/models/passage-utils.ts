@@ -11,7 +11,7 @@ import {StringUtils} from './string.utils';
 import {bookAbbrev, booksByNum, getMaxChapterByBook, getMaxVerse, TRANSLATION, translationsShortNms} from './constants';
 import {Passage} from './passage';
 import {Prayer, PrayerSession} from "./prayer";
-import {format, isBefore, parse, parseISO} from "date-fns";
+import {isBefore, parse, parseISO} from "date-fns";
 
 export const RAND: string = 'rand';
 export const BY_FREQ: string = 'by_freq';
@@ -279,17 +279,16 @@ export const updateLastPracticedDate = (
             continue;
         }
         const sessionDate = parseISO(session.dateTime);
-        // Extract only the date part (YYYY-MM-DD format)
-        const sessionDateOnly = format(sessionDate, 'yyyy-MM-dd');
 
         if (!currPrayer.mostRecentPrayerDate) {
-            currPrayer.mostRecentPrayerDate = sessionDateOnly;
+            currPrayer.mostRecentPrayerDate = session.dateTime;
         } else {
             const currPrayerLastPrayedDate = parseISO(
                 currPrayer.mostRecentPrayerDate
             );
+
             if (isBefore(currPrayerLastPrayedDate, sessionDate)) {
-                currPrayer.mostRecentPrayerDate = sessionDateOnly;
+                currPrayer.mostRecentPrayerDate = session.dateTime;
             }
         }
     }

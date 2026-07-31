@@ -87,9 +87,12 @@ const Prayers: React.FC = () => {
         updateLastPracticedDate(prayerSessions, prayerList);
         const prayedTodayIds = new Set<number>();
         const today = format(new Date(), 'yyyy-MM-dd');
-        console.log("Prayers.processPrayers - Here is today's date: " + today);
+
         prayerList.forEach((p) => {
-            if (p.mostRecentPrayerDate === today) {
+            if (
+                p.mostRecentPrayerDate &&
+                format(parseISO(p.mostRecentPrayerDate), 'yyyy-MM-dd') === today
+            ) {
                 prayedTodayIds.add(p.prayerId);
             }
         });

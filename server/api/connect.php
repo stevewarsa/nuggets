@@ -8,6 +8,10 @@ header('Content-Type: application/json; charset=utf-8');
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit(0);
 }
+function formatUtcIso8601($dateTimeString) {
+    $date = new DateTime($dateTimeString, new DateTimeZone('UTC'));
+    return $date->format('Y-m-d\TH:i:s\Z');
+}
 
 $host = '127.0.0.1';
 $db   = 'nuggets';
