@@ -721,17 +721,35 @@ const ViewQuotes = () => {
                 currentQuote.quoteId
             );
 
-            if (result.success) {
+            if (result.success && result.newTopic) {
+                const newTagIds = [
+                    ...(currentQuote.tagIds || []),
+                    result.newTopic.id,
+                ];
+                const updatedQuote = {
+                    ...currentQuote,
+                    tagIds: newTagIds,
+                };
+
+                setCurrentQuote(updatedQuote);
+
+                const updateQuoteInArray = (quoteArray: Quote[]) => {
+                    return quoteArray.map((quote) =>
+                        quote.quoteId === currentQuote.quoteId
+                            ? {...quote, tagIds: newTagIds}
+                            : quote
+                    );
+                };
+
+                setQuotes(updateQuoteInArray(quotes));
+                setAllQuotes(updateQuoteInArray(allQuotes));
+
                 showToast({
                     message: 'New topic created and associated with quote!',
                     variant: 'success',
                 });
                 setShowAddTopicModal(false);
                 setNewTopicName('');
-                setCurrentQuote((prev) => {
-                    prev.tagIds.push(result.newTopic.id);
-                    return prev;
-                });
             } else {
                 showToast({
                     message: result.error || 'Failed to create topic',
