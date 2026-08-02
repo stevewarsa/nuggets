@@ -331,7 +331,7 @@ export class BibleService {
                     user,
                     passageId,
                     lastViewedNum,
-                    lastViewedStr: encodeURIComponent(lastViewedStr),
+                    lastViewedStr,
                 },
             });
         } catch (error) {
