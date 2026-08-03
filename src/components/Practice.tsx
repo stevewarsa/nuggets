@@ -8,15 +8,15 @@ import {
     Spinner,
     Toast,
 } from 'react-bootstrap';
-import {useNavigate, useParams} from 'react-router-dom';
-import {useEffect, useRef, useState} from 'react';
-import {Passage} from '../models/passage';
-import {bibleService} from '../services/bible-service';
-import {GUEST_USER} from '../models/constants';
+import { useNavigate, useParams } from 'react-router-dom';
+import { useEffect, useRef, useState } from 'react';
+import { Passage } from '../models/passage';
+import { bibleService } from '../services/bible-service';
+import { GUEST_USER } from '../models/constants';
 import Toolbar from './Toolbar';
 import BiblePassage from './BiblePassage';
 import SwipeContainer from './SwipeContainer';
-import {DateUtils} from '../models/date-utils';
+import { DateUtils } from '../models/date-utils';
 import {
     BY_PSG_TXT,
     BY_REF,
@@ -30,18 +30,18 @@ import {
     openInterlinearLink,
     sortAccordingToPracticeConfig,
 } from '../models/passage-utils';
-import {useAppSelector} from '../store/hooks';
+import { useAppSelector } from '../store/hooks';
 import EditPassage from './EditPassage.tsx';
-import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
     faBookOpen,
     faCommentDots,
     faSearch,
 } from '@fortawesome/free-solid-svg-icons';
-import {useToast} from '../hooks/useToast';
+import { useToast } from '../hooks/useToast';
 
 const Practice = () => {
-    const {mode, order} = useParams();
+    const { mode, order } = useParams();
     const navigate = useNavigate();
     const [memPsgList, setMemPsgList] = useState<Passage[]>([]);
     const [currentPassage, setCurrentPassage] = useState<Passage | null>(null);
@@ -55,7 +55,7 @@ const Practice = () => {
     const [currentMode, setCurrentMode] = useState(mode);
     const [showInfo, setShowInfo] = useState(false);
     const [overrides, setOverrides] = useState<Passage[]>([]);
-    const {showToast, toastProps, toastMessage} = useToast();
+    const { showToast, toastProps, toastMessage } = useToast();
     const [showConfirmModal, setShowConfirmModal] = useState(false);
     const [pendingFrequencyChange, setPendingFrequencyChange] = useState<{
         direction: string;
@@ -174,7 +174,7 @@ const Practice = () => {
                 });
             } catch (error) {
                 console.error('Error fetching verses:', error);
-                showToast({message: 'Error loading verses', variant: 'error'});
+                showToast({ message: 'Error loading verses', variant: 'error' });
                 return false;
             }
         }
@@ -249,13 +249,16 @@ const Practice = () => {
                 setOverrides(updatedOverrides);
 
                 // Update the current passage
-                setCurrentPassage({...updatedPassage, verses: newOverride.verses});
+                setCurrentPassage({ ...updatedPassage, verses: newOverride.verses });
             } else {
                 setCurrentPassage(updatedPassage);
             }
 
             // Show success message
-            showToast({message: 'Passage updated successfully', variant: 'success'});
+            showToast({
+                message: 'Passage updated successfully',
+                variant: 'success',
+            });
         }
     };
 
@@ -326,7 +329,7 @@ const Practice = () => {
         }
 
         // Store the pending change and show confirmation modal
-        setPendingFrequencyChange({direction, newFrequency});
+        setPendingFrequencyChange({ direction, newFrequency });
         setShowConfirmModal(true);
     };
 
@@ -336,7 +339,7 @@ const Practice = () => {
         setShowConfirmModal(false);
         setIsUpdating(true);
 
-        const {newFrequency} = pendingFrequencyChange;
+        const { newFrequency } = pendingFrequencyChange;
 
         // Create a copy of the current passage with updated frequency
         const updatedPassage = {
@@ -355,21 +358,24 @@ const Practice = () => {
                 // Update the passage in the memPsgList
                 const updatedList = memPsgList.map((passage) =>
                     passage.passageId === currentPassage.passageId
-                        ? {...passage, frequencyDays: newFrequency}
+                        ? { ...passage, frequencyDays: newFrequency }
                         : passage
                 );
 
                 setMemPsgList(updatedList);
 
                 // Show success message
-                showToast({message: `Frequency updated to Box ${newFrequency}`, variant: 'success'});
+                showToast({
+                    message: `Frequency updated to Box ${newFrequency}`,
+                    variant: 'success',
+                });
             } else {
                 // Show error message
-                showToast({message: 'Failed to update frequency', variant: 'error'});
+                showToast({ message: 'Failed to update frequency', variant: 'error' });
             }
         } catch (error) {
             console.error('Error updating passage frequency:', error);
-            showToast({message: 'Error updating frequency', variant: 'error'});
+            showToast({ message: 'Error updating frequency', variant: 'error' });
         } finally {
             setIsUpdating(false);
             setPendingFrequencyChange(null);
@@ -436,14 +442,22 @@ const Practice = () => {
 
                 try {
                     await navigator.clipboard.writeText(textToCopy);
-                    showToast({message: 'Passage copied to clipboard!', variant: 'success'});
+                    showToast({
+                        message: 'Passage copied to clipboard!',
+                        variant: 'success',
+                    });
                 } catch (e) {
                     console.error('Failed to copy text:', e);
-                    showToast({message: `Error occurred copying text: ${e?.message || e?.toString() || 'Unknown error'}`, variant: 'error'});
+                    showToast({
+                        message: `Error occurred copying text: ${
+                            e?.message || e?.toString() || 'Unknown error'
+                        }`,
+                        variant: 'error',
+                    });
                 }
             } catch (error) {
                 console.error('Error loading verses:', error);
-                showToast({message: 'Error loading verses', variant: 'error'});
+                showToast({ message: 'Error loading verses', variant: 'error' });
             }
         } else {
             // Verses are already loaded, just copy the text
@@ -453,10 +467,18 @@ const Practice = () => {
 
             try {
                 await navigator.clipboard.writeText(textToCopy);
-                showToast({message: 'Passage copied to clipboard!', variant: 'success'});
+                showToast({
+                    message: 'Passage copied to clipboard!',
+                    variant: 'success',
+                });
             } catch (e) {
                 console.error('Failed to copy text:', e);
-                showToast({message: `Error occurred copying text: ${e?.message || e?.toString() || 'Unknown error'}`, variant: 'error'});
+                showToast({
+                    message: `Error occurred copying text: ${
+                        e?.message || e?.toString() || 'Unknown error'
+                    }`,
+                    variant: 'error',
+                });
             }
         }
     };
@@ -488,11 +510,28 @@ const Practice = () => {
     };
 
     const handleGoToPassage = (index: number) => {
+        const passage = memPsgList[index];
         setCurrentIndex(index);
-        setCurrentPassage(memPsgList[index]);
+        setTranslation(passage.translationName);
+
+        const override = overrides.find((o) => o.passageId === passage.passageId);
+        if (override) {
+            setCurrentPassage({
+                ...passage,
+                verses: override.verses,
+                passageRefAppendLetter: override.passageRefAppendLetter,
+            });
+        } else {
+            setCurrentPassage(passage);
+        }
+
+        if (!isGuestUser) {
+            updateLastViewed(passage.passageId);
+        }
+
         setShowGoToModal(false);
-        setSearchTerm(''); // Clear search term when modal is closed
-        setTranslation(memPsgList[index].translationName);
+        setSearchTerm('');
+        resetToInitialMode();
     };
 
     const handleSaveExplanation = async () => {
@@ -519,14 +558,17 @@ const Practice = () => {
 
                 setMemPsgList((prev) => updatePassageInList(prev));
 
-                showToast({message: 'Explanation saved successfully', variant: 'success'});
+                showToast({
+                    message: 'Explanation saved successfully',
+                    variant: 'success',
+                });
                 setShowExplanationEditor(false);
             } else {
-                showToast({message: 'Failed to save explanation', variant: 'error'});
+                showToast({ message: 'Failed to save explanation', variant: 'error' });
             }
         } catch (error) {
             console.error('Error saving explanation:', error);
-            showToast({message: 'Error saving explanation', variant: 'error'});
+            showToast({ message: 'Error saving explanation', variant: 'error' });
         } finally {
             setIsUpdatingExplanation(false);
         }
@@ -553,7 +595,7 @@ const Practice = () => {
     if (isInitializing) {
         return (
             <Container className="p-4 text-white text-center">
-                <Spinner animation="border" role="status" className="me-2"/>
+                <Spinner animation="border" role="status" className="me-2" />
                 <span>Loading passages... ({initSeconds} seconds)</span>
             </Container>
         );
@@ -597,7 +639,7 @@ const Practice = () => {
                 ...OPEN_INTERLINEAR,
                 callbackFunction: () => openInterlinearLink(currentPassage),
             },
-            {...EDIT_MEM_PASSAGE, callbackFunction: () => setShowEditModal(true)},
+            { ...EDIT_MEM_PASSAGE, callbackFunction: () => setShowEditModal(true) },
             {
                 itemLabel: 'View In Context...',
                 icon: faBookOpen,
@@ -681,7 +723,7 @@ const Practice = () => {
 
             {isUpdating ? (
                 <div className="text-center text-white mb-3">
-                    <Spinner animation="border" size="sm" className="me-2"/>
+                    <Spinner animation="border" size="sm" className="me-2" />
                     <span>Updating frequency...</span>
                 </div>
             ) : null}
@@ -694,9 +736,7 @@ const Practice = () => {
                 showVerseText={showVerseText}
             />
 
-            <Toast
-                {...toastProps}
-            >
+            <Toast {...toastProps}>
                 <Toast.Body>{toastMessage}</Toast.Body>
             </Toast>
 
@@ -761,7 +801,7 @@ const Practice = () => {
                 <Modal.Body className="bg-dark text-white">
                     <InputGroup className="mb-3">
                         <InputGroup.Text className="bg-dark text-white border-secondary">
-                            <FontAwesomeIcon icon={faSearch}/>
+                            <FontAwesomeIcon icon={faSearch} />
                         </InputGroup.Text>
                         <Form.Control
                             ref={searchInputRef}
@@ -780,7 +820,7 @@ const Practice = () => {
                         )}
                     </InputGroup>
 
-                    <div style={{maxHeight: '60vh', overflowY: 'auto'}}>
+                    <div style={{ maxHeight: '60vh', overflowY: 'auto' }}>
                         {sortedPassages.map((passage) => (
                             <div key={passage.passageId} className="mb-2">
                                 <Button
@@ -825,7 +865,7 @@ const Practice = () => {
                 <Modal.Body className="bg-dark text-white">
                     <div className="mb-3">
                         <h5>{getPassageReference(currentPassage)}</h5>
-                        <p className="text-white-50" style={{whiteSpace: 'pre-line'}}>
+                        <p className="text-white-50" style={{ whiteSpace: 'pre-line' }}>
                             {getUnformattedPassageTextNoVerseNumbers(currentPassage)}
                         </p>
                     </div>
@@ -889,7 +929,7 @@ const Practice = () => {
                     <Modal.Title>Passage Explanation</Modal.Title>
                 </Modal.Header>
                 <Modal.Body className="bg-dark text-white">
-                    <p style={{whiteSpace: 'pre-line'}}>
+                    <p style={{ whiteSpace: 'pre-line' }}>
                         {currentPassage?.explanation}
                     </p>
                 </Modal.Body>
