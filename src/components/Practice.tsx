@@ -834,7 +834,17 @@ const Practice = () => {
                                         )
                                     }
                                 >
-                                    {getPassageReference(passage, false)}
+                                    {getPassageReference(
+                                        (() => {
+                                            const override = overrides.find(
+                                                (o) => o.passageId === passage.passageId
+                                            );
+                                            return override
+                                                ? { ...passage, passageRefAppendLetter: override.passageRefAppendLetter }
+                                                : passage;
+                                        })(),
+                                        false
+                                    )}
                                 </Button>
                             </div>
                         ))}
