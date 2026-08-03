@@ -253,6 +253,13 @@ const Prayers: React.FC = () => {
 
             if (aIsDaily && !bIsDaily) return -1;
             if (!aIsDaily && bIsDaily) return 1;
+
+            // Within each group, sort oldest-prayed first (longest ago at top).
+            // Prayers with no history sort to the very top of their group.
+            const aDate = a.mostRecentPrayerDate || '';
+            const bDate = b.mostRecentPrayerDate || '';
+            if (aDate < bDate) return -1;
+            if (aDate > bDate) return 1;
             return 0;
         });
 
