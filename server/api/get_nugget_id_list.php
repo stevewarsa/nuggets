@@ -32,7 +32,7 @@ while ($row = $stmt->fetch()) {
     // If we haven't seen this nugget yet, create the base object
     if (!isset($passages[$nuggetId])) {
         $obj = new stdClass;
-        $obj->passageId = (int)$nuggetId;
+        $obj->nuggetId = (int)$nuggetId;
         $obj->bookId = (int)$row["book_id"];
         $obj->chapter = (int)$row["chapter"];
         $obj->startVerse = (int)$row["start_verse"];

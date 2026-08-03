@@ -16,13 +16,13 @@ if (!$input) {
 }
 
 $topicIds  = $input->topicIds ?? [];
-$passageId = $input->passageId ?? 0;
+$nuggetId = $input->nuggetId ?? 0;
 
-error_log("[add_passage_topic.php] Received data: user_id=$current_user_id, topicIds=" . json_encode($topicIds) . ", passageId=$passageId");
+error_log("[add_passage_topic.php] Received data: user_id=$current_user_id, topicIds=" . json_encode($topicIds) . ", nuggetId=$nuggetId");
 
 $response = "error";
 
-if (count($topicIds) != 0 && $passageId > 0) {
+if (count($topicIds) != 0 && $nuggetId > 0) {
     error_log("[add_passage_topic.php] Adding passage/topic mappings...");
 
     try {
@@ -38,7 +38,7 @@ if (count($topicIds) != 0 && $passageId > 0) {
             $statement->execute([
                 $current_user_id,
                 (int)$topicId,
-                (int)$passageId
+                (int)$nuggetId
             ]);
         }
 

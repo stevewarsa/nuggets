@@ -230,7 +230,7 @@ const BrowseBiblePassages = () => {
                     <Modal
                         show={state.showBookChapterModal}
                         onHide={() => functions.setShowBookChapterModal(false)}
-                        style={{top: '20px'}}
+                        style={{ top: '20px' }}
                         dialogClassName="modal-near-top"
                     >
                         <Modal.Header closeButton className="bg-dark text-white">

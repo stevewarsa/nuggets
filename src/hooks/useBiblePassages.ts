@@ -1,5 +1,5 @@
 import {useState, useEffect, useMemo} from 'react';
-import {Passage} from '../models/passage';
+import {Nugget} from '../models/nugget';
 import {bibleService} from '../services/bible-service';
 import {getBookName, getNextIndex, shuffleArray,} from '../models/passage-utils';
 import {useAppSelector} from '../store/hooks';
@@ -10,9 +10,9 @@ import {bookAbbrev, booksByNum} from '../models/constants';
 export const useBiblePassages = () => {
     const {topics} = useTopics();
     const navigate = useNavigate();
-    const [allPassages, setAllPassages] = useState<Passage[]>([]);
-    const [passages, setPassages] = useState<Passage[]>([]);
-    const [currentPassage, setCurrentPassage] = useState<Passage | null>(null);
+    const [allPassages, setAllPassages] = useState<Nugget[]>([]);
+    const [passages, setPassages] = useState<Nugget[]>([]);
+    const [currentPassage, setCurrentPassage] = useState<Nugget | null>(null);
     const [currentIndex, setCurrentIndex] = useState<number>(0);
     const [translation, setTranslation] = useState<string>('niv');
     const [showFilterModal, setShowFilterModal] = useState(false);
@@ -50,7 +50,7 @@ export const useBiblePassages = () => {
 
         // Initialize counts for all books
         Object.keys(bookAbbrev).forEach(book => {
-            counts[book] = {total: 0, chapters: {}};
+            counts[book] = { total: 0, chapters: {} };
         });
 
         // Count passages
@@ -68,8 +68,7 @@ export const useBiblePassages = () => {
 
     // Filter and sort topics for the filter modal
     const sortedTopics = useMemo(() => {
-        // Using '?? []' ensures topics defaults to a valid array if it arrives null or undefined
-        return (topics ?? [])
+        return topics
             .filter(topic =>
                 !topicSearchTerm.trim() ||
                 topic.name.toLowerCase().includes(topicSearchTerm.toLowerCase())
@@ -77,13 +76,13 @@ export const useBiblePassages = () => {
             .sort((a, b) => {
                 const countA = topicCounts[a.id] || 0;
                 const countB = topicCounts[b.id] || 0;
+
                 if (countB !== countA) {
                     return countB - countA; // Sort by count descending
                 }
                 return a.name.localeCompare(b.name); // Then alphabetically
             });
     }, [topics, topicCounts, topicSearchTerm]);
-
 
     // Filter topics based on search term and current passage's topics
     const availableTopics = useMemo(() => {
@@ -102,7 +101,7 @@ export const useBiblePassages = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                let response: Passage[] = await bibleService.getNuggetIdList(user);
+                let response: Nugget[] = await bibleService.getNuggetIdList(user);
                 shuffleArray(response);
                 setAllPassages(response);
                 setPassages(response);
@@ -168,10 +167,10 @@ export const useBiblePassages = () => {
 
         setIsAddingTopics(true);
         try {
-            const result = await bibleService.addPassageTopics(
+            const result = await bibleService.addNuggetTopics(
                 user,
                 topicsToAdd,
-                currentPassage.passageId
+                currentPassage.nuggetId
             );
 
             if (result === 'success') {
@@ -186,9 +185,9 @@ export const useBiblePassages = () => {
                 setCurrentPassage(updatedCurrentPassage);
 
                 // Update passages and allPassages arrays
-                const updatePassagesArray = (passageArray: Passage[]) => {
+                const updatePassagesArray = (passageArray: Nugget[]) => {
                     return passageArray.map(passage =>
-                        passage.passageId === currentPassage.passageId
+                        passage.nuggetId === currentPassage.nuggetId
                             ? updatedCurrentPassage
                             : passage
                     );
@@ -249,14 +248,16 @@ export const useBiblePassages = () => {
     };
 
     const clearFilters = () => {
-        setSelectedBook('');
-        setSelectedChapter('all');
-        setActiveBookFilter('');
         setPassages(allPassages);
         setCurrentIndex(0);
         if (allPassages.length > 0) {
             setCurrentPassage(allPassages[0]);
         }
+        setSelectedTopicIds([]);
+        setSelectedBook('');
+        setSelectedChapter('all');
+        setActiveBookFilter('');
+        setShowFilterModal(false);
         setShowBookChapterModal(false);
     };
 
@@ -275,6 +276,8 @@ export const useBiblePassages = () => {
         }
         setShowFilterModal(false);
     };
+
+
 
     const viewInContext = () => {
         const readChapRoute = `/readBibleChapter/${translation}/${getBookName(currentPassage.bookId)}/${currentPassage.chapter}/${currentPassage.startVerse}`;
@@ -312,6 +315,7 @@ export const useBiblePassages = () => {
             handleToolbarClick,
             handleTranslationChange,
             applyTopicFilter,
+            clearFilters,
             setShowFilterModal,
             setShowBookChapterModal,
             setShowManageTopicsModal,
@@ -323,8 +327,7 @@ export const useBiblePassages = () => {
             viewInContext,
             setSelectedBook,
             setSelectedChapter,
-            applyBookChapterFilter,
-            clearFilters
+            applyBookChapterFilter
         },
     };
 };

@@ -8,6 +8,7 @@ import {
     Toast,
 } from 'react-bootstrap';
 import { Passage } from '../models/passage';
+import { Nugget } from '../models/nugget';
 import { translationsShortNms } from '../models/constants';
 import { bibleService } from '../services/bible-service';
 import {
@@ -21,7 +22,7 @@ import { faArrowUp, faCopy } from '@fortawesome/free-solid-svg-icons';
 import { useToast } from '../hooks/useToast';
 
 interface BiblePassageProps {
-    passage: Passage;
+    passage: Passage | Nugget;
     translation: string;
     showPassageRef?: boolean;
     showVerseNumbers?: boolean;
@@ -45,7 +46,7 @@ const BiblePassage: React.FC<BiblePassageProps> = ({
                                                        onVerseSelection,
                                                        onVerseModalClose,
                                                    }) => {
-    const [localPassage, setLocalPassage] = useState<Passage>(passage);
+    const [localPassage, setLocalPassage] = useState<Passage | Nugget>(passage);
     const [displayBookName, setDisplayBookName] = useState<string>('');
     const [displayChapter, setDisplayChapter] = useState<number>(-1);
     const [displayStartVerse, setDisplayStartVerse] = useState<number>(-1);
@@ -232,7 +233,7 @@ const BiblePassage: React.FC<BiblePassageProps> = ({
                 passage
             ).then(errorMsg => {
                     if (!errorMsg) {
-                    showToast({message: 'Passage copied to clipboard!', variant: 'success'});
+                        showToast({message: 'Passage copied to clipboard!', variant: 'success'});
                     } else {
                         showToast({ message: errorMsg, variant: 'error' });
                     }

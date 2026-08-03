@@ -1,10 +1,11 @@
-import axios, {AxiosError} from 'axios';
-import {Passage} from '../models/passage';
-import {Quote} from '../models/quote';
-import {ReadingHistoryEntry} from '../models/reading-history-entry';
-import {Topic} from '../models/topic';
-import {MemoryPracticeHistoryEntry} from '../models/memory-practice-history.ts';
-import {Prayer, PrayerSession} from '../models/prayer.ts';
+import axios, { AxiosError } from 'axios';
+import { Passage } from '../models/passage';
+import { Nugget } from '../models/nugget';
+import { Quote } from '../models/quote';
+import { ReadingHistoryEntry } from '../models/reading-history-entry';
+import { Topic } from '../models/topic';
+import { MemoryPracticeHistoryEntry } from '../models/memory-practice-history.ts';
+import { Prayer, PrayerSession } from '../models/prayer.ts';
 
 interface BibleSearchPayload {
     book: string;
@@ -62,10 +63,10 @@ interface Link {
     action: string;
 }
 
-interface AddPassageTopicPayload {
+interface AddNuggetTopicPayload {
     user: string;
     topicIds: number[];
-    passageId: number;
+    nuggetId: number;
 }
 
 export class BibleService {
@@ -99,12 +100,15 @@ export class BibleService {
         }
     }
 
-    async nuggetLogin(user: string): Promise<string> {
+    async nuggetLogin(
+        user: string,
+        copyUser: string | null = null
+    ): Promise<string> {
         try {
             const response = await axios.get(
                 `${BibleService.BASE_URL}nuggets_login.php`,
                 {
-                    params: { user },
+                    params: { user, copyUser },
                 }
             );
             return response.data;
@@ -118,7 +122,7 @@ export class BibleService {
             const response = await axios.get(
                 `${BibleService.BASE_URL}copy_db_to_another.php`,
                 {
-                    params: {dbSource, dbDest},
+                    params: { dbSource, dbDest },
                 }
             );
             return response.data;
@@ -189,13 +193,16 @@ export class BibleService {
         }
     }
 
-    async addNewTopic(user: string, topicNm: string): Promise<{ topicId: number, message: string }> {
+    async addNewTopic(
+        user: string,
+        topicNm: string
+    ): Promise<{ topicId: number; message: string }> {
         try {
             const response = await axios.post(
                 `${BibleService.BASE_URL}add_new_topic.php`,
                 {
                     user,
-                    topicNm
+                    topicNm,
                 }
             );
             return response.data;
@@ -204,16 +211,16 @@ export class BibleService {
         }
     }
 
-    async addPassageTopics(
+    async addNuggetTopics(
         user: string,
         topicIds: number[],
-        passageId: number
+        nuggetId: number
     ): Promise<string> {
         try {
-            const payload: AddPassageTopicPayload = {
+            const payload: AddNuggetTopicPayload = {
                 user,
                 topicIds,
-                passageId,
+                nuggetId,
             };
 
             const response = await axios.post(
@@ -222,7 +229,7 @@ export class BibleService {
             );
             return response.data;
         } catch (error) {
-            return this.handleError(error, 'adding passage topics');
+            return this.handleError(error, 'adding nugget topics');
         }
     }
 
@@ -231,7 +238,7 @@ export class BibleService {
             const response = await axios.get(
                 `${BibleService.BASE_URL}get_additional_links.php`,
                 {
-                    params: {user},
+                    params: { user },
                 }
             );
             return response.data;
@@ -331,7 +338,7 @@ export class BibleService {
                     user,
                     passageId,
                     lastViewedNum,
-                    lastViewedStr,
+                    lastViewedStr: encodeURIComponent(lastViewedStr),
                 },
             });
         } catch (error) {
@@ -369,7 +376,7 @@ export class BibleService {
             const response = await axios.get(
                 `${BibleService.BASE_URL}get_all_reading_plan_progress.php`,
                 {
-                    params: {user},
+                    params: { user },
                 }
             );
             return response.data;
@@ -415,7 +422,7 @@ export class BibleService {
             const response = await axios.get(
                 `${BibleService.BASE_URL}get_quote_text.php`,
                 {
-                    params: {user, quoteId},
+                    params: { user, quoteId },
                 }
             );
             return response.data;
@@ -429,7 +436,7 @@ export class BibleService {
             const response = await axios.get(
                 `${BibleService.BASE_URL}get_tag_list.php`,
                 {
-                    params: {user},
+                    params: { user },
                 }
             );
             return response.data;
@@ -471,7 +478,7 @@ export class BibleService {
             const response = await axios.get(
                 `${BibleService.BASE_URL}get_mempsg_text_overrides.php`,
                 {
-                    params: {user},
+                    params: { user },
                 }
             );
             return response.data;
@@ -480,12 +487,12 @@ export class BibleService {
         }
     }
 
-    async getNuggetIdList(user: string): Promise<Passage[]> {
+    async getNuggetIdList(user: string): Promise<Nugget[]> {
         try {
             const response = await axios.get(
                 `${BibleService.BASE_URL}get_nugget_id_list.php`,
                 {
-                    params: {user},
+                    params: { user },
                 }
             );
             return response.data;
@@ -499,7 +506,7 @@ export class BibleService {
             const response = await axios.get(
                 `${BibleService.BASE_URL}get_mempsg_list.php`,
                 {
-                    params: {user},
+                    params: { user },
                 }
             );
             return response.data;
@@ -555,7 +562,7 @@ export class BibleService {
             const response = await axios.get(
                 `${BibleService.BASE_URL}get_mem_practice_history.php`,
                 {
-                    params: {user},
+                    params: { user },
                 }
             );
             return response.data;
@@ -589,7 +596,7 @@ export class BibleService {
             const response = await axios.get(
                 `${BibleService.BASE_URL}get_prayers.php`,
                 {
-                    params: {userId},
+                    params: { userId },
                 }
             );
             return response.data;
@@ -603,7 +610,7 @@ export class BibleService {
             const response = await axios.get(
                 `${BibleService.BASE_URL}get_prayer_sessions.php`,
                 {
-                    params: {userId},
+                    params: { userId },
                 }
             );
             return response.data;
@@ -644,7 +651,7 @@ export class BibleService {
             const response = await axios.get(
                 `${BibleService.BASE_URL}archive_prayer.php`,
                 {
-                    params: {userId, prayerId},
+                    params: { userId, prayerId },
                 }
             );
             return response.data;

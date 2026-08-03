@@ -2,6 +2,7 @@
 
 class Passage {
     public $passageId;
+    public $nuggetId;
     public $bookId;
     public $bookName;
     public $translationId;

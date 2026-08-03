@@ -25,7 +25,7 @@ try {
         $arrayName = array();
         while ($row = $statement->fetch()) {
             $passage = new Passage();
-            $passage->passageId  = (int)$row['nugget_id'];
+            $passage->nuggetId  = (int)$row['nugget_id'];
             $passage->bookId     = (int)$row['book_id'];
             $passage->chapter    = (int)$row['chapter'];
             $passage->startVerse = (int)$row['start_verse'];

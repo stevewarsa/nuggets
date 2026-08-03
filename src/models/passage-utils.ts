@@ -10,7 +10,10 @@ import {
 import {StringUtils} from './string.utils';
 import {bookAbbrev, booksByNum, getMaxChapterByBook, getMaxVerse, TRANSLATION, translationsShortNms} from './constants';
 import {Passage} from './passage';
+import {Nugget} from './nugget';
 import {Prayer, PrayerSession} from "./prayer";
+
+type PassageOrNugget = Passage | Nugget;
 import {isBefore, parse, parseISO} from "date-fns";
 
 export const RAND: string = 'rand';
@@ -336,7 +339,7 @@ export const updateLastPracticedDate = (
     );
 };
 
-export const handleCopyPassage = async (psg: Passage, psgText: string = null): Promise<boolean> => {
+export const handleCopyPassage = async (psg: PassageOrNugget, psgText: string = null): Promise<boolean> => {
     // Now copy the text with the newly loaded verses
     const passageRef = getPassageReference(psg);
     let verseText: string;
@@ -357,7 +360,7 @@ export const handleCopyPassage = async (psg: Passage, psgText: string = null): P
 export const handleCopyVerseRange = async (
     startVerse: number,
     endVerse: number,
-    psg: Passage
+    psg: PassageOrNugget
 ): Promise<string> => {
     if (!psg || !psg.verses) return;
 
@@ -393,7 +396,7 @@ export const handleCopyVerseRange = async (
 };
 
 export const getPassageReference = (
-    currPsg: Passage,
+    currPsg: PassageOrNugget,
     shortBook: boolean = true,
     includeTransl: boolean = false
 ) => {
@@ -457,7 +460,7 @@ export const getNextIndex = (
 };
 
 export const getUnformattedPassageTextNoVerseNumbers = (
-    passage: Passage
+    passage: PassageOrNugget
 ): string => {
     let verseLen = passage.verses.length;
     let verseText = '';
@@ -469,7 +472,7 @@ export const getUnformattedPassageTextNoVerseNumbers = (
     }
     return verseText;
 };
-export const openInterlinearLink = (passage: Passage) => {
+export const openInterlinearLink = (passage: PassageOrNugget) => {
     let urlQuery: string;
     if (passage.startVerse === passage.endVerse) {
         urlQuery =
@@ -495,7 +498,7 @@ export const openInterlinearLink = (passage: Passage) => {
         '_blank'
     );
 };
-export const openBibleHubLink = (passage: Passage) => {
+export const openBibleHubLink = (passage: PassageOrNugget) => {
     // https://biblehub.com/genesis/1-1.htm
     const replacements: {} = {
         '1-kings': '1_kings',
