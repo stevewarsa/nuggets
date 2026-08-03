@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     Button,
     Container,
@@ -7,18 +7,18 @@ import {
     Spinner,
     Toast,
 } from 'react-bootstrap';
-import {Passage} from '../models/passage';
-import {translationsShortNms} from '../models/constants';
-import {bibleService} from '../services/bible-service';
+import { Passage } from '../models/passage';
+import { translationsShortNms } from '../models/constants';
+import { bibleService } from '../services/bible-service';
 import {
     getBookName,
     getDisplayBookName,
     handleCopyVerseRange,
 } from '../models/passage-utils';
-import {useAppSelector} from '../store/hooks';
-import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import {faArrowUp, faCopy} from '@fortawesome/free-solid-svg-icons';
-import {useToast} from '../hooks/useToast';
+import { useAppSelector } from '../store/hooks';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faArrowUp, faCopy } from '@fortawesome/free-solid-svg-icons';
+import { useToast } from '../hooks/useToast';
 
 interface BiblePassageProps {
     passage: Passage;
@@ -57,7 +57,7 @@ const BiblePassage: React.FC<BiblePassageProps> = ({
         useState<boolean>(false);
     const [internalVerseModal, setInternalVerseModal] = useState<boolean>(false);
     const [lastScrollPosition, setLastScrollPosition] = useState<number>(0);
-    const {showToast, toastProps, toastMessage} = useToast();
+    const { showToast, toastProps, toastMessage } = useToast();
 
     const user = useAppSelector((state) => state.user.currentUser);
 
@@ -184,7 +184,7 @@ const BiblePassage: React.FC<BiblePassageProps> = ({
                 if (!errorMsg) {
                     showToast({message: 'Passage copied to clipboard!', variant: 'success'});
                 } else {
-                    showToast({message: errorMsg, variant: 'error'});
+                    showToast({ message: errorMsg, variant: 'error' });
                 }
                 setInternalVerseModal(false);
                 // Restore scroll position
@@ -231,12 +231,13 @@ const BiblePassage: React.FC<BiblePassageProps> = ({
                 passage.endVerse,
                 passage
             ).then(errorMsg => {
-                if (!errorMsg) {
+                    if (!errorMsg) {
                     showToast({message: 'Passage copied to clipboard!', variant: 'success'});
-                } else {
-                    showToast({message: errorMsg, variant: 'error'});
+                    } else {
+                        showToast({ message: errorMsg, variant: 'error' });
+                    }
                 }
-            });
+            );
         } else {
             setInternalVerseModal(true);
             // After modal is shown, scroll to match the current viewport position
@@ -262,7 +263,7 @@ const BiblePassage: React.FC<BiblePassageProps> = ({
                         const verseId = targetVerse.id;
                         const modalVerse = modalBody.querySelector(`#verse-${verseId}`);
                         if (modalVerse) {
-                            modalVerse.scrollIntoView({behavior: 'auto', block: 'center'});
+                            modalVerse.scrollIntoView({ behavior: 'auto', block: 'center' });
                         }
                     }
                 }
@@ -273,7 +274,7 @@ const BiblePassage: React.FC<BiblePassageProps> = ({
     if (busy) {
         return (
             <Container className="text-white text-center">
-                <Spinner animation="border" role="status" className="me-2"/>
+                <Spinner animation="border" role="status" className="me-2" />
                 <span>Loading passage... ({seconds} seconds)</span>
             </Container>
         );
@@ -303,7 +304,7 @@ const BiblePassage: React.FC<BiblePassageProps> = ({
                 {showPassageRef && (
                     <h2 className="passage-title mb-4 fw-bolder">
                         {getPassageReference()} (
-                        <span style={{color: '#B0E0E6'}}>{translationName}</span>)
+                        <span style={{ color: '#B0E0E6' }}>{translationName}</span>)
                     </h2>
                 )}
                 {showVerseText && localPassage.verses && (
@@ -355,23 +356,21 @@ const BiblePassage: React.FC<BiblePassageProps> = ({
                         variant="primary"
                         size="lg"
                         onClick={handleCopyClick}
-                        style={{borderRadius: '50%', width: '50px', height: '50px'}}
+                        style={{ borderRadius: '50%', width: '50px', height: '50px' }}
                     >
-                        <FontAwesomeIcon icon={faCopy}/>
+                        <FontAwesomeIcon icon={faCopy} />
                     </Button>
                     <Button
                         variant="secondary"
                         size="lg"
                         onClick={scrollToTop}
-                        style={{borderRadius: '50%', width: '50px', height: '50px'}}
+                        style={{ borderRadius: '50%', width: '50px', height: '50px' }}
                     >
-                        <FontAwesomeIcon icon={faArrowUp}/>
+                        <FontAwesomeIcon icon={faArrowUp} />
                     </Button>
                 </div>
             )}
-            <Toast
-                {...toastProps}
-            >
+            <Toast {...toastProps}>
                 <Toast.Body>{toastMessage}</Toast.Body>
             </Toast>
             <Modal
@@ -379,13 +378,14 @@ const BiblePassage: React.FC<BiblePassageProps> = ({
                 onHide={handleCloseModal}
                 size="lg"
             >
-                <Modal.Header closeButton>
+                <Modal.Header closeButton className="bg-dark text-white">
                     <Modal.Title>Select Verses</Modal.Title>
                 </Modal.Header>
                 <Modal.Body
-                    style={{position: 'relative', maxHeight: '60vh', overflowY: 'auto'}}
+                    className="bg-dark text-white"
+                    style={{ position: 'relative', maxHeight: '60vh', overflowY: 'auto' }}
                 >
-                    <p className="text-muted mb-3">
+                    <p className="text-white-50 mb-3">
                         Select one verse for a single verse, or two verses to define a
                         range.
                     </p>
@@ -411,7 +411,7 @@ const BiblePassage: React.FC<BiblePassageProps> = ({
                         ))}
                     </div>
                 </Modal.Body>
-                <Modal.Footer>
+                <Modal.Footer className="bg-dark text-white">
                     <Button variant="secondary" onClick={handleCloseModal}>
                         Cancel
                     </Button>
