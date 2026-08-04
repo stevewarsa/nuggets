@@ -1,11 +1,12 @@
-import React, {useState, useEffect, useRef} from 'react';
-import {Button, Col, Form, ListGroup, Modal, Row} from 'react-bootstrap';
-import {TRANSLATION, translationsShortNms} from '../models/constants';
+// BROWSE BIBLE flow — modal for typing a Bible reference (e.g. "John 3:16") with autocomplete suggestions, navigates to the chapter reader.
+import React, { useState, useEffect, useRef } from 'react';
+import { Button, Col, Form, ListGroup, Modal, Row } from 'react-bootstrap';
+import { TRANSLATION, translationsShortNms } from '../models/constants';
 import {
     getPassageFromPassageRef,
     getNewSuggestions,
 } from '../models/passage-utils';
-import {Passage} from '../models/passage';
+import { Passage } from '../models/passage';
 
 interface GoToPassageByRefProps {
     show: boolean;
@@ -87,7 +88,7 @@ const GoToPassageByRef: React.FC<GoToPassageByRefProps> = ({show, onHide, onNavi
         <Modal
             show={show}
             onHide={onHide}
-            style={{top: '20px'}}
+            style={{ top: '20px' }}
             dialogClassName="modal-near-top"
         >
             <Modal.Header closeButton className="bg-dark text-white">
@@ -126,7 +127,7 @@ const GoToPassageByRef: React.FC<GoToPassageByRefProps> = ({show, onHide, onNavi
                             {suggestions && suggestions.length > 0 && (
                                 <ListGroup
                                     className="position-absolute w-100 shadow-sm"
-                                    style={{zIndex: 1000}}
+                                    style={{ zIndex: 1000 }}
                                 >
                                     {suggestions.map((suggestion, index) => (
                                         <ListGroup.Item

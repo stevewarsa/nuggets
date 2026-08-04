@@ -2,7 +2,7 @@
 /** @noinspection SqlNoDataSourceInspection */
 /** @noinspection PhpParamsInspection */
 
-// Pulls in headers, connects to MariaDB, and automatically populates $pdo and $current_user_id
+// MEMORY PASSAGES flow — updates a memorization passage (verses, translation, frequency, text overrides).
 require_once 'connect.php';
 
 $input = $GLOBAL_JSON_INPUT;

@@ -2,7 +2,7 @@
 /** @noinspection SqlResolve */
 /** @noinspection SqlNoDataSourceInspection */
 
-// Imports headers, establishes $pdo, parses json payload, and isolates $current_user_id
+// Shared by both flows — searches the verse table for matching text. Returns Passage objects as generic containers.
 require_once 'connect.php';
 include_once('./Passage.php'); // Keeps your native OOP class models
 
@@ -129,8 +129,8 @@ while ($row = $stmt->fetch()) {
 
         $passage->addVerse($verseObj);
         $passageGroup[$groupKey] = [
-                'passage' => $passage,
-                'verse'   => $verseObj
+            'passage' => $passage,
+            'verse'   => $verseObj
         ];
     }
 

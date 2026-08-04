@@ -2,7 +2,7 @@
 /** @noinspection SqlResolve */
 /** @noinspection SqlNoDataSourceInspection */
 
-// Pulls in headers, connects to MariaDB, and automatically populates $pdo and $current_user_id
+// MEMORY PASSAGES flow — updates last-viewed timestamp on the memory_passage table.
 require_once 'connect.php';
 
 // Safe extraction of parameters coming via URL query parameters

@@ -2,7 +2,7 @@
 /** @noinspection SqlResolve */
 /** @noinspection SqlNoDataSourceInspection */
 
-// Pulls in headers, connects to MariaDB, and automatically populates $pdo and $current_user_id
+// MEMORY PASSAGES flow — fetches practice history entries for memorization passages.
 require_once 'connect.php';
 
 try {

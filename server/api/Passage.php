@@ -1,5 +1,8 @@
 <?php
-
+// Passage.php — PHP model class used by the MEMORY PASSAGES flow.
+// Represents a memorization passage (passage table + memory_passage table).
+// Also reused as a generic container by get_passage_text.php and bible_search.php
+// since both flows share the same verse/verse-part structure.
 class Passage {
     public $passageId;
     public $nuggetId;

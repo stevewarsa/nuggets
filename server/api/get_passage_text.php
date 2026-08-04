@@ -2,6 +2,7 @@
 /** @noinspection SqlResolve */
 /** @noinspection SqlNoDataSourceInspection */
 
+// Shared by both flows — fetches raw verse text from the verse table.
 require_once 'connect.php';
 include_once('./Passage.php');
 

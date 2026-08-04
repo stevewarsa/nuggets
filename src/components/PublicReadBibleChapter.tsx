@@ -1,3 +1,4 @@
+// BROWSE BIBLE flow — public wrapper that auto-logs in as guest user, then renders the full-chapter reader for sharing passages without authentication.
 import React, {useEffect} from 'react';
 import {useAppDispatch, useAppSelector} from '../store/hooks';
 import {setUser} from '../store/userSlice';

@@ -2,7 +2,7 @@
 /** @noinspection SqlNoDataSourceInspection */
 /** @noinspection SqlDialectInspection */
 
-// Pulls in headers, connects to MariaDB, and automatically populates $pdo and $current_user_id
+// MEMORY PASSAGES flow — adds a new memorization passage (passage + memory_passage tables).
 require_once 'connect.php';
 
 // Safe extraction of parameters coming via URL query parameters

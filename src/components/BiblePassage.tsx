@@ -1,3 +1,4 @@
+// Shared by both flows — renders a passage (verses, reference, translation). Used by browse bible, read chapter, and practice screens.
 import React, { useEffect, useState } from 'react';
 import {
     Button,

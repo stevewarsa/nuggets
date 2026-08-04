@@ -1,7 +1,7 @@
 <?php
 /** @noinspection PhpParamsInspection */
 
-// Pulls in unified CORS headers, global preflight options, and parses the JSON body
+// Shared by both flows — emails Bible search results to a user-specified address.
 require_once 'connect.php';
 
 // Reuse the pre-parsed JSON payload object populated by connect.php

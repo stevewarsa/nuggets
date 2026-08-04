@@ -4,7 +4,7 @@
 /** @noinspection SqlNoDataSourceInspection */
 /** @noinspection SqlDialectInspection */
 
-// Pulls in headers, connects to MariaDB, and automatically populates $pdo and $current_user_id
+// BROWSE BIBLE flow — adds a nugget (non-memory passage) to the nugget table.
 require_once 'connect.php';
 
 // Safe extraction of parameters coming via URL query parameters

@@ -1,4 +1,5 @@
-import React, {useState} from 'react';
+// Shared by both flows — searches the verse table by keyword across translations/testaments/books, with email and copy features.
+import React, { useState } from 'react';
 import {
     Button,
     Col,
@@ -8,13 +9,13 @@ import {
     Row,
     Toast,
 } from 'react-bootstrap';
-import {bookAbbrev, translations} from '../models/constants';
-import {Passage} from '../models/passage';
-import {bibleService} from '../services/bible-service';
-import {getDisplayBookName} from '../models/passage-utils';
-import {useAppSelector} from '../store/hooks';
-import {useNavigate} from 'react-router-dom';
-import {useToast} from '../hooks/useToast';
+import { bookAbbrev, translations } from '../models/constants';
+import { Passage } from '../models/passage';
+import { bibleService } from '../services/bible-service';
+import { getDisplayBookName } from '../models/passage-utils';
+import { useAppSelector } from '../store/hooks';
+import { useNavigate } from 'react-router-dom';
+import { useToast } from '../hooks/useToast';
 
 const BibleSearch: React.FC = () => {
     const navigate = useNavigate();
@@ -27,17 +28,17 @@ const BibleSearch: React.FC = () => {
     const [showEmailModal, setShowEmailModal] = useState<boolean>(false);
     const [emailAddress, setEmailAddress] = useState<string>('');
     const [isSendingEmail, setIsSendingEmail] = useState<boolean>(false);
-    const {showToast, toastProps, toastMessage} = useToast();
+    const { showToast, toastProps, toastMessage } = useToast();
 
     const user = useAppSelector((state) => state.user.currentUser);
 
     const testamentOptions = [
-        {label: 'NT', value: 'new'},
-        {label: 'OT', value: 'old'},
-        {label: 'Full', value: 'both'},
-        {label: 'Gospels', value: 'gospels'},
-        {label: "Paul's Letters", value: 'pauls_letters'},
-        {label: 'Non-Pauline Letters', value: 'non_pauline_letters'},
+        { label: 'NT', value: 'new' },
+        { label: 'OT', value: 'old' },
+        { label: 'Full', value: 'both' },
+        { label: 'Gospels', value: 'gospels' },
+        { label: "Paul's Letters", value: 'pauls_letters' },
+        { label: 'Non-Pauline Letters', value: 'non_pauline_letters' },
     ];
 
     const handleSearch = async () => {
@@ -76,7 +77,7 @@ const BibleSearch: React.FC = () => {
         const regex = new RegExp(`(${searchTerms.join('|')})`, 'gi');
         return text.split(regex).map((part, i) =>
                 regex.test(part) ? (
-                    <span key={i} style={{color: 'green'}}>
+                    <span key={i} style={{ color: 'green' }}>
           {part}
         </span>
                 ) : (
@@ -186,7 +187,7 @@ const BibleSearch: React.FC = () => {
             }
         } catch (error) {
             console.error('Error sending email:', error);
-            showToast({message: 'Error sending email', variant: 'error'});
+            showToast({ message: 'Error sending email', variant: 'error' });
         } finally {
             setIsSendingEmail(false);
         }
@@ -207,7 +208,7 @@ const BibleSearch: React.FC = () => {
                 <div className="d-flex justify-content-between align-items-center mb-3">
                     <h3 className="text-white mb-0">
                         {reference}{' '}
-                        <span style={{color: '#B0E0E6'}}>({translationName})</span>
+                        <span style={{ color: '#B0E0E6' }}>({translationName})</span>
                     </h3>
                     <Button
                         variant="outline-light"
@@ -410,9 +411,7 @@ const BibleSearch: React.FC = () => {
             </Modal>
 
             {/* Toast notification for copy success/failure */}
-            <Toast
-                {...toastProps}
-            >
+            <Toast {...toastProps}>
                 <Toast.Body>{toastMessage}</Toast.Body>
             </Toast>
         </Container>

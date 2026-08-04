@@ -1,3 +1,4 @@
+// MEMORY PASSAGES flow — paginated history of practice sessions grouped by day, showing which passages were practiced and when.
 import React, {useState, useEffect} from 'react';
 import {Container, Spinner, Collapse, Button, Pagination} from 'react-bootstrap';
 import {useAppSelector, useAppDispatch} from '../store/hooks';

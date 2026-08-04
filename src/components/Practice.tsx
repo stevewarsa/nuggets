@@ -1,3 +1,4 @@
+// MEMORY PASSAGES flow — core practice screen with reference/text modes, swipe navigation, frequency changes, edit, and last-viewed tracking.
 import {
     Button,
     Collapse,

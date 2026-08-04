@@ -4,7 +4,7 @@
 /** @noinspection SqlDialectInspection */
 /** @noinspection SqlNoDataSourceInspection */
 
-// Pulls in headers, connects to MariaDB, and automatically populates $pdo and $current_user_id
+// BROWSE BIBLE flow — associates topics (tags) with a nugget via the tag_nugget table.
 require_once 'connect.php';
 
 // Reuse the pre-parsed JSON payload object populated by connect.php

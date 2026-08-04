@@ -1,3 +1,4 @@
+// BROWSE BIBLE flow — full-chapter reader with swipe navigation, verse selection, copy, BibleHub/interlinear links, and add-to-nuggets/memory actions.
 import {Container, Toast} from 'react-bootstrap';
 import {useParams, useNavigate} from 'react-router-dom';
 import {useEffect, useState} from 'react';

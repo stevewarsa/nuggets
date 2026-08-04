@@ -1,4 +1,5 @@
-import React, {useState, useEffect, useMemo} from 'react';
+// MEMORY PASSAGES flow — list view of all memorization passages with search, expand-to-read, and copy.
+import React, { useState, useEffect, useMemo } from 'react';
 import {
     Container,
     Form,
@@ -8,7 +9,7 @@ import {
     Button,
     Toast,
 } from 'react-bootstrap';
-import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
     faChevronDown,
     faChevronRight,
@@ -16,14 +17,14 @@ import {
     faSearch,
     faTimes,
 } from '@fortawesome/free-solid-svg-icons';
-import {useAppSelector} from '../store/hooks';
-import {bibleService} from '../services/bible-service';
-import {Passage} from '../models/passage';
+import { useAppSelector } from '../store/hooks';
+import { bibleService } from '../services/bible-service';
+import { Passage } from '../models/passage';
 import {
     getPassageReference,
     handleCopyPassage,
 } from '../models/passage-utils';
-import {useToast} from '../hooks/useToast';
+import { useToast } from '../hooks/useToast';
 
 const MemoryPassages: React.FC = () => {
     const [passages, setPassages] = useState<Passage[]>([]);
@@ -38,7 +39,7 @@ const MemoryPassages: React.FC = () => {
     const [loadingPassageIds, setLoadingPassageIds] = useState<Set<number>>(
         new Set()
     );
-    const {showToast, toastProps, toastMessage} = useToast();
+    const { showToast, toastProps, toastMessage } = useToast();
 
     const user = useAppSelector((state) => state.user.currentUser);
 
@@ -152,7 +153,7 @@ const MemoryPassages: React.FC = () => {
     if (isLoading) {
         return (
             <Container className="py-4 text-center text-white">
-                <Spinner animation="border" role="status"/>
+                <Spinner animation="border" role="status" />
                 <p className="mt-2">Loading memory passages...</p>
             </Container>
         );
@@ -165,7 +166,7 @@ const MemoryPassages: React.FC = () => {
             <Form className="mb-4">
                 <InputGroup>
                     <InputGroup.Text className="bg-dark text-white border-secondary">
-                        <FontAwesomeIcon icon={faSearch}/>
+                        <FontAwesomeIcon icon={faSearch} />
                     </InputGroup.Text>
                     <Form.Control
                         type="text"
@@ -179,7 +180,7 @@ const MemoryPassages: React.FC = () => {
                             variant="outline-secondary"
                             onClick={() => setSearchTerm('')}
                         >
-                            <FontAwesomeIcon icon={faTimes}/>
+                            <FontAwesomeIcon icon={faTimes} />
                         </Button>
                     )}
                 </InputGroup>
@@ -207,7 +208,7 @@ const MemoryPassages: React.FC = () => {
                             </Button>
                             <span>{getPassageReference(passage, false, true)}</span>
                             {loadingPassageIds.has(passage.passageId) && (
-                                <Spinner animation="border" size="sm" className="ms-2"/>
+                                <Spinner animation="border" size="sm" className="ms-2" />
                             )}
                         </div>
                         <Collapse in={expandedPassages.has(passage.passageId)}>
@@ -224,17 +225,14 @@ const MemoryPassages: React.FC = () => {
                                                 passageTexts.get(passage.passageId)
                                             ).then((success) => {
                                                 if (success) {
-                                                    showToast({
-                                                        message: 'Passage copied to clipboard!',
-                                                        variant: 'success'
-                                                    });
+                                                    showToast({ message: 'Passage copied to clipboard!', variant: 'success' });
                                                 } else {
-                                                    showToast({message: 'Failed to copy text', variant: 'error'});
+                                                    showToast({ message: 'Failed to copy text', variant: 'error' });
                                                 }
                                             });
                                         }}
                                     >
-                                        <FontAwesomeIcon icon={faCopy}/>
+                                        <FontAwesomeIcon icon={faCopy} />
                                     </Button>
                                 </p>
                             </div>

@@ -3,7 +3,7 @@
 /** @noinspection SqlResolve */
 /** @noinspection SqlNoDataSourceInspection */
 
-// Pulls in headers, connects to MariaDB, and automatically populates $pdo and $current_user_id
+// MEMORY PASSAGES flow — fetches all memorization passages (passage + memory_passage tables).
 require_once 'connect.php';
 include_once './Book.php';
 include_once './Passage.php';

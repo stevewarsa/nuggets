@@ -2,7 +2,7 @@
 /** @noinspection SqlResolve */
 /** @noinspection SqlNoDataSourceInspection */
 
-// Pulls in headers, connects to MariaDB, and automatically populates $pdo and $current_user_id
+// MEMORY PASSAGES flow — fetches user-edited text overrides for memorization passages.
 require_once 'connect.php';
 include_once('./Passage.php'); // Keeps your native OOP class models
 

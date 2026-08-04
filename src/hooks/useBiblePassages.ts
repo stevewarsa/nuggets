@@ -7,6 +7,8 @@ import {useTopics} from "./useTopics.ts";
 import {useNavigate} from 'react-router-dom';
 import {bookAbbrev, booksByNum} from '../models/constants';
 
+// Hook for the BROWSE BIBLE flow. Manages Nugget data (non-memory passages).
+// Uses Nugget[] throughout — distinct from the MEMORY PASSAGES flow which uses Passage[].
 export const useBiblePassages = () => {
     const {topics} = useTopics();
     const navigate = useNavigate();

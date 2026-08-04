@@ -1,3 +1,4 @@
+// BROWSE BIBLE flow — main screen for browsing non-memory passages (nuggets) with topic/book/chapter filtering.
 import BiblePassage from './BiblePassage';
 import Toolbar from './Toolbar';
 import SwipeContainer from './SwipeContainer';

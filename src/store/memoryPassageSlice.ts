@@ -1,6 +1,8 @@
-import {createSlice, PayloadAction} from '@reduxjs/toolkit';
-import {Passage} from '../models/passage';
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { Passage } from '../models/passage';
 
+// Redux store for the MEMORY PASSAGES flow. Holds Passage[] (memorization passages),
+// distinct from the BROWSE BIBLE flow which uses Nugget[].
 interface MemoryPassageState {
     passages: Passage[];
     loading: boolean;

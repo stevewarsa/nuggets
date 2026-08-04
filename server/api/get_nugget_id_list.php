@@ -2,7 +2,7 @@
 /** @noinspection SqlResolve */
 /** @noinspection SqlNoDataSourceInspection */
 
-// Pulls in headers, connects to MariaDB, and automatically populates $pdo and $current_user_id
+// BROWSE BIBLE flow — fetches all nuggets (non-memory passages) with their tags from the nugget table.
 require_once 'connect.php';
 
 // Prepare multi-tenant isolated query

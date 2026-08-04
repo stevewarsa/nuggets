@@ -7,6 +7,14 @@ import { Topic } from '../models/topic';
 import { MemoryPracticeHistoryEntry } from '../models/memory-practice-history.ts';
 import { Prayer, PrayerSession } from '../models/prayer.ts';
 
+// BibleService — central API client for both the BROWSE BIBLE flow and the MEMORY PASSAGES flow.
+// Methods dealing with Nugget/nuggetId (getNuggetIdList, addNonMemoryPassage, addNuggetTopics)
+//   belong to the BROWSE BIBLE flow.
+// Methods dealing with Passage/passageId (getMemoryPassageList, addMemoryPassage, updatePassage,
+//   getMemoryPassageTextOverrides, updateLastViewed) belong to the MEMORY PASSAGES flow.
+// Some methods (getPassageText, searchBible) are shared by both flows and use the Passage shape
+//   as a generic container for verse text.
+
 interface BibleSearchPayload {
     book: string;
     translations: string[];
@@ -211,6 +219,7 @@ export class BibleService {
         }
     }
 
+    // BROWSE BIBLE flow — associates topics (tags) with a nugget (non-memory passage).
     async addNuggetTopics(
         user: string,
         topicIds: number[],
@@ -269,6 +278,7 @@ export class BibleService {
         }
     }
 
+    // MEMORY PASSAGES flow — adds a new passage to the passage + memory_passage tables.
     async addMemoryPassage(
         user: string,
         translation: string,
@@ -325,6 +335,7 @@ export class BibleService {
         }
     }
 
+    // MEMORY PASSAGES flow — updates last-viewed timestamp on the memory_passage table.
     async updateLastViewed(
         user: string,
         passageId: number,
@@ -347,6 +358,7 @@ export class BibleService {
         }
     }
 
+    // MEMORY PASSAGES flow — updates a memorization passage (verses, translation, frequency, overrides).
     async updatePassage(
         user: string,
         passage: Passage,
@@ -385,6 +397,7 @@ export class BibleService {
         }
     }
 
+    // Shared by both flows — searches the verse table. Returns Passage[] as a generic container.
     async searchBible(payload: BibleSearchPayload): Promise<Passage[]> {
         try {
             const response = await axios.post(
@@ -445,6 +458,7 @@ export class BibleService {
         }
     }
 
+    // Shared by both flows — fetches raw verse text from the verse table. Returns a Passage shape.
     async getPassageText(
         user: string,
         translation: string,
@@ -473,6 +487,7 @@ export class BibleService {
         }
     }
 
+    // MEMORY PASSAGES flow — fetches user-edited text overrides for memorization passages.
     async getMemoryPassageTextOverrides(user: string): Promise<Passage[]> {
         try {
             const response = await axios.get(
@@ -487,6 +502,7 @@ export class BibleService {
         }
     }
 
+    // BROWSE BIBLE flow — fetches all nuggets (non-memory passages) with their topics/tags.
     async getNuggetIdList(user: string): Promise<Nugget[]> {
         try {
             const response = await axios.get(
@@ -501,6 +517,7 @@ export class BibleService {
         }
     }
 
+    // MEMORY PASSAGES flow — fetches all memorization passages with frequency/last-viewed data.
     async getMemoryPassageList(user: string): Promise<Passage[]> {
         try {
             const response = await axios.get(
@@ -515,6 +532,7 @@ export class BibleService {
         }
     }
 
+    // BROWSE BIBLE flow — adds a nugget (non-memory passage) to the nugget table.
     async addNonMemoryPassage(
         user: string,
         translation: string,
@@ -555,6 +573,7 @@ export class BibleService {
         }
     }
 
+    // MEMORY PASSAGES flow — fetches practice history entries for memorization passages.
     async getMemoryPracticeHistory(
         user: string
     ): Promise<MemoryPracticeHistoryEntry[]> {

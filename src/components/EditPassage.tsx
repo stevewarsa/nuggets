@@ -1,3 +1,4 @@
+// MEMORY PASSAGES flow — modal for editing a memorization passage (translation, verse range, text override, frequency, reference append letter).
 import React, { useState, useEffect } from 'react';
 import { Modal, Form, Button, Spinner } from 'react-bootstrap';
 import { Passage } from '../models/passage';

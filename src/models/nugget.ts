@@ -1,6 +1,9 @@
 import { Verse } from "./verse";
 import { Topic } from "./topic";
 
+// Nugget model — used in the BROWSE BIBLE flow (browsing/searching non-memory passages).
+// A "nugget" is a Bible passage the user has saved for general reference (not for memorization).
+// Compare with Passage (models/passage.ts), which is used in the MEMORY PASSAGES flow.
 export interface Nugget {
     nuggetId: number;
     bookId: number;

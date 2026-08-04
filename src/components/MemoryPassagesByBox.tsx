@@ -1,3 +1,4 @@
+// MEMORY PASSAGES flow — groups memorization passages by frequency box (1-3) with expand-to-read and copy.
 import React, { useState, useEffect } from 'react';
 import {
     Container,
