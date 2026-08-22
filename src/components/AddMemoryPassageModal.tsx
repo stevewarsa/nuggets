@@ -36,6 +36,7 @@ const AddMemoryPassageModal: React.FC<AddMemoryPassageModalProps> = ({
     const [adding, setAdding] = useState(false);
     const [fetchError, setFetchError] = useState(false);
     const inputRef = useRef<HTMLInputElement>(null);
+    const modalBodyRef = useRef<HTMLDivElement>(null);
 
     const user = useAppSelector((state) => state.user.currentUser);
     const { showToast, toastProps, toastMessage } = useToast();
@@ -93,6 +94,23 @@ const AddMemoryPassageModal: React.FC<AddMemoryPassageModalProps> = ({
 
         fetchChapter();
     }, [selectedPassage, selectedTranslation, show, user]);
+
+    useEffect(() => {
+        if (chapterPassage?.verses && !busy && selectedVerses.length > 0) {
+            setTimeout(() => {
+                const verseEl = document.getElementById(
+                    `add-mem-verse-${selectedVerses[0]}`
+                );
+                const container = modalBodyRef.current;
+                if (verseEl && container) {
+                    container.scrollTo({
+                        top: verseEl.offsetTop - container.offsetTop - 8,
+                        behavior: 'smooth',
+                    });
+                }
+            }, 100);
+        }
+    }, [chapterPassage, busy, selectedVerses]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setPassageRef(e.target.value);
@@ -213,6 +231,7 @@ const AddMemoryPassageModal: React.FC<AddMemoryPassageModalProps> = ({
                     <Modal.Title>Add Memory Passage</Modal.Title>
                 </Modal.Header>
                 <Modal.Body
+                    ref={modalBodyRef}
                     className="bg-dark text-white"
                     style={{ minHeight: '70vh', maxHeight: '80vh', overflowY: 'auto' }}
                 >
