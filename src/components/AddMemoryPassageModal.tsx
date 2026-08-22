@@ -214,7 +214,7 @@ const AddMemoryPassageModal: React.FC<AddMemoryPassageModalProps> = ({
                 </Modal.Header>
                 <Modal.Body
                     className="bg-dark text-white"
-                    style={{ maxHeight: '70vh', overflowY: 'auto' }}
+                    style={{ minHeight: '70vh', maxHeight: '80vh', overflowY: 'auto' }}
                 >
                     <Row className="mb-3">
                         <Col>
