@@ -1,18 +1,19 @@
-import {Navbar, Nav, Container, Toast} from 'react-bootstrap';
-import {Link, useNavigate, useLocation} from 'react-router-dom';
-import {useState} from 'react';
-import {useAppSelector} from '../store/hooks';
-import {GUEST_USER} from '../models/constants';
-import {bibleService} from '../services/bible-service';
+import { Navbar, Nav, Container, Toast } from 'react-bootstrap';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { useState } from 'react';
+import { useAppSelector } from '../store/hooks';
+import { GUEST_USER } from '../models/constants';
 import GoToPassageByRef from './GoToPassageByRef';
 import AddEditPrayerModal from './AddEditPrayerModal';
-import {useToast} from '../hooks/useToast';
+import AddMemoryPassageModal from './AddMemoryPassageModal';
+import { useToast } from '../hooks/useToast';
 
 const TopNav = () => {
     const [expanded, setExpanded] = useState(false);
     const [showGoToPassage, setShowGoToPassage] = useState(false);
     const [showAddPrayerModal, setShowAddPrayerModal] = useState(false);
-    const {showToast, toastProps, toastMessage} = useToast();
+    const [showAddMemoryPassageModal, setShowAddMemoryPassageModal] = useState(false);
+    const { showToast, toastProps, toastMessage } = useToast();
 
     const navigate = useNavigate();
     const location = useLocation();
@@ -25,27 +26,6 @@ const TopNav = () => {
         navigate(path);
     };
 
-    const handleCopyToGuest = async () => {
-        setExpanded(false);
-        try {
-            if (!currentUser) return;
-
-            const result = await bibleService.copyDbToAnother(
-                currentUser,
-                GUEST_USER
-            );
-
-            if (result === 'success') {
-                showToast({message: 'Successfully copied database to Guest user', variant: 'success'});
-            } else {
-                showToast({message: `Failed to copy database: ${result}`, variant: 'error'});
-            }
-        } catch (error) {
-            console.error('Error copying database:', error);
-            showToast({message: 'Error copying database', variant: 'error'});
-        }
-    };
-
     const handleAddPrayer = () => {
         setExpanded(false);
         setShowAddPrayerModal(true);
@@ -53,7 +33,7 @@ const TopNav = () => {
 
     const handlePrayerSaved = () => {
         // Show success message
-        showToast({message: 'Prayer added successfully!', variant: 'success'});
+        showToast({ message: 'Prayer added successfully!', variant: 'success' });
     };
 
     return (
@@ -73,7 +53,7 @@ const TopNav = () => {
                     >
                         Bible Nuggets
                     </Navbar.Brand>
-                    <Navbar.Toggle aria-controls="basic-navbar-nav"/>
+                    <Navbar.Toggle aria-controls="basic-navbar-nav" />
                     <Navbar.Collapse id="basic-navbar-nav">
                         <Nav className="me-auto">
                             {location.pathname !== '/practiceSetup' && (
@@ -99,6 +79,14 @@ const TopNav = () => {
                             {isMainUser && (
                                 <Nav.Link onClick={handleAddPrayer}>Add Prayer</Nav.Link>
                             )}
+                            <Nav.Link
+                                onClick={() => {
+                                    setExpanded(false);
+                                    setShowAddMemoryPassageModal(true);
+                                }}
+                            >
+                                Add Memory Passage...
+                            </Nav.Link>
                             {!isGuestUser && location.pathname !== '/addQuote' && (
                                 <Nav.Link onClick={() => handleNavigation('/addQuote')}>
                                     Add Quote
@@ -159,11 +147,6 @@ const TopNav = () => {
                                     Search Quotes
                                 </Nav.Link>
                             )}
-                            {isMainUser && currentUser === 'SteveWarsa' && (
-                                <Nav.Link onClick={handleCopyToGuest}>
-                                    Copy This DB to Guest
-                                </Nav.Link>
-                            )}
                             {location.pathname !== '/login' && (
                                 <Nav.Link onClick={() => handleNavigation('/login')}>
                                     Login
@@ -184,6 +167,11 @@ const TopNav = () => {
                 show={showAddPrayerModal}
                 onHide={() => setShowAddPrayerModal(false)}
                 onPrayerSaved={handlePrayerSaved}
+            />
+
+            <AddMemoryPassageModal
+                show={showAddMemoryPassageModal}
+                onHide={() => setShowAddMemoryPassageModal(false)}
             />
 
             <Toast
