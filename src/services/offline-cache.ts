@@ -94,15 +94,9 @@ const txDelete = async (store: string, key: IDBValidKey): Promise<void> => {
 
 export const offlineCache = {
     async downloadPassages(
-        user: string,
-        onProgress?: (current: number, total: number) => void
+        user: string
     ): Promise<{ count: number }> {
         const passages = await bibleService.getHydratedMemoryPassageList(user);
-
-        const total = passages.length;
-        for (let i = 0; i < passages.length; i++) {
-            onProgress?.(i + 1, total);
-        }
 
         await txPut(CACHE_STORE, 'passages', passages);
         await txPut(CACHE_STORE, 'metadata', {
