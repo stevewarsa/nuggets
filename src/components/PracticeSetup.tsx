@@ -20,6 +20,7 @@ const PracticeSetup = () => {
   const [isDownloading, setIsDownloading] = useState(false);
   const [downloadStatus, setDownloadStatus] = useState<{ count: number } | null>(null);
   const [downloadError, setDownloadError] = useState<string | null>(null);
+  const [downloadProgress, setDownloadProgress] = useState<{ current: number; total: number } | null>(null);
   const [hasCache, setHasCache] = useState(false);
   const [cacheMeta, setCacheMeta] = useState<{ user: string; downloadedAt: string; count: number } | null>(null);
   const [queuedCount, setQueuedCount] = useState(0);
@@ -60,8 +61,11 @@ const PracticeSetup = () => {
     setIsDownloading(true);
     setDownloadError(null);
     setDownloadStatus(null);
+    setDownloadProgress({ current: 0, total: 0 });
     try {
-      const result = await offlineCache.downloadPassages(user);
+      const result = await offlineCache.downloadPassages(user, (current, total) => {
+        setDownloadProgress({ current, total });
+      });
       setDownloadStatus(result);
       await checkCache();
     } catch (error) {
@@ -69,6 +73,7 @@ const PracticeSetup = () => {
       setDownloadError('Failed to download passages. Please try again.');
     } finally {
       setIsDownloading(false);
+      setDownloadProgress(null);
     }
   };
 
@@ -187,6 +192,36 @@ const PracticeSetup = () => {
                         Cached: {cacheMeta.count} passages on{' '}
                         {new Date(cacheMeta.downloadedAt).toLocaleString()}
                       </small>
+                    </div>
+                )}
+
+                {isDownloading && downloadProgress && (
+                    <div className="mb-3">
+                      <div className="d-flex justify-content-between text-white-50 mb-1">
+                        <small>
+                          Downloading passages...
+                        </small>
+                        <small>
+                          {downloadProgress.current} of {downloadProgress.total}
+                          {downloadProgress.total > 0
+                              ? ` (${Math.round((downloadProgress.current / downloadProgress.total) * 100)}%)`
+                              : ''}
+                        </small>
+                      </div>
+                      <div className="progress" style={{ height: '20px' }}>
+                        <div
+                            className="progress-bar progress-bar-striped progress-bar-animated bg-primary"
+                            role="progressbar"
+                            style={{
+                              width: downloadProgress.total > 0
+                                  ? `${(downloadProgress.current / downloadProgress.total) * 100}%`
+                                  : '0%',
+                            }}
+                            aria-valuenow={downloadProgress.current}
+                            aria-valuemin={0}
+                            aria-valuemax={downloadProgress.total || 1}
+                        />
+                      </div>
                     </div>
                 )}
 

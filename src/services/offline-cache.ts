@@ -93,14 +93,19 @@ const txDelete = async (store: string, key: IDBValidKey): Promise<void> => {
 };
 
 export const offlineCache = {
-    async downloadPassages(user: string): Promise<{ count: number }> {
+    async downloadPassages(
+        user: string,
+        onProgress?: (current: number, total: number) => void
+    ): Promise<{ count: number }> {
         const [passages, overrides] = await Promise.all([
             bibleService.getMemoryPassageList(user),
             bibleService.getMemoryPassageTextOverrides(user),
         ]);
 
+        const total = passages.length;
         const passagesWithVerses: Passage[] = [];
-        for (const passage of passages) {
+        for (let i = 0; i < passages.length; i++) {
+            const passage = passages[i];
             const override = overrides.find((o) => o.passageId === passage.passageId);
             let verses = override ? override.verses : passage.verses;
 
@@ -125,6 +130,8 @@ export const offlineCache = {
                 verses,
                 passageRefAppendLetter: override ? override.passageRefAppendLetter : passage.passageRefAppendLetter,
             });
+
+            onProgress?.(i + 1, total);
         }
 
         await txPut(CACHE_STORE, 'passages', passagesWithVerses);
