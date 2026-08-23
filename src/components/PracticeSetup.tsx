@@ -1,6 +1,6 @@
 // MEMORY PASSAGES flow — configuration screen for choosing practice mode (by reference or by text) and display order before starting practice.
-import { Container, Form, Button } from 'react-bootstrap';
-import { useState } from 'react';
+import { Container, Form, Button, Spinner, Alert } from 'react-bootstrap';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   BY_REF,
@@ -10,14 +10,87 @@ import {
   RAND,
   BY_LAST_PRACTICED
 } from '../models/passage-utils';
+import { offlineCache } from '../services/offline-cache';
+import { useAppSelector } from '../store/hooks';
+import { GUEST_USER } from '../models/constants';
 
 const PracticeSetup = () => {
   const [practiceMode, setPracticeMode] = useState(BY_REF);
   const [displayOrder, setDisplayOrder] = useState(BY_FREQ);
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [downloadStatus, setDownloadStatus] = useState<{ count: number } | null>(null);
+  const [downloadError, setDownloadError] = useState<string | null>(null);
+  const [hasCache, setHasCache] = useState(false);
+  const [cacheMeta, setCacheMeta] = useState<{ user: string; downloadedAt: string; count: number } | null>(null);
+  const [queuedCount, setQueuedCount] = useState(0);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [syncResult, setSyncResult] = useState<string | null>(null);
   const navigate = useNavigate();
+
+  const user = useAppSelector((state) => state.user.currentUser);
+  const isGuestUser = user === GUEST_USER;
+
+  const checkCache = async () => {
+    const exists = await offlineCache.hasCache();
+    setHasCache(exists);
+    if (exists) {
+      const meta = await offlineCache.getMetadata();
+      setCacheMeta(meta || null);
+    } else {
+      setCacheMeta(null);
+    }
+    const queued = await offlineCache.getQueuedCount();
+    setQueuedCount(queued);
+  };
+
+  useEffect(() => {
+    checkCache();
+  }, []);
 
   const handleStart = () => {
     navigate(`/practice/${practiceMode}/${displayOrder}`);
+  };
+
+  const handleStartOffline = () => {
+    navigate(`/practiceOffline/${practiceMode}/${displayOrder}`);
+  };
+
+  const handleDownload = async () => {
+    if (!user || isGuestUser) return;
+    setIsDownloading(true);
+    setDownloadError(null);
+    setDownloadStatus(null);
+    try {
+      const result = await offlineCache.downloadPassages(user);
+      setDownloadStatus(result);
+      await checkCache();
+    } catch (error) {
+      console.error('Error downloading passages:', error);
+      setDownloadError('Failed to download passages. Please try again.');
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
+  const handleSyncLastViewed = async () => {
+    if (!user || isGuestUser) return;
+    setIsSyncing(true);
+    setSyncResult(null);
+    try {
+      const result = await offlineCache.syncLastViewedQueue(user);
+      setSyncResult(`Synced ${result.synced} update(s)${result.failed > 0 ? `, ${result.failed} failed` : ''}`);
+      await checkCache();
+    } catch (error) {
+      console.error('Error syncing last-viewed:', error);
+      setSyncResult('Error syncing last-viewed updates');
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  const handleClearCache = async () => {
+    await offlineCache.clearCache();
+    await checkCache();
   };
 
   return (
@@ -94,7 +167,7 @@ const PracticeSetup = () => {
           </Form>
         </div>
 
-        <div className="text-center">
+        <div className="text-center mb-4">
           <Button
               variant="primary"
               size="lg"
@@ -103,6 +176,93 @@ const PracticeSetup = () => {
             Start
           </Button>
         </div>
+
+        {!isGuestUser && (
+            <div className="mb-4">
+              <h2 className="text-white mb-3">Offline Practice</h2>
+              <div className="bg-dark p-3 rounded">
+                {cacheMeta && (
+                    <div className="text-white-50 mb-2">
+                      <small>
+                        Cached: {cacheMeta.count} passages on{' '}
+                        {new Date(cacheMeta.downloadedAt).toLocaleString()}
+                      </small>
+                    </div>
+                )}
+
+                {downloadStatus && (
+                    <Alert variant="success" className="mb-2">
+                      Downloaded {downloadStatus.count} passages for offline use.
+                    </Alert>
+                )}
+
+                {downloadError && (
+                    <Alert variant="danger" className="mb-2">
+                      {downloadError}
+                    </Alert>
+                )}
+
+                {syncResult && (
+                    <Alert variant="info" className="mb-2">
+                      {syncResult}
+                    </Alert>
+                )}
+
+                <div className="d-flex flex-wrap gap-2 mt-2">
+                  <Button
+                      variant="outline-light"
+                      onClick={handleDownload}
+                      disabled={isDownloading}
+                  >
+                    {isDownloading ? (
+                        <>
+                          <Spinner as="span" animation="border" size="sm" className="me-2" />
+                          Downloading...
+                        </>
+                    ) : (
+                        'Download for Offline'
+                    )}
+                  </Button>
+
+                  {hasCache && (
+                      <Button
+                          variant="outline-light"
+                          onClick={handleStartOffline}
+                      >
+                        Practice Offline
+                      </Button>
+                  )}
+
+                  {hasCache && (
+                      <Button
+                          variant="outline-danger"
+                          size="sm"
+                          onClick={handleClearCache}
+                      >
+                        Clear Cache
+                      </Button>
+                  )}
+
+                  {queuedCount > 0 && (
+                      <Button
+                          variant="outline-warning"
+                          onClick={handleSyncLastViewed}
+                          disabled={isSyncing}
+                      >
+                        {isSyncing ? (
+                            <>
+                              <Spinner as="span" animation="border" size="sm" className="me-2" />
+                              Syncing...
+                            </>
+                        ) : (
+                            `Sync Last-Viewed (${queuedCount})`
+                        )}
+                      </Button>
+                  )}
+                </div>
+              </div>
+            </div>
+        )}
       </Container>
   );
 };

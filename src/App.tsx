@@ -10,6 +10,7 @@ import ViewChapter from './components/ViewChapter';
 import ReadBibleChapter from './components/ReadBibleChapter';
 import PracticeSetup from './components/PracticeSetup';
 import Practice from './components/Practice';
+import PracticeOffline from './components/PracticeOffline';
 import ViewQuotes from './components/ViewQuotes';
 import AddQuote from './components/AddQuote';
 import BibleSearch from './components/BibleSearch';
@@ -149,6 +150,15 @@ const AppContent = () => {
                         element={
                             <ProtectedRoute>
                                 <Practice/>
+                            </ProtectedRoute>
+                        }
+                    />
+
+                    <Route
+                        path="/practiceOffline/:mode/:order"
+                        element={
+                            <ProtectedRoute>
+                                <PracticeOffline/>
                             </ProtectedRoute>
                         }
                     />
