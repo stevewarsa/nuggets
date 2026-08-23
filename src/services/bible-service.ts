@@ -502,6 +502,21 @@ export class BibleService {
         }
     }
 
+    // MEMORY PASSAGES flow — fetches all memorization passages with verses and overrides already merged.
+    async getHydratedMemoryPassageList(user: string): Promise<Passage[]> {
+        try {
+            const response = await axios.get(
+                `${BibleService.BASE_URL}get_hydrated_mempsg_list.php`,
+                {
+                    params: { user },
+                }
+            );
+            return response.data;
+        } catch (error) {
+            return this.handleError(error, 'fetching hydrated memory passages');
+        }
+    }
+
     // BROWSE BIBLE flow — fetches all nuggets (non-memory passages) with their topics/tags.
     async getNuggetIdList(user: string): Promise<Nugget[]> {
         try {

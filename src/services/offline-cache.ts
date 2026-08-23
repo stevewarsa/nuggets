@@ -97,52 +97,21 @@ export const offlineCache = {
         user: string,
         onProgress?: (current: number, total: number) => void
     ): Promise<{ count: number }> {
-        const [passages, overrides] = await Promise.all([
-            bibleService.getMemoryPassageList(user),
-            bibleService.getMemoryPassageTextOverrides(user),
-        ]);
+        const passages = await bibleService.getHydratedMemoryPassageList(user);
 
         const total = passages.length;
-        const passagesWithVerses: Passage[] = [];
         for (let i = 0; i < passages.length; i++) {
-            const passage = passages[i];
-            const override = overrides.find((o) => o.passageId === passage.passageId);
-            let verses = override ? override.verses : passage.verses;
-
-            if (!verses || verses.length === 0) {
-                try {
-                    const fullPassage = await bibleService.getPassageText(
-                        user,
-                        passage.translationName,
-                        passage.bookName,
-                        passage.chapter,
-                        passage.startVerse,
-                        passage.endVerse
-                    );
-                    verses = fullPassage.verses;
-                } catch {
-                    verses = [];
-                }
-            }
-
-            passagesWithVerses.push({
-                ...passage,
-                verses,
-                passageRefAppendLetter: override ? override.passageRefAppendLetter : passage.passageRefAppendLetter,
-            });
-
             onProgress?.(i + 1, total);
         }
 
-        await txPut(CACHE_STORE, 'passages', passagesWithVerses);
-        await txPut(CACHE_STORE, 'overrides', overrides);
+        await txPut(CACHE_STORE, 'passages', passages);
         await txPut(CACHE_STORE, 'metadata', {
             user,
             downloadedAt: new Date().toISOString(),
-            count: passagesWithVerses.length,
+            count: passages.length,
         });
 
-        return { count: passagesWithVerses.length };
+        return { count: passages.length };
     },
 
     async getPassages(): Promise<Passage[]> {
