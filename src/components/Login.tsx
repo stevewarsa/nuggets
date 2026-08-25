@@ -4,6 +4,7 @@ import {useNavigate, useLocation} from 'react-router-dom';
 import {bibleService} from '../services/bible-service';
 import {useAppDispatch, useAppSelector} from '../store/hooks';
 import {setUser, setAllUsers} from '../store/userSlice';
+import {dictionaryCache} from '../services/dictionary-cache';
 
 const LOCAL_STORAGE_USER_KEY = 'user.name';
 
@@ -105,8 +106,8 @@ const Login = () => {
             const result = await bibleService.nuggetLogin(username);
             if (result !== 'success') {
                 setError(`Login failed: ${result}`);
-                setIsSubmitting(false);
-                return;
+                    setIsSubmitting(false);
+                    return;
             }
 
             // Store the user in Redux
@@ -119,6 +120,17 @@ const Login = () => {
 
             // Navigate to the original route or browse Bible page
             navigate(from);
+
+            // Fire-and-forget: download the search dictionary in the background
+            // if it's not already in IndexedDB. The BibleSearch component will
+            // also check and retry if this background download fails.
+            dictionaryCache.hasDictionary().then((hasDict) => {
+                if (!hasDict) {
+                    dictionaryCache.download().catch((err) => {
+                        console.error('Background dictionary download failed:', err);
+                    });
+                }
+            });
         } catch (error) {
             console.error('Login error:', error);
             setError('An error occurred during login. Please try again.');
