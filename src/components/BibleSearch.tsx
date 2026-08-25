@@ -1,5 +1,5 @@
 // Shared by both flows — searches the verse table by keyword across translations/testaments/books, with email and copy features.
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
     Button,
     Col,
@@ -16,6 +16,8 @@ import { getDisplayBookName } from '../models/passage-utils';
 import { useAppSelector } from '../store/hooks';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '../hooks/useToast';
+import SearchSuggestions from './SearchSuggestions';
+import { dictionaryCache } from '../services/dictionary-cache';
 
 const BibleSearch: React.FC = () => {
     const navigate = useNavigate();
@@ -29,6 +31,13 @@ const BibleSearch: React.FC = () => {
     const [emailAddress, setEmailAddress] = useState<string>('');
     const [isSendingEmail, setIsSendingEmail] = useState<boolean>(false);
     const { showToast, toastProps, toastMessage } = useToast();
+    const searchInputRef = useRef<HTMLInputElement>(null);
+
+    useEffect(() => {
+        dictionaryCache.ensureReady().catch((err) => {
+            console.error('Dictionary download failed, will retry on next visit:', err);
+        });
+    }, []);
 
     const user = useAppSelector((state) => state.user.currentUser);
 
@@ -322,7 +331,7 @@ const BibleSearch: React.FC = () => {
                 {/* Search Phrase */}
                 <Row className="mb-3">
                     <Col>
-                        <Form.Group>
+                        <Form.Group style={{ position: 'relative' }}>
                             <Form.Label className="text-white">
                                 Search Phrase (use * for wildcard)
                             </Form.Label>
@@ -331,6 +340,14 @@ const BibleSearch: React.FC = () => {
                                 value={searchPhrase}
                                 onChange={(e) => setSearchPhrase(e.target.value)}
                                 placeholder="Enter search phrase..."
+                                ref={searchInputRef}
+                            />
+                            <SearchSuggestions
+                                searchPhrase={searchPhrase}
+                                onSearchPhraseChange={setSearchPhrase}
+                                translation={selectedTranslation}
+                                section={testament}
+                                inputRef={searchInputRef}
                             />
                         </Form.Group>
                     </Col>

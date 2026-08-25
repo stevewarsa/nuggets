@@ -4,6 +4,7 @@ import {useNavigate, useLocation} from 'react-router-dom';
 import {bibleService} from '../services/bible-service';
 import {useAppDispatch, useAppSelector} from '../store/hooks';
 import {setUser, setAllUsers} from '../store/userSlice';
+import {dictionaryCache} from '../services/dictionary-cache';
 
 const LOCAL_STORAGE_USER_KEY = 'user.name';
 
@@ -91,6 +92,11 @@ const Login = () => {
     };
 
     const handleLogin = async () => {
+        if (newUser && !selectedUser) {
+            setError('Please select an existing user to copy from');
+            return;
+        }
+
         const username = newUser || selectedUser;
         if (!username) {
             setError('Please select an existing user or enter a new username');
@@ -101,12 +107,14 @@ const Login = () => {
         setError(null);
 
         try {
-            // Both new and existing users call the exact same endpoint with the target name string
-            const result = await bibleService.nuggetLogin(username);
-            if (result !== 'success') {
-                setError(`Login failed: ${result}`);
-                setIsSubmitting(false);
-                return;
+            if (newUser) {
+                // New user needs to be created via API with a user to copy from
+                const result = await bibleService.nuggetLogin(newUser, selectedUser);
+                if (result !== 'success') {
+                    setError(`Failed to create new user: ${result}`);
+                    setIsSubmitting(false);
+                    return;
+                }
             }
 
             // Store the user in Redux
@@ -119,6 +127,17 @@ const Login = () => {
 
             // Navigate to the original route or browse Bible page
             navigate(from);
+
+            // Fire-and-forget: download the search dictionary in the background
+            // if it's not already in IndexedDB. The BibleSearch component will
+            // also check and retry if this background download fails.
+            dictionaryCache.hasDictionary().then((hasDict) => {
+                if (!hasDict) {
+                    dictionaryCache.download().catch((err) => {
+                        console.error('Background dictionary download failed:', err);
+                    });
+                }
+            });
         } catch (error) {
             console.error('Login error:', error);
             setError('An error occurred during login. Please try again.');
@@ -195,7 +214,7 @@ const Login = () => {
                                     variant="primary"
                                     size="lg"
                                     onClick={handleLogin}
-                                    disabled={isSubmitting}
+                                    disabled={(newUser && !selectedUser) || (!selectedUser && !newUser) || isSubmitting}
                                 >
                                     {isSubmitting ? (
                                         <>

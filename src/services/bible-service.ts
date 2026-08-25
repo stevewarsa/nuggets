@@ -125,20 +125,6 @@ export class BibleService {
         }
     }
 
-    async copyDbToAnother(dbSource: string, dbDest: string): Promise<string> {
-        try {
-            const response = await axios.get(
-                `${BibleService.BASE_URL}copy_db_to_another.php`,
-                {
-                    params: { dbSource, dbDest },
-                }
-            );
-            return response.data;
-        } catch (error) {
-            return this.handleError(error, 'copying database');
-        }
-    }
-
     async addQuote(
         user: string,
         quoteText: string,
@@ -691,6 +677,19 @@ export class BibleService {
             return response.data;
         } catch (error) {
             return this.handleError(error, 'archiving prayer');
+        }
+    }
+
+    // Shared by both flows — fetches the autocomplete dictionary for Bible Search.
+    // Returns word lists bucketed by translation code and section.
+    async getDictionary(): Promise<Record<string, Record<string, string[]>>> {
+        try {
+            const response = await axios.get(
+                `${BibleService.BASE_URL}get_dictionary.php`
+            );
+            return response.data;
+        } catch (error) {
+            return this.handleError(error, 'fetching dictionary');
         }
     }
 }

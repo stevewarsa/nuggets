@@ -68,7 +68,8 @@ $current_script = basename($_SERVER['SCRIPT_NAME']);
 // List files that DO NOT require a user context to execute
 $public_endpoints = [
     'get_all_users.php',
-    'nuggets_login.php'
+    'nuggets_login.php',
+    'get_dictionary.php'
 ];
 
 // Only block the request if it's not a public page and we failed to find a valid user_id
