@@ -55,6 +55,17 @@ const Login = () => {
                             // Auto-login with saved user
                             dispatch(setUser(savedUser));
                             navigate(from);
+
+                            // Fire-and-forget: download the search dictionary in the background
+                            // if it's not already in IndexedDB. This mirrors the manual login
+                            // path so auto-login gets the same head start on the download.
+                            dictionaryCache.hasDictionary().then((hasDict) => {
+                                if (!hasDict) {
+                                    dictionaryCache.download().catch((err) => {
+                                        console.error('Background dictionary download failed:', err);
+                                    });
+                                }
+                            });
                             return;
                         } else {
                             console.log("Login.tsx - Saved user not found in user list:", savedUser);
@@ -106,8 +117,8 @@ const Login = () => {
             const result = await bibleService.nuggetLogin(username);
             if (result !== 'success') {
                 setError(`Login failed: ${result}`);
-                    setIsSubmitting(false);
-                    return;
+                setIsSubmitting(false);
+                return;
             }
 
             // Store the user in Redux
