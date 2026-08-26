@@ -57,27 +57,43 @@ $selectSql = "
         SELECT DISTINCT v2.translation_id, v2.book_id, v2.chapter, v2.verse
         FROM verse v2
         WHERE v2.translation_id IN (" . implode(',', array_fill(0, count($translationIds), '?')) . ")
-          AND v2.verse_text LIKE ?
-    ) matches ON v.translation_id = matches.translation_id 
+";
+
+// Bind params for the inner subquery translation IDs
+$params = array_merge($params, $translationIds);
+
+// Split the search phrase into individual words and require each one
+// to appear somewhere in the verse text (in any order). Each word still
+// supports the * wildcard, which becomes a SQL % placeholder.
+$searchWords = preg_split('/\s+/', trim($txt), -1, PREG_SPLIT_NO_EMPTY);
+
+$likeConditions = [];
+foreach ($searchWords as $word) {
+    $modWord = str_replace('*', '%', $word);
+    if (strpos($modWord, '%') !== 0) {
+        $modWord = '%' . $modWord;
+    }
+    if (substr($modWord, -1) !== '%') {
+        $modWord = $modWord . '%';
+    }
+    $likeConditions[] = 'v2.verse_text LIKE ?';
+    $params[] = $modWord;
+}
+
+// If no words were produced (e.g. empty/whitespace-only input), fall back
+// to a single LIKE that matches everything so the query still runs cleanly.
+if (empty($likeConditions)) {
+    $likeConditions[] = 'v2.verse_text LIKE ?';
+    $params[] = '%';
+}
+
+$selectSql .= '          AND ' . implode(' AND ', $likeConditions) . "\n";
+$selectSql .= "    ) matches ON v.translation_id = matches.translation_id 
              AND v.book_id = matches.book_id 
              AND v.chapter = matches.chapter 
              AND v.verse = matches.verse
     WHERE v.translation_id IN (" . implode(',', array_fill(0, count($translationIds), '?')) . ")
 ";
-
-// Bind params for the inner subquery lookups
-$params = array_merge($params, $translationIds);
-
-// Format the wildcard string - REMOVED strtoupper() so the raw keyword maps directly
-$modSearchString = $txt;
-$modSearchString = str_replace('*', '%', $modSearchString);
-if (strpos($modSearchString, "%") !== 0) {
-    $modSearchString = "%" . $modSearchString;
-}
-if (substr($modSearchString, -1) !== "%") {
-    $modSearchString = $modSearchString . "%";
-}
-$params[] = $modSearchString;
 
 // Bind params for the outer query filters
 $params = array_merge($params, $translationIds);
