@@ -11,7 +11,7 @@ import {
     Col,
     InputGroup,
 } from 'react-bootstrap';
-import {useState, useEffect, useMemo} from 'react';
+import {useState, useEffect, useMemo, useRef} from 'react';
 import {Quote} from '../models/quote';
 import {bibleService} from '../services/bible-service';
 import Toolbar from './Toolbar';
@@ -19,6 +19,7 @@ import SwipeContainer from './SwipeContainer';
 import {shuffleArray} from '../models/passage-utils';
 import {useAppSelector, useAppDispatch} from '../store/hooks';
 import {clearSearchResults} from '../store/searchSlice';
+import {setQuotes as setReduxQuotes} from '../store/quoteSlice';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {
     faFilter,
@@ -82,6 +83,13 @@ const ViewQuotes = () => {
         (state) => state.quote.hasBeenLoaded
     );
     const searchState = useAppSelector((state) => state.search);
+
+    // Refs to read Redux state inside the loading effect without re-triggering it
+    // when we dispatch updated quotes ourselves
+    const storedQuotesRef = useRef(storedQuotes);
+    const quotesHaveBeenLoadedRef = useRef(quotesHaveBeenLoaded);
+    storedQuotesRef.current = storedQuotes;
+    quotesHaveBeenLoadedRef.current = quotesHaveBeenLoaded;
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
     const {quoteId} = useParams();
@@ -186,9 +194,9 @@ const ViewQuotes = () => {
             setQuotes(searchResults);
             setCurrentQuote(searchResults[0]);
             setIsLoading(false);
-        } else if (quotesHaveBeenLoaded && storedQuotes?.length > 0) {
+        } else if (quotesHaveBeenLoadedRef.current && storedQuotesRef.current?.length > 0) {
             // Only use stored quotes if they have been properly loaded
-            const locStoredQuotes = [...storedQuotes];
+            const locStoredQuotes = [...storedQuotesRef.current];
             shuffleArray(locStoredQuotes);
             setAllQuotes(locStoredQuotes);
             setQuotes(locStoredQuotes);
@@ -201,7 +209,7 @@ const ViewQuotes = () => {
             }
         }
         return () => clearInterval(loadingInterval);
-    }, [user, searchState, storedQuotes, quotesHaveBeenLoaded]);
+    }, [user, searchState]);
 
     // Reset search term when modal is opened or closed
     useEffect(() => {
@@ -632,8 +640,10 @@ const ViewQuotes = () => {
                     );
                 };
 
-                setQuotes(updateQuoteInArray(quotes));
+                const updatedQuotes = updateQuoteInArray(quotes);
+                setQuotes(updatedQuotes);
                 setAllQuotes(updateQuoteInArray(allQuotes));
+                dispatch(setReduxQuotes(updatedQuotes));
 
                 showToast({
                     message: 'Topics updated successfully!',
@@ -685,8 +695,10 @@ const ViewQuotes = () => {
                     );
                 };
 
-                setQuotes(updateQuoteInArray(quotes));
+                const updatedQuotes = updateQuoteInArray(quotes);
+                setQuotes(updatedQuotes);
                 setAllQuotes(updateQuoteInArray(allQuotes));
+                dispatch(setReduxQuotes(updatedQuotes));
 
                 showToast({
                     message: 'Quote updated successfully!',
@@ -741,8 +753,10 @@ const ViewQuotes = () => {
                     );
                 };
 
-                setQuotes(updateQuoteInArray(quotes));
+                const updatedQuotes = updateQuoteInArray(quotes);
+                setQuotes(updatedQuotes);
                 setAllQuotes(updateQuoteInArray(allQuotes));
+                dispatch(setReduxQuotes(updatedQuotes));
 
                 showToast({
                     message: 'New topic created and associated with quote!',
