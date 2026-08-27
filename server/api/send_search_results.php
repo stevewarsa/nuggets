@@ -1,9 +1,9 @@
 <?php
 /** @noinspection PhpParamsInspection */
 
-// Shared by both flows — emails Bible search results to a user-specified address.
+// Pulls in unified CORS headers, global preflight options, and parses the JSON body
 require_once 'connect.php';
-
+error_log("[send_search_results.php] Entering...");
 // Reuse the pre-parsed JSON payload object populated by connect.php
 $input = $GLOBAL_JSON_INPUT;
 
@@ -40,7 +40,7 @@ $resultsTable = "
 foreach ($searchResults as $thisResult) {
     if (is_array($thisResult) && count($thisResult) >= 2) {
         $ref  = htmlspecialchars($thisResult[0], ENT_QUOTES, 'UTF-8');
-        $text = htmlspecialchars($thisResult[1], ENT_QUOTES, 'UTF-8');
+        $text = $thisResult[1];
         $resultsTable .= "<tr><td><strong>{$ref}</strong></td><td>{$text}</td></tr>";
     }
 }
@@ -59,6 +59,10 @@ $msg = "
         body { font-family: sans-serif; line-height: 1.5; color: #333; }
         table { width: 100%; max-width: 800px; margin-top: 15px; }
         th, td { text-align: left; }
+		.search_result {
+			color: forestgreen;
+			font-weight: bold;
+		}
     </style>
 </head>
 <body>
@@ -70,7 +74,7 @@ $msg = "
 
 $headers  = "MIME-Version: 1.0" . "\r\n";
 $headers .= "Content-type:text/html;charset=UTF-8" . "\r\n";
-$headers .= "From: Nuggets Application <noreply@localhost>" . "\r\n"; // Added standard fallback sender metadata
+$headers .= "From: Nuggets Application <noreply@ps11911.com>" . "\r\n";
 
 $result = "failure";
 

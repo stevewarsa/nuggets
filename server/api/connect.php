@@ -69,7 +69,8 @@ $current_script = basename($_SERVER['SCRIPT_NAME']);
 $public_endpoints = [
     'get_all_users.php',
     'nuggets_login.php',
-    'get_dictionary.php'
+    'get_dictionary.php',
+    'send_search_results.php'
 ];
 
 // Only block the request if it's not a public page and we failed to find a valid user_id
