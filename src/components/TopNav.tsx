@@ -6,6 +6,7 @@ import { GUEST_USER } from '../models/constants';
 import GoToPassageByRef from './GoToPassageByRef';
 import AddEditPrayerModal from './AddEditPrayerModal';
 import AddMemoryPassageModal from './AddMemoryPassageModal';
+import BibleSearchModal from './BibleSearchModal';
 import { useToast } from '../hooks/useToast';
 
 const TopNav = () => {
@@ -13,6 +14,7 @@ const TopNav = () => {
     const [showGoToPassage, setShowGoToPassage] = useState(false);
     const [showAddPrayerModal, setShowAddPrayerModal] = useState(false);
     const [showAddMemoryPassageModal, setShowAddMemoryPassageModal] = useState(false);
+    const [showBibleSearchModal, setShowBibleSearchModal] = useState(false);
     const { showToast, toastProps, toastMessage } = useToast();
 
     const navigate = useNavigate();
@@ -110,6 +112,14 @@ const TopNav = () => {
                             <Nav.Link
                                 onClick={() => {
                                     setExpanded(false);
+                                    setShowBibleSearchModal(true);
+                                }}
+                            >
+                                Bible Search Popup
+                            </Nav.Link>
+                            <Nav.Link
+                                onClick={() => {
+                                    setExpanded(false);
                                     setShowGoToPassage(true);
                                 }}
                             >
@@ -172,6 +182,11 @@ const TopNav = () => {
             <AddMemoryPassageModal
                 show={showAddMemoryPassageModal}
                 onHide={() => setShowAddMemoryPassageModal(false)}
+            />
+
+            <BibleSearchModal
+                show={showBibleSearchModal}
+                onHide={() => setShowBibleSearchModal(false)}
             />
 
             <Toast
