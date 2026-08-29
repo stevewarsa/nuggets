@@ -74,6 +74,11 @@ footer {
   margin-top: 20px;
 }
 
+.modal-near-top .modal-content {
+  max-height: calc(100vh - 40px);
+  overflow: hidden;
+}
+
 /* Make modal close (X) button visible on dark backgrounds */
 .btn-close {
   filter: invert(1) grayscale(100%) brightness(200%);

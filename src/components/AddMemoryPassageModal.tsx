@@ -224,16 +224,17 @@ const AddMemoryPassageModal: React.FC<AddMemoryPassageModalProps> = ({
                 show={show}
                 onHide={onHide}
                 size="lg"
-                style={{ top: '20px' }}
                 dialogClassName="modal-near-top"
+                contentClassName="d-flex flex-column"
+                style={{ top: '20px', maxHeight: 'calc(100vh - 40px)' }}
             >
-                <Modal.Header closeButton className="bg-dark text-white">
+                <Modal.Header closeButton className="bg-dark text-white flex-shrink-0">
                     <Modal.Title>Add Memory Passage</Modal.Title>
                 </Modal.Header>
                 <Modal.Body
                     ref={modalBodyRef}
-                    className="bg-dark text-white"
-                    style={{ minHeight: '70vh', maxHeight: '80vh', overflowY: 'auto' }}
+                    className="bg-dark text-white flex-grow-1"
+                    style={{ overflowY: 'auto', minHeight: 0 }}
                 >
                     <Row className="mb-3">
                         <Col>
@@ -267,10 +268,7 @@ const AddMemoryPassageModal: React.FC<AddMemoryPassageModalProps> = ({
                                         className="mb-2"
                                     />
                                     {suggestions && suggestions.length > 0 && (
-                                        <ListGroup
-                                            className="position-absolute w-100 shadow-sm"
-                                            style={{ zIndex: 1000 }}
-                                        >
+                                        <ListGroup className="shadow-sm">
                                             {suggestions.map((suggestion, index) => (
                                                 <ListGroup.Item
                                                     key={index}
@@ -385,7 +383,7 @@ const AddMemoryPassageModal: React.FC<AddMemoryPassageModalProps> = ({
                         </>
                     )}
                 </Modal.Body>
-                <Modal.Footer className="bg-dark text-white">
+                <Modal.Footer className="bg-dark text-white flex-shrink-0">
                     <Button variant="secondary" onClick={onHide}>
                         Cancel
                     </Button>
