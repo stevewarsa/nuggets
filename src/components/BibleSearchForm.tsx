@@ -77,13 +77,22 @@ const BibleSearchForm: React.FC<BibleSearchFormProps> = ({ onNavigateAway }) => 
         }
     };
 
+    const getSearchTerms = (phrase: string): string[] => {
+        const trimmed = phrase.trim();
+        const exactMatch = trimmed.match(/^"(.+)"$/);
+        if (exactMatch) {
+            return [exactMatch[1].replace(/\*/g, '\\w*')];
+        }
+        return trimmed
+            .replace(/\*/g, '\\w*')
+            .split(' ')
+            .filter((term) => term.length > 0);
+    };
+
     const highlightSearchText = (text: string) => {
         if (!searchPhrase) return text;
 
-        const searchTerms = searchPhrase
-            .replace(/\*/g, '\\w*') // Convert wildcard to regex pattern
-            .split(' ')
-            .filter((term) => term.length > 0);
+        const searchTerms = getSearchTerms(searchPhrase);
 
         const regex = new RegExp(`(${searchTerms.join('|')})`, 'gi');
         return text.split(regex).map((part, i) =>
@@ -161,10 +170,7 @@ const BibleSearchForm: React.FC<BibleSearchFormProps> = ({ onNavigateAway }) => 
                     });
 
                     // Highlight search terms
-                    const searchTerms = searchPhrase
-                        .replace(/\*/g, '\\w*')
-                        .split(' ')
-                        .filter((term) => term.length > 0);
+                    const searchTerms = getSearchTerms(searchPhrase);
 
                     const regex = new RegExp(`(${searchTerms.join('|')})`, 'gi');
                     verseText = verseText.replace(
@@ -334,7 +340,7 @@ const BibleSearchForm: React.FC<BibleSearchFormProps> = ({ onNavigateAway }) => 
                     <Col>
                         <Form.Group style={{ position: 'relative' }}>
                             <Form.Label className="text-white">
-                                Search Phrase (use * for wildcard)
+                                Search Phrase (use * for wildcard, "quotes" for exact phrase)
                             </Form.Label>
                             <Form.Control
                                 type="text"

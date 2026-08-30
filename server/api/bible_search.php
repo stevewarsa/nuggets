@@ -62,14 +62,23 @@ $selectSql = "
 // Bind params for the inner subquery translation IDs
 $params = array_merge($params, $translationIds);
 
-// Split the search phrase into individual words and require each one
-// to appear somewhere in the verse text (in any order). Each word still
-// supports the * wildcard, which becomes a SQL % placeholder.
-$searchWords = preg_split('/\s+/', trim($txt), -1, PREG_SPLIT_NO_EMPTY);
+// If the search phrase is wrapped in double quotes, treat it as an
+// exact-phrase match (the words must appear consecutively in order).
+// Otherwise split into individual words and require each one to appear
+// somewhere in the verse text (in any order). Each word — or the exact
+// phrase — still supports the * wildcard, which becomes a SQL % placeholder.
+$trimmedTxt = trim($txt);
+$isExactPhrase = false;
+
+if (preg_match('/^"(.+)"$/', $trimmedTxt, $quoteMatches)) {
+    $isExactPhrase = true;
+    $trimmedTxt = $quoteMatches[1];
+}
 
 $likeConditions = [];
-foreach ($searchWords as $word) {
-    $modWord = str_replace('*', '%', $word);
+
+if ($isExactPhrase) {
+    $modWord = str_replace('*', '%', $trimmedTxt);
     if (strpos($modWord, '%') !== 0) {
         $modWord = '%' . $modWord;
     }
@@ -78,6 +87,20 @@ foreach ($searchWords as $word) {
     }
     $likeConditions[] = 'v2.verse_text LIKE ?';
     $params[] = $modWord;
+} else {
+    $searchWords = preg_split('/\s+/', $trimmedTxt, -1, PREG_SPLIT_NO_EMPTY);
+
+    foreach ($searchWords as $word) {
+        $modWord = str_replace('*', '%', $word);
+        if (strpos($modWord, '%') !== 0) {
+            $modWord = '%' . $modWord;
+        }
+        if (substr($modWord, -1) !== '%') {
+            $modWord = $modWord . '%';
+        }
+        $likeConditions[] = 'v2.verse_text LIKE ?';
+        $params[] = $modWord;
+    }
 }
 
 // If no words were produced (e.g. empty/whitespace-only input), fall back
