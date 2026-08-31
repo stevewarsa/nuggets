@@ -18,18 +18,23 @@ $cleanUser = trim($user);
 
 try {
     // Step 1: Perform a safe parameterized lookup to check account existence
-    $statement = $pdo->prepare("SELECT COUNT(*) AS user_exists FROM user WHERE user_nm = ?");
+    $statement = $pdo->prepare("SELECT user_id FROM user WHERE user_nm = ?");
     $statement->execute([$cleanUser]);
     $row = $statement->fetch();
 
-    if ($row && (int)$row['user_exists'] > 0) {
+    if ($row) {
+        // Step 2: Existing user — update their last active timestamp
+        $userId = (int)$row['user_id'];
+        $updateStmt = $pdo->prepare("UPDATE user SET last_active_dt = NOW() WHERE user_id = ?");
+        $updateStmt->execute([$userId]);
+
         error_log("[nuggets_login.php] Successfully logged in existing user: " . $cleanUser);
         echo json_encode("success");
     } else {
-        // Step 2: User doesn't exist, create a new record instantly!
+        // Step 3: User doesn't exist, create a new record with last_active_dt set
         error_log("[nuggets_login.php] User '" . $cleanUser . "' not found. Automatically registering new profile.");
 
-        $insertStmt = $pdo->prepare("INSERT INTO user (user_nm) VALUES (?)");
+        $insertStmt = $pdo->prepare("INSERT INTO user (user_nm, last_active_dt) VALUES (?, NOW())");
         $insertStmt->execute([$cleanUser]);
 
         error_log("[nuggets_login.php] New account created for " . $cleanUser . " successfully! Returning 'success'.");
