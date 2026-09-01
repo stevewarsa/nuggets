@@ -27,6 +27,8 @@ import SearchQuotes from './components/SearchQuotes';
 import ProtectedRoute from './components/ProtectedRoute';
 import MemoryPassages from './components/MemoryPassages.tsx';
 import Prayers from './components/Prayers.tsx';
+import Objections from './components/Objections.tsx';
+import PracticeObjections from './components/PracticeObjections.tsx';
 import MemoryPassagesByBox from "./components/MemoryPassagesByBox.tsx";
 import PublicReadBibleChapter from './components/PublicReadBibleChapter';
 import PublicViewQuotes from "./components/PublicViewQuotes.tsx";
@@ -243,6 +245,31 @@ const AppContent = () => {
                         element={
                             <ProtectedRoute>
                                 <MemoryPassages/>
+                            </ProtectedRoute>
+                        }
+                    />
+
+                    <Route
+                        path="/objections"
+                        element={
+                            <ProtectedRoute>
+                                {isGuestUser ? (
+                                    <Navigate to="/browseBible" replace/>
+                                ) : (
+                                    <Objections/>
+                                )}
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/practiceObjections"
+                        element={
+                            <ProtectedRoute>
+                                {isGuestUser ? (
+                                    <Navigate to="/browseBible" replace/>
+                                ) : (
+                                    <PracticeObjections/>
+                                )}
                             </ProtectedRoute>
                         }
                     />

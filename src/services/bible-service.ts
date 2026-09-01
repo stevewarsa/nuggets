@@ -6,6 +6,12 @@ import { ReadingHistoryEntry } from '../models/reading-history-entry';
 import { Topic } from '../models/topic';
 import { MemoryPracticeHistoryEntry } from '../models/memory-practice-history.ts';
 import { Prayer, PrayerSession } from '../models/prayer.ts';
+import {
+    Objection,
+    ObjectionCategory,
+    ObjectionAnswer,
+    ObjectionPracticeHistory,
+} from '../models/objection.ts';
 
 // BibleService — central API client for both the BROWSE BIBLE flow and the MEMORY PASSAGES flow.
 // Methods dealing with Nugget/nuggetId (getNuggetIdList, addNonMemoryPassage, addNuggetTopics)
@@ -690,6 +696,133 @@ export class BibleService {
             return response.data;
         } catch (error) {
             return this.handleError(error, 'fetching dictionary');
+        }
+    }
+
+    // --- Objections (Christian Apologetics) ---
+
+    async getObjectionCategories(userId: string): Promise<ObjectionCategory[]> {
+        try {
+            const response = await axios.get(
+                `${BibleService.BASE_URL}get_objection_categories.php`,
+                { params: { userId } }
+            );
+            return response.data;
+        } catch (error) {
+            return this.handleError(error, 'fetching objection categories');
+        }
+    }
+
+    async getObjections(
+        userId: string,
+        categoryId?: number,
+        includeAnswers = false,
+        includeArchived = false
+    ): Promise<Objection[]> {
+        try {
+            const response = await axios.get(
+                `${BibleService.BASE_URL}get_objections.php`,
+                {
+                    params: {
+                        userId,
+                        categoryId: categoryId ?? undefined,
+                        includeAnswers,
+                        includeArchived,
+                    },
+                }
+            );
+            return response.data;
+        } catch (error) {
+            return this.handleError(error, 'fetching objections');
+        }
+    }
+
+    async addObjection(
+        userId: string,
+        categoryId: number,
+        objectionText: string,
+        answers: ObjectionAnswer[]
+    ): Promise<number> {
+        try {
+            const response = await axios.post(
+                `${BibleService.BASE_URL}add_objection.php`,
+                { userId, categoryId, objectionText, answers }
+            );
+            return response.data;
+        } catch (error) {
+            return this.handleError(error, 'adding objection');
+        }
+    }
+
+    async updateObjection(
+        userId: string,
+        objection: Objection
+    ): Promise<string> {
+        try {
+            const response = await axios.post(
+                `${BibleService.BASE_URL}update_objection.php`,
+                { userId, objection }
+            );
+            return response.data;
+        } catch (error) {
+            return this.handleError(error, 'updating objection');
+        }
+    }
+
+    async archiveObjection(userId: string, objectionId: number): Promise<string> {
+        try {
+            const response = await axios.get(
+                `${BibleService.BASE_URL}archive_objection.php`,
+                { params: { userId, objectionId } }
+            );
+            return response.data;
+        } catch (error) {
+            return this.handleError(error, 'archiving objection');
+        }
+    }
+
+    async addObjectionCategory(
+        userId: string,
+        categoryName: string,
+        parentId: number | null
+    ): Promise<number> {
+        try {
+            const response = await axios.post(
+                `${BibleService.BASE_URL}add_objection_category.php`,
+                { userId, categoryName, parentId }
+            );
+            return response.data;
+        } catch (error) {
+            return this.handleError(error, 'adding objection category');
+        }
+    }
+
+    async getObjectionPracticeHistory(
+        userId: string
+    ): Promise<ObjectionPracticeHistory[]> {
+        try {
+            const response = await axios.get(
+                `${BibleService.BASE_URL}get_objection_practice_history.php`,
+                { params: { userId } }
+            );
+            return response.data;
+        } catch (error) {
+            return this.handleError(error, 'fetching objection practice history');
+        }
+    }
+
+    async addObjectionPractice(
+        userId: string,
+        objectionId: number
+    ): Promise<number> {
+        try {
+            const response = await axios.post(
+                `${BibleService.BASE_URL}add_objection_practice.php`,
+                { userId, objectionId }
+            );
+            return response.data;
+        } catch (error) {
+            return this.handleError(error, 'recording objection practice');
         }
     }
 }

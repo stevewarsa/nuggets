@@ -78,6 +78,11 @@ const TopNav = () => {
                                     Prayers
                                 </Nav.Link>
                             )}
+                            {location.pathname !== '/objections' && (
+                                <Nav.Link onClick={() => handleNavigation('/objections')}>
+                                    Objections
+                                </Nav.Link>
+                            )}
                             {isMainUser && (
                                 <Nav.Link onClick={handleAddPrayer}>Add Prayer</Nav.Link>
                             )}
