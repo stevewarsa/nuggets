@@ -339,6 +339,51 @@ export const updateLastPracticedDate = (
     );
 };
 
+const PRAYER_INTERLEAVE_MIN_TOTAL = 30;
+const PRAYER_INTERLEAVE_DAILY_PCT = 0.20;
+
+export const sortPrayersForDisplay = (prayers: Prayer[]): Prayer[] => {
+    const sortByDateAsc = (a: Prayer, b: Prayer) => {
+        const aDate = a.mostRecentPrayerDate || '';
+        const bDate = b.mostRecentPrayerDate || '';
+        if (aDate < bDate) return -1;
+        if (aDate > bDate) return 1;
+        return 0;
+    };
+
+    const dailyPrayers = prayers.filter(p => p.prayerPriorityCd === 'daily').sort(sortByDateAsc);
+    const nonDailyPrayers = prayers.filter(p => p.prayerPriorityCd !== 'daily').sort(sortByDateAsc);
+
+    const total = prayers.length;
+    const shouldInterleave =
+        total > PRAYER_INTERLEAVE_MIN_TOTAL &&
+        dailyPrayers.length / total > PRAYER_INTERLEAVE_DAILY_PCT;
+
+    if (!shouldInterleave) {
+        console.log("passage-utils.sortPrayersForDisplay - not interleaving prayers...");
+        return [...dailyPrayers, ...nonDailyPrayers];
+    }
+
+    console.log("passage-utils.sortPrayersForDisplay - INTERLEAVING PRAYERS...");
+    const result: Prayer[] = [];
+    let di = 0;
+    let ni = 0;
+    let dailyQuota = 2;
+    while (di < dailyPrayers.length || ni < nonDailyPrayers.length) {
+        let placed = 0;
+        while (placed < dailyQuota && di < dailyPrayers.length) {
+            result.push(dailyPrayers[di++]);
+            placed++;
+        }
+        if (ni < nonDailyPrayers.length) {
+            result.push(nonDailyPrayers[ni++]);
+        } else if (placed === 0) {
+            break;
+        }
+    }
+    return result;
+};
+
 export const handleCopyPassage = async (psg: PassageOrNugget, psgText: string = null): Promise<boolean> => {
     // Now copy the text with the newly loaded verses
     const passageRef = getPassageReference(psg);

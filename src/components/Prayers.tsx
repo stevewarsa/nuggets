@@ -27,7 +27,7 @@ import {useAppSelector} from '../store/hooks';
 import {Prayer, PrayerSession} from '../models/prayer.ts';
 import {format, parseISO} from 'date-fns';
 import AddEditPrayerModal from './AddEditPrayerModal';
-import {updateLastPracticedDate} from '../models/passage-utils';
+import {updateLastPracticedDate, sortPrayersForDisplay} from '../models/passage-utils';
 import {useToast} from '../hooks/useToast';
 
 const Prayers: React.FC = () => {
@@ -235,9 +235,10 @@ const Prayers: React.FC = () => {
         }
     };
 
-    // Filter prayers based on search term
-    const filteredPrayers = prayers
-        .filter(prayer => {
+    // Filter prayers based on search term, then sort with interleaving
+    // logic when there are enough daily prayers to warrant it.
+    const filteredPrayers = sortPrayersForDisplay(
+        prayers.filter(prayer => {
             if (!searchTerm.trim()) return true;
 
             const searchLower = searchTerm.toLowerCase();
@@ -247,21 +248,7 @@ const Prayers: React.FC = () => {
                 prayer.prayerSubjectPersonName?.toLowerCase().includes(searchLower)
             );
         })
-        .sort((a, b) => {
-            const aIsDaily = a.prayerPriorityCd === 'daily';
-            const bIsDaily = b.prayerPriorityCd === 'daily';
-
-            if (aIsDaily && !bIsDaily) return -1;
-            if (!aIsDaily && bIsDaily) return 1;
-
-            // Within each group, sort oldest-prayed first (longest ago at top).
-            // Prayers with no history sort to the very top of their group.
-            const aDate = a.mostRecentPrayerDate || '';
-            const bDate = b.mostRecentPrayerDate || '';
-            if (aDate < bDate) return -1;
-            if (aDate > bDate) return 1;
-            return 0;
-        });
+    );
 
     return (
         <Container className="py-4">
