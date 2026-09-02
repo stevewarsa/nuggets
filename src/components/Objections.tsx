@@ -9,6 +9,8 @@ import {
     Spinner,
     Badge,
     Toast,
+    OverlayTrigger,
+    Tooltip,
 } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -231,10 +233,30 @@ const Objections: React.FC = () => {
                             <FontAwesomeIcon icon={faGraduationCap} className="me-2" />
                             Practice
                         </Button>
-                        <Button variant="primary" onClick={handleAddObjection}>
-                            <FontAwesomeIcon icon={faPlus} className="me-2" />
-                            Add Objection
-                        </Button>
+                        <OverlayTrigger
+                            placement="bottom"
+                            delay={{ show: 250, hide: 400 }}
+                            overlay={
+                                categories.length === 0 ? (
+                                    <Tooltip id="add-objection-tooltip">
+                                        Create at least one category before adding an objection
+                                    </Tooltip>
+                                ) : (
+                                    <></>
+                                )
+                            }
+                        >
+                            <span className="d-inline-block">
+                                <Button
+                                    variant="primary"
+                                    onClick={handleAddObjection}
+                                    disabled={categories.length === 0}
+                                >
+                                    <FontAwesomeIcon icon={faPlus} className="me-2" />
+                                    Add Objection
+                                </Button>
+                            </span>
+                        </OverlayTrigger>
                     </div>
                 </div>
 
@@ -475,7 +497,10 @@ const Objections: React.FC = () => {
                             </h5>
                             {objectionsInCurrentCategory.length === 0 ? (
                                 <p className="text-white-50">
-                                    No objections in this category yet. Click "Add Objection" to create one.
+                                    No objections in this category yet.
+                                    {categories.length === 0
+                                        ? ' Create a category first, then add an objection.'
+                                        : ' Click "Add Objection" to create one.'}
                                 </p>
                             ) : (
                                 <div className="row g-3">

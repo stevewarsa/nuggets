@@ -14,7 +14,11 @@ interface GoToPassageByRefProps {
     onNavigate: (path: string) => void;
 }
 
-const GoToPassageByRef: React.FC<GoToPassageByRefProps> = ({show, onHide, onNavigate}) => {
+const GoToPassageByRef: React.FC<GoToPassageByRefProps> = ({
+                                                               show,
+                                                               onHide,
+                                                               onNavigate,
+                                                           }) => {
     const [passageRef, setPassageRef] = useState('');
     const [suggestions, setSuggestions] = useState<string[] | undefined>([]);
     const [selectedTranslation, setSelectedTranslation] = useState(TRANSLATION);
@@ -88,13 +92,17 @@ const GoToPassageByRef: React.FC<GoToPassageByRefProps> = ({show, onHide, onNavi
         <Modal
             show={show}
             onHide={onHide}
-            style={{ top: '20px' }}
+            style={{ top: '20px', maxHeight: 'calc(100vh - 40px)' }}
             dialogClassName="modal-near-top"
+            contentClassName="d-flex flex-column"
         >
-            <Modal.Header closeButton className="bg-dark text-white">
+            <Modal.Header closeButton className="bg-dark text-white flex-shrink-0">
                 <Modal.Title>Go To Passage</Modal.Title>
             </Modal.Header>
-            <Modal.Body className="bg-dark text-white">
+            <Modal.Body
+                className="bg-dark text-white flex-grow-1"
+                style={{ overflowY: 'auto', minHeight: 0 }}
+            >
                 <Row className="mb-3">
                     <Col>
                         <Form.Group>
@@ -125,10 +133,7 @@ const GoToPassageByRef: React.FC<GoToPassageByRefProps> = ({show, onHide, onNavi
                                 className="mb-2"
                             />
                             {suggestions && suggestions.length > 0 && (
-                                <ListGroup
-                                    className="position-absolute w-100 shadow-sm"
-                                    style={{ zIndex: 1000 }}
-                                >
+                                <ListGroup className="shadow-sm">
                                     {suggestions.map((suggestion, index) => (
                                         <ListGroup.Item
                                             key={index}
