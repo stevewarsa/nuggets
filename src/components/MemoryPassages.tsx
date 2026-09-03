@@ -1,4 +1,4 @@
-// MEMORY PASSAGES flow — list view of all memorization passages with search, expand-to-read, and copy.
+// MEMORY PASSAGES flow — list view of all memorization passages with search, expand-to-read, copy, view details, and edit.
 import React, { useState, useEffect, useMemo } from 'react';
 import {
     Container,
@@ -8,6 +8,9 @@ import {
     Collapse,
     Button,
     Toast,
+    Modal,
+    OverlayTrigger,
+    Tooltip,
 } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
@@ -16,6 +19,8 @@ import {
     faCopy,
     faSearch,
     faTimes,
+    faEye,
+    faPen,
 } from '@fortawesome/free-solid-svg-icons';
 import { useAppSelector } from '../store/hooks';
 import { bibleService } from '../services/bible-service';
@@ -23,11 +28,14 @@ import { Passage } from '../models/passage';
 import {
     getPassageReference,
     handleCopyPassage,
+    getDisplayBookName,
 } from '../models/passage-utils';
 import { useToast } from '../hooks/useToast';
+import EditPassage from './EditPassage';
 
 const MemoryPassages: React.FC = () => {
     const [passages, setPassages] = useState<Passage[]>([]);
+    const [overrides, setOverrides] = useState<Passage[]>([]);
     const [expandedPassages, setExpandedPassages] = useState<Set<number>>(
         new Set()
     );
@@ -39,6 +47,9 @@ const MemoryPassages: React.FC = () => {
     const [loadingPassageIds, setLoadingPassageIds] = useState<Set<number>>(
         new Set()
     );
+    const [viewPassage, setViewPassage] = useState<Passage | null>(null);
+    const [editPassage, setEditPassage] = useState<Passage | null>(null);
+    const [showEditModal, setShowEditModal] = useState(false);
     const { showToast, toastProps, toastMessage } = useToast();
 
     const user = useAppSelector((state) => state.user.currentUser);
@@ -47,7 +58,7 @@ const MemoryPassages: React.FC = () => {
         const fetchPassages = async () => {
             try {
                 setIsLoading(true);
-                const [memoryPassages, overrides] = await Promise.all([
+                const [memoryPassages, textOverrides] = await Promise.all([
                     bibleService.getMemoryPassageList(user),
                     bibleService.getMemoryPassageTextOverrides(user),
                 ]);
@@ -60,10 +71,11 @@ const MemoryPassages: React.FC = () => {
                 });
 
                 setPassages(sortedPassages);
+                setOverrides(textOverrides);
 
                 // Initialize passage texts with overrides
                 const initialTexts = new Map<number, string>();
-                overrides.forEach((override) => {
+                textOverrides.forEach((override) => {
                     if (override.verses && override.verses.length > 0) {
                         const text = override.verses
                             .map(
@@ -88,11 +100,21 @@ const MemoryPassages: React.FC = () => {
         }
     }, [user]);
 
+    const getPassageWithAppendLetter = (passage: Passage): Passage => {
+        const override = overrides.find((o) => o.passageId === passage.passageId);
+        return override
+            ? { ...passage, passageRefAppendLetter: override.passageRefAppendLetter }
+            : passage;
+    };
+
     const filteredPassages = useMemo(() => {
         if (!searchTerm.trim()) return passages;
 
         return passages.filter((passage) => {
-            const reference = getPassageReference(passage, false).toLowerCase();
+            const reference = getPassageReference(
+                getPassageWithAppendLetter(passage),
+                false
+            ).toLowerCase();
             return reference.includes(searchTerm.toLowerCase());
         });
     }, [passages, searchTerm]);
@@ -148,6 +170,77 @@ const MemoryPassages: React.FC = () => {
 
         newExpandedPassages.add(passageId);
         setExpandedPassages(newExpandedPassages);
+    };
+
+    const handleCopy = (passage: Passage) => {
+        handleCopyPassage(
+            passage,
+            passageTexts.get(passage.passageId)
+        ).then((success) => {
+            if (success) {
+                showToast({ message: 'Passage copied to clipboard!', variant: 'success' });
+            } else {
+                showToast({ message: 'Failed to copy text', variant: 'error' });
+            }
+        });
+    };
+
+    const handleView = (passage: Passage) => {
+        setViewPassage(passage);
+    };
+
+    const handleEdit = (passage: Passage) => {
+        setEditPassage(passage);
+        setShowEditModal(true);
+    };
+
+    const handleEditingComplete = (
+        updatedPassage: Passage | null,
+        overrideText: string | null
+    ) => {
+        setShowEditModal(false);
+
+        if (updatedPassage) {
+            const updatedList = passages.map((p) =>
+                p.passageId === updatedPassage.passageId ? updatedPassage : p
+            );
+            setPassages(updatedList);
+
+            if (overrideText !== null) {
+                const newOverride: Passage = {
+                    ...updatedPassage,
+                    verses: [
+                        {
+                            passageId: updatedPassage.passageId,
+                            verseParts: [
+                                {
+                                    verseNumber: updatedPassage.startVerse,
+                                    versePartId: 1,
+                                    verseText: overrideText,
+                                    wordsOfChrist: false,
+                                },
+                            ],
+                        },
+                    ],
+                };
+
+                const updatedOverrides = overrides.filter(
+                    (o) => o.passageId !== updatedPassage.passageId
+                );
+                updatedOverrides.push(newOverride);
+                setOverrides(updatedOverrides);
+                setPassageTexts((prev) => new Map(prev).set(updatedPassage.passageId, overrideText));
+            }
+
+            showToast({ message: 'Passage updated successfully', variant: 'success' });
+        }
+
+        setEditPassage(null);
+    };
+
+    const boxLabel = (frequencyDays: number) => {
+        if (frequencyDays === -1) return 'Every Time';
+        return `Box ${frequencyDays}`;
     };
 
     if (isLoading) {
@@ -206,35 +299,68 @@ const MemoryPassages: React.FC = () => {
                                     }
                                 />
                             </Button>
-                            <span>{getPassageReference(passage, false, true)}</span>
+                            <span>
+                {getPassageReference(getPassageWithAppendLetter(passage), false)}
+              </span>
                             {loadingPassageIds.has(passage.passageId) && (
                                 <Spinner animation="border" size="sm" className="ms-2" />
                             )}
                         </div>
                         <Collapse in={expandedPassages.has(passage.passageId)}>
                             <div className="mt-3">
-                                <p className="mb-0 quote-text">
+                                <p className="mb-2 quote-text">
                                     {passageTexts.get(passage.passageId)}
-                                    <Button
-                                        variant="primary"
-                                        size="lg"
-                                        className="text-white p-0 ms-2 me-2"
-                                        onClick={() => {
-                                            handleCopyPassage(
-                                                passage,
-                                                passageTexts.get(passage.passageId)
-                                            ).then((success) => {
-                                                if (success) {
-                                                    showToast({ message: 'Passage copied to clipboard!', variant: 'success' });
-                                                } else {
-                                                    showToast({ message: 'Failed to copy text', variant: 'error' });
-                                                }
-                                            });
-                                        }}
-                                    >
-                                        <FontAwesomeIcon icon={faCopy} />
-                                    </Button>
                                 </p>
+                                <div className="d-flex gap-2">
+                                    <OverlayTrigger
+                                        placement="top"
+                                        overlay={
+                                            <Tooltip id={`view-tooltip-${passage.passageId}`}>
+                                                View Details
+                                            </Tooltip>
+                                        }
+                                    >
+                                        <Button
+                                            variant="outline-light"
+                                            size="sm"
+                                            onClick={() => handleView(getPassageWithAppendLetter(passage))}
+                                        >
+                                            <FontAwesomeIcon icon={faEye} />
+                                        </Button>
+                                    </OverlayTrigger>
+                                    <OverlayTrigger
+                                        placement="top"
+                                        overlay={
+                                            <Tooltip id={`edit-tooltip-${passage.passageId}`}>
+                                                Edit Passage
+                                            </Tooltip>
+                                        }
+                                    >
+                                        <Button
+                                            variant="outline-light"
+                                            size="sm"
+                                            onClick={() => handleEdit(getPassageWithAppendLetter(passage))}
+                                        >
+                                            <FontAwesomeIcon icon={faPen} />
+                                        </Button>
+                                    </OverlayTrigger>
+                                    <OverlayTrigger
+                                        placement="top"
+                                        overlay={
+                                            <Tooltip id={`copy-tooltip-${passage.passageId}`}>
+                                                Copy to Clipboard
+                                            </Tooltip>
+                                        }
+                                    >
+                                        <Button
+                                            variant="outline-light"
+                                            size="sm"
+                                            onClick={() => handleCopy(passage)}
+                                        >
+                                            <FontAwesomeIcon icon={faCopy} />
+                                        </Button>
+                                    </OverlayTrigger>
+                                </div>
                             </div>
                         </Collapse>
                     </li>
@@ -248,9 +374,109 @@ const MemoryPassages: React.FC = () => {
                         : 'No memory passages found.'}
                 </p>
             )}
-            <Toast
-                {...toastProps}
+
+            {/* View Details Modal */}
+            <Modal
+                show={viewPassage !== null}
+                onHide={() => setViewPassage(null)}
+                centered
             >
+                <Modal.Header closeButton className="bg-dark text-white">
+                    <Modal.Title>
+                        {viewPassage &&
+                            getPassageReference(getPassageWithAppendLetter(viewPassage), false)}
+                    </Modal.Title>
+                </Modal.Header>
+                <Modal.Body className="bg-dark text-white">
+                    {viewPassage && (
+                        <>
+                            <div className="mb-3">
+                                <strong>Passage Text:</strong>
+                                <p
+                                    className="mb-0 mt-1 quote-text"
+                                    style={{ whiteSpace: 'pre-line' }}
+                                >
+                                    {passageTexts.get(viewPassage.passageId) ||
+                                        'Text not loaded. Expand the passage first to load it.'}
+                                </p>
+                            </div>
+                            <hr className="border-secondary" />
+                            <div className="mb-2">
+                                <strong>Box:</strong> {boxLabel(viewPassage.frequencyDays)}
+                            </div>
+                            <div className="mb-2">
+                                <strong>Passage ID:</strong> {viewPassage.passageId}
+                            </div>
+                            <div className="mb-2">
+                                <strong>Translation:</strong> {viewPassage.translationName}
+                            </div>
+                            <div className="mb-2">
+                                <strong>Book:</strong>{' '}
+                                {getDisplayBookName(viewPassage.bookId)} (ID: {viewPassage.bookId})
+                            </div>
+                            <div className="mb-2">
+                                <strong>Chapter:</strong> {viewPassage.chapter}
+                            </div>
+                            <div className="mb-2">
+                                <strong>Verses:</strong> {viewPassage.startVerse}
+                                {viewPassage.endVerse !== viewPassage.startVerse
+                                    ? `–${viewPassage.endVerse}`
+                                    : ''}
+                            </div>
+                            {viewPassage.passageRefAppendLetter && (
+                                <div className="mb-2">
+                                    <strong>Append Letter:</strong>{' '}
+                                    {viewPassage.passageRefAppendLetter}
+                                </div>
+                            )}
+                            <div className="mb-2">
+                                <strong>Last Practiced:</strong>{' '}
+                                {viewPassage.last_viewed_str || 'Never'}
+                            </div>
+                            {viewPassage.explanation && (
+                                <>
+                                    <hr className="border-secondary" />
+                                    <div>
+                                        <strong>Explanation:</strong>
+                                        <p
+                                            className="mb-0 mt-1"
+                                            style={{ whiteSpace: 'pre-line' }}
+                                        >
+                                            {viewPassage.explanation}
+                                        </p>
+                                    </div>
+                                </>
+                            )}
+                        </>
+                    )}
+                </Modal.Body>
+                <Modal.Footer className="bg-dark text-white">
+                    <Button variant="secondary" onClick={() => setViewPassage(null)}>
+                        Close
+                    </Button>
+                </Modal.Footer>
+            </Modal>
+
+            {/* Edit Passage Modal */}
+            {editPassage && (
+                <EditPassage
+                    props={{
+                        passage: editPassage,
+                        overrides: overrides,
+                        visible: showEditModal,
+                        setVisibleFunction: (
+                            updatedPassage: Passage,
+                            newText: string,
+                            closedNoChange: boolean
+                        ) =>
+                            closedNoChange
+                                ? setShowEditModal(false)
+                                : handleEditingComplete(updatedPassage, newText),
+                    }}
+                />
+            )}
+
+            <Toast {...toastProps}>
                 <Toast.Body>{toastMessage}</Toast.Body>
             </Toast>
         </Container>
