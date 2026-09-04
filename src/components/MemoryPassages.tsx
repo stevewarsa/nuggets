@@ -350,6 +350,13 @@ const MemoryPassages: React.FC = () => {
                         </div>
                         <Collapse in={expandedPassages.has(passage.passageId)}>
                             <div className="mt-3">
+                                <h6 className="text-white-50 mb-2">
+                                    {getPassageReference(
+                                        getPassageWithAppendLetter(passage),
+                                        false,
+                                        true
+                                    )}
+                                </h6>
                                 <p className="mb-2 quote-text">
                                     {passageTexts.get(passage.passageId)}
                                 </p>
