@@ -21,6 +21,7 @@ import {
     faTimes,
     faEye,
     faPen,
+    faCommentDots,
 } from '@fortawesome/free-solid-svg-icons';
 import { useAppSelector } from '../store/hooks';
 import { bibleService } from '../services/bible-service';
@@ -50,6 +51,10 @@ const MemoryPassages: React.FC = () => {
     const [viewPassage, setViewPassage] = useState<Passage | null>(null);
     const [editPassage, setEditPassage] = useState<Passage | null>(null);
     const [showEditModal, setShowEditModal] = useState(false);
+    const [explanationPassage, setExplanationPassage] = useState<Passage | null>(null);
+    const [showExplanationEditor, setShowExplanationEditor] = useState(false);
+    const [explanationText, setExplanationText] = useState('');
+    const [isUpdatingExplanation, setIsUpdatingExplanation] = useState(false);
     const { showToast, toastProps, toastMessage } = useToast();
 
     const user = useAppSelector((state) => state.user.currentUser);
@@ -192,6 +197,43 @@ const MemoryPassages: React.FC = () => {
     const handleEdit = (passage: Passage) => {
         setEditPassage(passage);
         setShowEditModal(true);
+    };
+
+    const handleExplanation = (passage: Passage) => {
+        setExplanationPassage(passage);
+        setExplanationText(passage.explanation || '');
+        setShowExplanationEditor(true);
+    };
+
+    const handleSaveExplanation = async () => {
+        if (!explanationPassage || !explanationText.trim()) return;
+
+        setIsUpdatingExplanation(true);
+        try {
+            const updatedPassage: Passage = {
+                ...explanationPassage,
+                explanation: explanationText.trim(),
+            };
+
+            const result = await bibleService.updatePassage(user, updatedPassage);
+
+            if (result === 'success') {
+                const updatedList = passages.map((p) =>
+                    p.passageId === updatedPassage.passageId ? updatedPassage : p
+                );
+                setPassages(updatedList);
+
+                showToast({ message: 'Explanation saved successfully', variant: 'success' });
+                setShowExplanationEditor(false);
+            } else {
+                showToast({ message: 'Failed to save explanation', variant: 'error' });
+            }
+        } catch (error) {
+            console.error('Error saving explanation:', error);
+            showToast({ message: 'Error saving explanation', variant: 'error' });
+        } finally {
+            setIsUpdatingExplanation(false);
+        }
     };
 
     const handleEditingComplete = (
@@ -360,6 +402,22 @@ const MemoryPassages: React.FC = () => {
                                             <FontAwesomeIcon icon={faCopy} />
                                         </Button>
                                     </OverlayTrigger>
+                                    <OverlayTrigger
+                                        placement="top"
+                                        overlay={
+                                            <Tooltip id={`explanation-tooltip-${passage.passageId}`}>
+                                                Add/Update Explanation
+                                            </Tooltip>
+                                        }
+                                    >
+                                        <Button
+                                            variant="outline-light"
+                                            size="sm"
+                                            onClick={() => handleExplanation(getPassageWithAppendLetter(passage))}
+                                        >
+                                            <FontAwesomeIcon icon={faCommentDots} />
+                                        </Button>
+                                    </OverlayTrigger>
                                 </div>
                             </div>
                         </Collapse>
@@ -453,6 +511,79 @@ const MemoryPassages: React.FC = () => {
                 <Modal.Footer className="bg-dark text-white">
                     <Button variant="secondary" onClick={() => setViewPassage(null)}>
                         Close
+                    </Button>
+                </Modal.Footer>
+            </Modal>
+
+            {/* Explanation Editor Modal */}
+            <Modal
+                show={showExplanationEditor}
+                onHide={() => setShowExplanationEditor(false)}
+                centered
+                size="lg"
+            >
+                <Modal.Header closeButton className="bg-dark text-white">
+                    <Modal.Title>
+                        {explanationPassage?.explanation
+                            ? 'Update Explanation'
+                            : 'Add Explanation'}
+                    </Modal.Title>
+                </Modal.Header>
+                <Modal.Body className="bg-dark text-white">
+                    {explanationPassage && (
+                        <div className="mb-3">
+                            <h5>{getPassageReference(explanationPassage)}</h5>
+                            <p className="text-white-50" style={{ whiteSpace: 'pre-line' }}>
+                                {passageTexts.get(explanationPassage.passageId) || ''}
+                            </p>
+                        </div>
+                    )}
+                    <Form.Group>
+                        <Form.Label>Explanation</Form.Label>
+                        <Form.Control
+                            as="textarea"
+                            rows={10}
+                            value={explanationText}
+                            onChange={(e) => setExplanationText(e.target.value)}
+                            className="bg-dark text-white"
+                            placeholder="Enter explanation..."
+                            style={{
+                                minHeight: '50vh',
+                                whiteSpace: 'pre-line',
+                                fontSize: '1.71rem',
+                            }}
+                        />
+                    </Form.Group>
+                </Modal.Body>
+                <Modal.Footer className="bg-dark text-white">
+                    <Button
+                        variant="secondary"
+                        onClick={() => setShowExplanationEditor(false)}
+                    >
+                        Cancel
+                    </Button>
+                    <Button
+                        variant="primary"
+                        onClick={handleSaveExplanation}
+                        disabled={isUpdatingExplanation || !explanationText.trim()}
+                    >
+                        {isUpdatingExplanation ? (
+                            <>
+                                <Spinner
+                                    as="span"
+                                    animation="border"
+                                    size="sm"
+                                    role="status"
+                                    aria-hidden="true"
+                                    className="me-2"
+                                />
+                                Saving...
+                            </>
+                        ) : explanationPassage?.explanation ? (
+                            'Update Explanation'
+                        ) : (
+                            'Add Explanation'
+                        )}
                     </Button>
                 </Modal.Footer>
             </Modal>
