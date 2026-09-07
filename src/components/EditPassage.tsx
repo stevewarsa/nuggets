@@ -24,9 +24,7 @@ const EditPassage = ({ props }: { props: EditPassageProps }) => {
     const [endVerse, setEndVerse] = useState<number>(props.passage.endVerse);
     const [frequency, setFrequency] = useState<number>(props.passage.frequencyDays);
     const [appendLetter, setAppendLetter] = useState(
-        props.passage.passageRefAppendLetter
-            ? props.passage.passageRefAppendLetter
-            : undefined
+        props.passage.passageRefAppendLetter ?? ''
     );
     const [translation, setTranslation] = useState(props.passage.translationName);
     const [maxVerse, setMaxVerse] = useState(getMaxVerse(props.passage.translationName, props.passage.bookName, props.passage.chapter));
@@ -95,9 +93,7 @@ const EditPassage = ({ props }: { props: EditPassageProps }) => {
         setStartVerse(psg.startVerse);
         setEndVerse(psg.endVerse);
         setFrequency(psg.frequencyDays);
-        setAppendLetter(
-            psg.passageRefAppendLetter ? psg.passageRefAppendLetter : undefined
-        );
+        setAppendLetter(psg.passageRefAppendLetter ?? '');
         populateCurrentPassageTextFromPassage(psg);
     };
 
@@ -132,6 +128,8 @@ const EditPassage = ({ props }: { props: EditPassageProps }) => {
             return;
         }
 
+        setAppendLetter(props.passage.passageRefAppendLetter ?? '');
+
         if (!props.passage.verses || props.passage.verses.length === 0) {
             populateVerses(props.passage, updateStateFromPassage);
         } else {
@@ -148,21 +146,13 @@ const EditPassage = ({ props }: { props: EditPassageProps }) => {
     };
 
     const changePassageText = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-        const updatedPsgText = e.target.value ? e.target.value.trim() : null;
-        const userHasChangedText = currPassageText !== updatedPsgText;
-        setPsgTextChanged(userHasChangedText);
+        const updatedPsgText = e.target.value;
         setCurrPassageText(updatedPsgText);
-        if (userHasChangedText) {
-            if (
-                !StringUtils.isEmpty(updatedPsgText) &&
-                StringUtils.isEmpty(appendLetter)
-            ) {
-                setAppendLetter('a');
-            }
-        }
-
+        setPsgTextChanged(true);
         if (StringUtils.isEmpty(updatedPsgText)) {
-            setAppendLetter(undefined);
+            setAppendLetter('');
+        } else if (StringUtils.isEmpty(appendLetter)) {
+            setAppendLetter('a');
         }
     };
 
@@ -210,9 +200,9 @@ const EditPassage = ({ props }: { props: EditPassageProps }) => {
 
     const submitChanges = () => {
         const updateParam: UpdatePassageParam = new UpdatePassageParam();
-        updateParam.passageRefAppendLetter = appendLetter;
+        updateParam.passageRefAppendLetter = appendLetter || undefined;
         updateParam.user = user;
-        updateParam.newText = psgTextChanged ? currPassageText : null;
+        updateParam.newText = psgTextChanged && currPassageText.trim() ? currPassageText.trim() : null;
         updateParam.passage = {
             ...props.passage,
             translationName: translation,
@@ -234,7 +224,7 @@ const EditPassage = ({ props }: { props: EditPassageProps }) => {
                     console.log('Passage has been updated!');
                     setEditPassageVisible(false);
                     props.setVisibleFunction(
-                        { ...updateParam.passage, passageRefAppendLetter: appendLetter },
+                        { ...updateParam.passage, passageRefAppendLetter: appendLetter || undefined },
                         updateParam.newText,
                         false
                     );
@@ -327,10 +317,10 @@ const EditPassage = ({ props }: { props: EditPassageProps }) => {
                                     <Form.Select
                                         value={appendLetter}
                                         onChange={(e) =>
-                                            changPassageAppendLetter(e.target.value || null)
+                                            changPassageAppendLetter(e.target.value)
                                         }
                                     >
-                                        <option value={undefined}>None</option>
+                                        <option value="">None</option>
                                         <option value="a">a</option>
                                         <option value="b">b</option>
                                         <option value="c">c</option>
