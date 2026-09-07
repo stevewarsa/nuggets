@@ -30,6 +30,7 @@ import Prayers from './components/Prayers.tsx';
 import Objections from './components/Objections.tsx';
 import PracticeObjections from './components/PracticeObjections.tsx';
 import MemoryPassagesByBox from "./components/MemoryPassagesByBox.tsx";
+import ManageBoxes from './components/ManageBoxes';
 import PublicReadBibleChapter from './components/PublicReadBibleChapter';
 import PublicViewQuotes from "./components/PublicViewQuotes.tsx";
 
@@ -236,6 +237,14 @@ const AppContent = () => {
                         element={
                             <ProtectedRoute>
                                 <MemoryPassagesByBox/>
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/manageBoxes"
+                        element={
+                            <ProtectedRoute>
+                                <ManageBoxes/>
                             </ProtectedRoute>
                         }
                     />

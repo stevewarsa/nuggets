@@ -350,6 +350,27 @@ export class BibleService {
         }
     }
 
+    // MEMORY PASSAGES flow — batch-updates frequency_days (box) for multiple passages in one call.
+    async batchUpdateFrequency(
+        user: string,
+        passageIds: number[],
+        frequencyDays: number
+    ): Promise<string> {
+        try {
+            const response = await axios.post(
+                `${BibleService.BASE_URL}update_passage_frequency.php`,
+                {
+                    user,
+                    passageIds,
+                    frequencyDays,
+                }
+            );
+            return response.data;
+        } catch (error) {
+            return this.handleError(error, 'batch updating passage frequency');
+        }
+    }
+
     // MEMORY PASSAGES flow — updates a memorization passage (verses, translation, frequency, overrides).
     async updatePassage(
         user: string,

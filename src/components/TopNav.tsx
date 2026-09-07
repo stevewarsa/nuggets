@@ -145,6 +145,11 @@ const TopNav = () => {
                                     Memory Passages by Box
                                 </Nav.Link>
                             )}
+                            {location.pathname !== '/manageBoxes' && (
+                                <Nav.Link onClick={() => handleNavigation('/manageBoxes')}>
+                                    Manage Boxes
+                                </Nav.Link>
+                            )}
                             {location.pathname !== '/memoryStats' && (
                                 <Nav.Link onClick={() => handleNavigation('/memoryStats')}>
                                     Memory Stats
