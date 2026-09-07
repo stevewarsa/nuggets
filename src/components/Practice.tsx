@@ -13,7 +13,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useEffect, useRef, useState } from 'react';
 import { Passage } from '../models/passage';
 import { bibleService } from '../services/bible-service';
-import { GUEST_USER } from '../models/constants';
+import { GUEST_USER, TARGET_REVIEW_DAYS } from '../models/constants';
 import Toolbar from './Toolbar';
 import BiblePassage from './BiblePassage';
 import SwipeContainer from './SwipeContainer';
@@ -39,6 +39,7 @@ import {
     faCommentDots,
     faSearch,
 } from '@fortawesome/free-solid-svg-icons';
+import { ProgressBar } from 'react-bootstrap';
 import { useToast } from '../hooks/useToast';
 
 const Practice = () => {
@@ -70,6 +71,7 @@ const Practice = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [isUpdatingExplanation, setIsUpdatingExplanation] = useState(false);
     const [isUpdating, setIsUpdating] = useState(false);
+    const [practicedPassageIds, setPracticedPassageIds] = useState<Set<number>>(new Set());
 
     const searchInputRef = useRef<HTMLInputElement>(null);
 
@@ -131,6 +133,9 @@ const Practice = () => {
                     } else {
                         setCurrentPassage(firstPassage);
                     }
+
+                    // Track first passage as practiced in this session
+                    setPracticedPassageIds(new Set([firstPassage.passageId]));
 
                     // Update last viewed for the first passage (except for guest users)
                     if (!isGuestUser) {
@@ -195,6 +200,15 @@ const Practice = () => {
             passageId,
             lastViewedNum,
             lastViewedStr
+        );
+
+        // Update the passage's last viewed timestamp in local state so the behind count updates in real time
+        setMemPsgList((prev) =>
+            prev.map((p) =>
+                p.passageId === passageId
+                    ? { ...p, last_viewed_num: lastViewedNum, last_viewed_str: lastViewedStr }
+                    : p
+            )
         );
     };
 
@@ -295,6 +309,9 @@ const Practice = () => {
         setCurrentIndex(newIndex);
         const passage = memPsgList[newIndex];
         setTranslation(passage.translationName);
+
+        // Track this passage as practiced in the current session
+        setPracticedPassageIds((prev) => new Set(prev).add(passage.passageId));
 
         // Check for override before setting the current passage
         const override = overrides.find((o) => o.passageId === passage.passageId);
@@ -533,6 +550,9 @@ const Practice = () => {
         setShowGoToModal(false);
         setSearchTerm('');
         resetToInitialMode();
+
+        // Track this passage as practiced in the current session
+        setPracticedPassageIds((prev) => new Set(prev).add(passage.passageId));
     };
 
     const handleSaveExplanation = async () => {
@@ -613,6 +633,27 @@ const Practice = () => {
     // For guest users, disable up/down buttons regardless of frequency
     const upEnabled = !isGuestUser && currentPassage.frequencyDays > 1;
     const downEnabled = !isGuestUser && currentPassage.frequencyDays < 3;
+
+    // Calculate session progress toward daily goal
+    const dailyGoal = memPsgList.length > 0
+        ? Math.ceil(memPsgList.length / TARGET_REVIEW_DAYS)
+        : 0;
+    const practicedCount = practicedPassageIds.size;
+    const progressPercentage = dailyGoal > 0
+        ? (practicedCount / dailyGoal) * 100
+        : 0;
+    const progressVariant =
+        progressPercentage >= 100 ? 'success'
+            : progressPercentage >= 50 ? 'warning'
+                : 'danger';
+
+    // Calculate how many passages are behind across the full list
+    const now = Date.now();
+    const behindCount = memPsgList.filter((p) => {
+        if (!p.last_viewed_num || p.last_viewed_num === 0) return true;
+        const daysSince = (now - p.last_viewed_num) / (1000 * 60 * 60 * 24);
+        return daysSince > TARGET_REVIEW_DAYS;
+    }).length;
 
     // Create additional menus for the toolbar
     const getAdditionalMenus = () => {
@@ -704,7 +745,8 @@ const Practice = () => {
                         <div className="text-white-50">
                             Box: {currentPassage.frequencyDays} | Last Practiced:{' '}
                             {currentPassage.last_viewed_str} | Psg ID:{' '}
-                            {currentPassage.passageId}
+                            {currentPassage.passageId} | Behind:{' '}
+                            {behindCount} of {memPsgList.length} | Goal: {dailyGoal}/day
                             {currentPassage.explanation && (
                                 <>
                                     {' | '}
@@ -728,6 +770,18 @@ const Practice = () => {
                     <span>Updating frequency...</span>
                 </div>
             ) : null}
+
+            <div className="mb-3">
+                <div className="d-flex justify-content-between text-white-50 mb-1">
+                    <span>Session Progress: {practicedCount} / {dailyGoal} passages</span>
+                    <span>{progressPercentage.toFixed(0)}%</span>
+                </div>
+                <ProgressBar
+                    now={Math.min(progressPercentage, 100)}
+                    variant={progressVariant}
+                    style={{ height: '12px' }}
+                />
+            </div>
 
             <BiblePassage
                 passage={currentPassage}

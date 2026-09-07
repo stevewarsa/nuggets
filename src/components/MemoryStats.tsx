@@ -1,9 +1,10 @@
 // MEMORY PASSAGES flow — statistics dashboard showing passage count, verse count, averages, and translation breakdown.
 import React, { useEffect, useState } from 'react';
-import { Container, Card, Row, Col, Spinner, Alert } from 'react-bootstrap';
+import { Container, Card, Row, Col, Spinner, Alert, ProgressBar } from 'react-bootstrap';
 import { useAppSelector, useAppDispatch } from '../store/hooks';
 import { bibleService } from '../services/bible-service';
 import { setMemoryPassages, setMemoryPassagesLoading, setMemoryPassagesError } from '../store/memoryPassageSlice';
+import { TARGET_REVIEW_DAYS } from '../models/constants';
 
 interface TranslationStat {
   translation: string;
@@ -75,6 +76,23 @@ const MemoryStats: React.FC = () => {
       ? (totalVerseCount / passages.length).toFixed(2)
       : '0';
 
+  // Calculate daily goal: passages per day to review all in TARGET_REVIEW_DAYS
+  const dailyGoal = passages.length > 0
+      ? Math.ceil(passages.length / TARGET_REVIEW_DAYS)
+      : 0;
+
+  // Calculate how many passages are "behind" (last practiced > TARGET_REVIEW_DAYS ago, or never)
+  const now = Date.now();
+  const behindCount = passages.filter((p) => {
+    if (!p.last_viewed_num || p.last_viewed_num === 0) return true;
+    const daysSince = (now - p.last_viewed_num) / (1000 * 60 * 60 * 24);
+    return daysSince > TARGET_REVIEW_DAYS;
+  }).length;
+
+  const behindPercentage = passages.length > 0
+      ? (behindCount / passages.length) * 100
+      : 0;
+
   if (loading) {
     return (
         <Container className="py-4 text-center">
@@ -122,6 +140,40 @@ const MemoryStats: React.FC = () => {
               <Card.Header>Avg Verses per Passage</Card.Header>
               <Card.Body className="d-flex align-items-center justify-content-center">
                 <h2 className="mb-0">{avgVersesPerPassage}</h2>
+              </Card.Body>
+            </Card>
+          </Col>
+        </Row>
+
+        <Row className="mb-4">
+          <Col md={4}>
+            <Card bg="dark" text="white" className="h-100">
+              <Card.Header>Daily Goal ({TARGET_REVIEW_DAYS}-day cycle)</Card.Header>
+              <Card.Body className="d-flex align-items-center justify-content-center">
+                <h2 className="mb-0">{dailyGoal}</h2>
+              </Card.Body>
+            </Card>
+          </Col>
+
+          <Col md={4}>
+            <Card bg="dark" text="white" className="h-100">
+              <Card.Header>Passages Behind</Card.Header>
+              <Card.Body className="d-flex align-items-center justify-content-center">
+                <h2 className="mb-0">{behindCount} / {passages.length}</h2>
+              </Card.Body>
+            </Card>
+          </Col>
+
+          <Col md={4}>
+            <Card bg="dark" text="white" className="h-100">
+              <Card.Header>Behind Percentage</Card.Header>
+              <Card.Body>
+                <ProgressBar
+                    now={behindPercentage}
+                    variant={behindPercentage > 50 ? 'danger' : behindPercentage > 25 ? 'warning' : 'success'}
+                    style={{ height: '20px' }}
+                    label={`${behindPercentage.toFixed(1)}%`}
+                />
               </Card.Body>
             </Card>
           </Col>

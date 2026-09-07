@@ -1,5 +1,6 @@
 export const TRANSLATION = 'niv';
 export const GUEST_USER: string = 'Guest';
+export const TARGET_REVIEW_DAYS = 21;
 
 export const booksByDay: {[dayName: string]: string[]}  = {
     "Sunday": ["romans", "1-corinthians", "2-corinthians", "galatians", "ephesians", "philippians", "colossians", "1-thessalonians", "2-thessalonians", "1-timothy", "2-timothy", "titus", "philemon", "hebrews", "james", "1-peter", "2-peter", "1-john", "2-john", "3-john", "jude"],
