@@ -73,12 +73,7 @@ const BiblePassage: React.FC<BiblePassageProps> = ({
     }, []);
 
     useEffect(() => {
-        console.log(
-            'BiblePassage.tsx -showVerseText = ' +
-            showVerseText +
-            ', passage passed in changed:',
-            passage
-        );
+        let cancelled = false;
 
         // Scroll to top when passage changes
         if (scrollToVerse === -1) {
@@ -110,6 +105,9 @@ const BiblePassage: React.FC<BiblePassageProps> = ({
                     );
 
                     clearInterval(intervalId);
+
+                    if (cancelled) return;
+
                     setBusy(false);
 
                     // Update the local passage with the new verses
@@ -120,14 +118,14 @@ const BiblePassage: React.FC<BiblePassageProps> = ({
 
                     setLocalPassage(updatedPassage);
 
-                    // If the passage has verses, update it in the parent component
+                    // Pre-load verses onto the shared passage object so EditPassage
+                    // finds them ready when the modal opens (avoids a re-fetch).
                     if (fullPassage.verses && fullPassage.verses.length > 0) {
-                        // Update the passage in the parent's state to include verses
                         passage.verses = fullPassage.verses;
                     }
                 } catch (error) {
                     console.error('Error fetching passage verses:', error);
-                    setBusy(false);
+                    if (!cancelled) setBusy(false);
                 }
             };
 
@@ -135,6 +133,10 @@ const BiblePassage: React.FC<BiblePassageProps> = ({
         } else {
             setLocalPassage(passage);
         }
+
+        return () => {
+            cancelled = true;
+        };
     }, [passage, translation, showVerseText, user]);
 
     useEffect(() => {

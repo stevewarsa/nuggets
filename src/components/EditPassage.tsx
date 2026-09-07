@@ -58,28 +58,27 @@ const EditPassage = ({ props }: { props: EditPassageProps }) => {
     }, [props.passage.translationName]);
 
     useEffect(() => {
-        console.log("EditPassage.useEffect[props.passage.endVerse] - props.passage.endVerse: " + props.passage.endVerse);
+        setStartVerse(props.passage.startVerse);
+    }, [props.passage.startVerse]);
+
+    useEffect(() => {
         setEndVerse(props.passage.endVerse);
     }, [props.passage.endVerse]);
 
     useEffect(() => {
-        if (startVerse === props.passage.startVerse && endVerse === props.passage.endVerse) {
-            // no update necessary, just return
+        if (!editPassageVisible) {
             return;
         }
-        console.log(
-            'EditPassage - startVerse or endVerse has changed: startVerse=' +
-            startVerse +
-            ', endVerse=' +
-            endVerse
-        );
+        if (startVerse === props.passage.startVerse && endVerse === props.passage.endVerse) {
+            return;
+        }
         props.passage = {
             ...props.passage,
             startVerse: startVerse,
             endVerse: endVerse,
         };
         populateVerses(props.passage, updateStateFromPassage);
-    }, [startVerse, endVerse]);
+    }, [startVerse, endVerse, editPassageVisible, props.passage]);
 
     useEffect(() => {
         console.log('EditPassage - currPassageText changed: ', currPassageText);

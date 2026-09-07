@@ -134,8 +134,12 @@ const Practice = () => {
                         setCurrentPassage(firstPassage);
                     }
 
-                    // Track first passage as practiced in this session
-                    setPracticedPassageIds(new Set([firstPassage.passageId]));
+                    // Track first passage as practiced in this session (only if overdue)
+                    setPracticedPassageIds(
+                        isPassageOverdue(firstPassage)
+                            ? new Set([firstPassage.passageId])
+                            : new Set()
+                    );
 
                     // Update last viewed for the first passage (except for guest users)
                     if (!isGuestUser) {
@@ -185,6 +189,12 @@ const Practice = () => {
             }
         }
         return true;
+    };
+
+    const isPassageOverdue = (passage: Passage): boolean => {
+        if (!passage.last_viewed_num || passage.last_viewed_num === 0) return true;
+        const daysSince = (Date.now() - passage.last_viewed_num) / (1000 * 60 * 60 * 24);
+        return daysSince > TARGET_REVIEW_DAYS;
     };
 
     const updateLastViewed = (passageId: number) => {
@@ -310,8 +320,10 @@ const Practice = () => {
         const passage = memPsgList[newIndex];
         setTranslation(passage.translationName);
 
-        // Track this passage as practiced in the current session
-        setPracticedPassageIds((prev) => new Set(prev).add(passage.passageId));
+        // Track this passage as practiced in the current session (only if overdue)
+        if (isPassageOverdue(passage)) {
+            setPracticedPassageIds((prev) => new Set(prev).add(passage.passageId));
+        }
 
         // Check for override before setting the current passage
         const override = overrides.find((o) => o.passageId === passage.passageId);
@@ -551,8 +563,10 @@ const Practice = () => {
         setSearchTerm('');
         resetToInitialMode();
 
-        // Track this passage as practiced in the current session
-        setPracticedPassageIds((prev) => new Set(prev).add(passage.passageId));
+        // Track this passage as practiced in the current session (only if overdue)
+        if (isPassageOverdue(passage)) {
+            setPracticedPassageIds((prev) => new Set(prev).add(passage.passageId));
+        }
     };
 
     const handleSaveExplanation = async () => {
@@ -648,12 +662,7 @@ const Practice = () => {
                 : 'danger';
 
     // Calculate how many passages are behind across the full list
-    const now = Date.now();
-    const behindCount = memPsgList.filter((p) => {
-        if (!p.last_viewed_num || p.last_viewed_num === 0) return true;
-        const daysSince = (now - p.last_viewed_num) / (1000 * 60 * 60 * 24);
-        return daysSince > TARGET_REVIEW_DAYS;
-    }).length;
+    const behindCount = memPsgList.filter((p) => isPassageOverdue(p)).length;
 
     // Create additional menus for the toolbar
     const getAdditionalMenus = () => {
@@ -773,7 +782,7 @@ const Practice = () => {
 
             <div className="mb-3">
                 <div className="d-flex justify-content-between text-white-50 mb-1">
-                    <span>Session Progress: {practicedCount} / {dailyGoal} passages</span>
+                    <span>Session Progress: {practicedCount} / {dailyGoal} overdue passages</span>
                     <span>{progressPercentage.toFixed(0)}%</span>
                 </div>
                 <ProgressBar
