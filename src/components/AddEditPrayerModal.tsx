@@ -78,7 +78,10 @@ const AddEditPrayerModal: React.FC<AddEditPrayerModalProps> = ({
 
                 // Call the callback if provided
                 if (onPrayerSaved) {
-                    onPrayerSaved(editingPrayer);
+                    const savedPrayer = editingPrayer.prayerId
+                        ? editingPrayer
+                        : {...editingPrayer, prayerId: Number(result)};
+                    onPrayerSaved(savedPrayer);
                 }
 
                 // Close modal after a short delay
