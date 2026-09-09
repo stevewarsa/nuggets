@@ -12,7 +12,7 @@ const initialState: QuoteState = {
     quotes: [],
     loading: false,
     error: null,
-    hasBeenLoaded: false
+    hasBeenLoaded: false,
 };
 
 export const quoteSlice = createSlice({
@@ -39,10 +39,16 @@ export const quoteSlice = createSlice({
             if (state.hasBeenLoaded) {
                 state.quotes.push(action.payload);
             }
-        }
-    }
+        },
+        removeQuote: (state, action: PayloadAction<number>) => {
+            state.quotes = state.quotes.filter(
+                (q) => q.quoteId !== action.payload
+            );
+        },
+    },
 });
 
-export const { setQuotes, setQuotesLoading, setQuotesError, addQuote } = quoteSlice.actions;
+export const { setQuotes, setQuotesLoading, setQuotesError, addQuote, removeQuote } =
+    quoteSlice.actions;
 
 export default quoteSlice.reducer;

@@ -156,6 +156,20 @@ export class BibleService {
         }
     }
 
+    async deleteQuote(user: string, quoteId: number): Promise<string> {
+        try {
+            const response = await axios.get(
+                `${BibleService.BASE_URL}delete_quote.php`,
+                {
+                    params: { user, quoteId },
+                }
+            );
+            return response.data;
+        } catch (error) {
+            return this.handleError(error, 'deleting quote');
+        }
+    }
+
     async updateQuote(user: string, quote: Quote): Promise<string> {
         try {
             const response = await axios.post(
