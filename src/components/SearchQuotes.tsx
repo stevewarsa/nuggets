@@ -28,6 +28,7 @@ import {
     faCopy,
     faTrashAlt,
     faSearchPlus,
+    faPlus,
 } from '@fortawesome/free-solid-svg-icons';
 import { useToast } from '../hooks/useToast';
 import { Quote } from '../models/quote';
@@ -629,6 +630,14 @@ const SearchQuotes: React.FC = () => {
                     {filteredQuotes.length === 0 && (
                         <div className="text-center text-white">
                             <p>No quotes found matching your search.</p>
+                            <Button
+                                variant="primary"
+                                onClick={() => navigate('/addQuote')}
+                                className="d-inline-flex align-items-center mt-2"
+                            >
+                                <FontAwesomeIcon icon={faPlus} className="me-2" />
+                                Add Quote
+                            </Button>
                         </div>
                     )}
                 </>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
     Badge,
     Button,
@@ -21,18 +21,95 @@ import { useToast } from '../hooks/useToast';
 import { useTopics } from '../hooks/useTopics';
 import { Topic } from '../models/topic';
 
+const RECENT_TOPICS_KEY = 'recentAddQuoteTopics';
+const MAX_RECENT_TOPICS = 10;
+
 const AddQuote = () => {
     const [quoteText, setQuoteText] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [showTopicSection, setShowTopicSection] = useState(false);
     const [selectedTopicIds, setSelectedTopicIds] = useState<number[]>([]);
     const [topicSearchTerm, setTopicSearchTerm] = useState('');
+    const [recentTopicIds, setRecentTopicIds] = useState<number[]>([]);
     const { showToast, toastProps, toastMessage } = useToast();
 
     const navigate = useNavigate();
     const dispatch = useAppDispatch();
     const user = useAppSelector((state) => state.user.currentUser);
     const { topics, loading: topicsLoading } = useTopics();
+    const quotes = useAppSelector((state) => state.quote.quotes);
+
+    useEffect(() => {
+        try {
+            const stored = localStorage.getItem(RECENT_TOPICS_KEY);
+            if (stored) {
+                setRecentTopicIds(JSON.parse(stored));
+            }
+        } catch (e) {
+            console.error('Error loading recent topics:', e);
+        }
+    }, []);
+
+    const topicCounts = useMemo(() => {
+        const counts: { [key: number]: number } = {};
+        quotes.forEach((q) => {
+            if (q.tagIds && q.tagIds.length > 0) {
+                q.tagIds.forEach((id) => {
+                    counts[id] = (counts[id] || 0) + 1;
+                });
+            }
+        });
+        return counts;
+    }, [quotes]);
+
+    const { recentTopicsData, remainingTopicsData } = useMemo(() => {
+        if (!topics.length)
+            return { recentTopicsData: [], remainingTopicsData: [] };
+
+        const searchFilter = (topicList: Topic[]) => {
+            if (!topicSearchTerm.trim()) return topicList;
+            return topicList.filter((t) =>
+                t.name.toLowerCase().includes(topicSearchTerm.trim().toLowerCase())
+            );
+        };
+
+        const recent = recentTopicIds
+            .map((id) => topics.find((t) => t.id === id))
+            .filter((t): t is Topic => t !== undefined);
+
+        const remaining = topics.filter(
+            (t) => !recentTopicIds.includes(t.id)
+        );
+
+        const filteredRecent = searchFilter(recent);
+        const filteredRemaining = searchFilter(remaining).sort((a, b) => {
+            const countA = topicCounts[a.id] || 0;
+            const countB = topicCounts[b.id] || 0;
+            if (countB !== countA) return countB - countA;
+            return a.name.localeCompare(b.name);
+        });
+
+        return {
+            recentTopicsData: filteredRecent,
+            remainingTopicsData: filteredRemaining,
+        };
+    }, [topics, recentTopicIds, topicSearchTerm, topicCounts]);
+
+    const updateRecentTopics = (topicIds: number[]) => {
+        const newRecent = [...topicIds];
+        recentTopicIds.forEach((id) => {
+            if (!topicIds.includes(id) && newRecent.length < MAX_RECENT_TOPICS) {
+                newRecent.push(id);
+            }
+        });
+        const limited = newRecent.slice(0, MAX_RECENT_TOPICS);
+        setRecentTopicIds(limited);
+        try {
+            localStorage.setItem(RECENT_TOPICS_KEY, JSON.stringify(limited));
+        } catch (e) {
+            console.error('Error saving recent topics:', e);
+        }
+    };
 
     const handleToggleTopic = (topicId: number) => {
         setSelectedTopicIds((prev) =>
@@ -41,12 +118,6 @@ const AddQuote = () => {
                 : [...prev, topicId]
         );
     };
-
-    const filteredTopics: Topic[] = topicSearchTerm
-        ? topics.filter((t) =>
-            t.name.toLowerCase().includes(topicSearchTerm.toLowerCase())
-        )
-        : topics;
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -71,6 +142,7 @@ const AddQuote = () => {
                 if (selectedTopics.length > 0) {
                     try {
                         await bibleService.addQuoteTopic(user, result.quoteId, selectedTopics);
+                        updateRecentTopics(selectedTopicIds);
                     } catch (topicError) {
                         console.error('Error associating topics with quote:', topicError);
                         showToast({
@@ -147,7 +219,7 @@ const AddQuote = () => {
                     </Button>
 
                     <Collapse in={showTopicSection}>
-                        <div id="topic-collapse" className="px-3 pb-3">
+                        <div id="topic-collapse" className="px-3 pb-3 text-white">
                             {topicsLoading ? (
                                 <div className="text-center p-3">
                                     <Spinner animation="border" size="sm" role="status" className="me-2" />
@@ -207,29 +279,89 @@ const AddQuote = () => {
                                         className="mb-3"
                                         style={{ maxHeight: '300px', overflowY: 'auto' }}
                                     >
-                                        {filteredTopics.length > 0 ? (
-                                            <Row xs={1} md={2} lg={3} className="g-3">
-                                                {filteredTopics.map((topic) => (
-                                                    <Col key={topic.id}>
-                                                        <Form.Check
-                                                            type="checkbox"
-                                                            id={`add-quote-topic-${topic.id}`}
-                                                            label={topic.name}
-                                                            checked={selectedTopicIds.includes(topic.id)}
-                                                            onChange={() => handleToggleTopic(topic.id)}
-                                                            className="mb-2"
-                                                        />
-                                                    </Col>
-                                                ))}
-                                            </Row>
-                                        ) : (
-                                            <p className="text-muted">No topics match your search.</p>
-                                        )}
+                                        <Form>
+                                            {recentTopicsData.length > 0 && (
+                                                <>
+                                                    <h6 className="text-white-50 mb-3">Recently Used</h6>
+                                                    <Row xs={1} md={2} lg={3} className="g-3 mb-4">
+                                                        {recentTopicsData.map((topic) => {
+                                                            const count = topicCounts[topic.id] || 0;
+                                                            return (
+                                                                <Col key={topic.id}>
+                                                                    <Form.Check
+                                                                        type="checkbox"
+                                                                        id={`recent-add-quote-topic-${topic.id}`}
+                                                                        label={
+                                                                            <span>
+                                        {topic.name}
+                                                                                <Badge
+                                                                                    bg="secondary"
+                                                                                    className="ms-2"
+                                                                                    style={{ fontSize: '0.75em' }}
+                                                                                >
+                                          {count}
+                                        </Badge>
+                                      </span>
+                                                                        }
+                                                                        checked={selectedTopicIds.includes(topic.id)}
+                                                                        onChange={() => handleToggleTopic(topic.id)}
+                                                                        className="mb-2"
+                                                                    />
+                                                                </Col>
+                                                            );
+                                                        })}
+                                                    </Row>
+                                                </>
+                                            )}
+
+                                            {remainingTopicsData.length > 0 && (
+                                                <>
+                                                    <h6 className="text-white-50 mb-3">
+                                                        {recentTopicsData.length > 0 ? 'All Topics' : 'Topics'}
+                                                    </h6>
+                                                    <Row xs={1} md={2} lg={3} className="g-3">
+                                                        {remainingTopicsData.map((topic) => {
+                                                            const count = topicCounts[topic.id] || 0;
+                                                            return (
+                                                                <Col key={topic.id}>
+                                                                    <Form.Check
+                                                                        type="checkbox"
+                                                                        id={`add-quote-topic-${topic.id}`}
+                                                                        label={
+                                                                            <span>
+                                        {topic.name}
+                                                                                <Badge
+                                                                                    bg="secondary"
+                                                                                    className="ms-2"
+                                                                                    style={{ fontSize: '0.75em' }}
+                                                                                >
+                                          {count}
+                                        </Badge>
+                                      </span>
+                                                                        }
+                                                                        checked={selectedTopicIds.includes(topic.id)}
+                                                                        onChange={() => handleToggleTopic(topic.id)}
+                                                                        className="mb-2"
+                                                                    />
+                                                                </Col>
+                                                            );
+                                                        })}
+                                                    </Row>
+                                                </>
+                                            )}
+
+                                            {recentTopicsData.length === 0 &&
+                                                remainingTopicsData.length === 0 && (
+                                                    <p className="text-muted">No topics match your search.</p>
+                                                )}
+                                        </Form>
                                     </div>
 
                                     {topicSearchTerm && (
                                         <div className="mb-2 text-muted">
-                                            Showing {filteredTopics.length} of {topics.length} topics
+                                            Showing{' '}
+                                            {recentTopicsData.length + remainingTopicsData.length} of{' '}
+                                            {topics.length} topics
                                         </div>
                                     )}
                                 </>
