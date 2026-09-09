@@ -1,7 +1,9 @@
 // MEMORY PASSAGES flow — configuration screen for choosing practice mode (by reference or by text) and display order before starting practice.
-import { Container, Form, Button, Spinner, Alert } from 'react-bootstrap';
+import { Container, Form, Button, Spinner, Alert, Card } from 'react-bootstrap';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faBookOpen, faSearch, faArrowRight } from '@fortawesome/free-solid-svg-icons';
 import {
   BY_REF,
   BY_PSG_TXT,
@@ -13,6 +15,7 @@ import {
 import { offlineCache } from '../services/offline-cache';
 import { useAppSelector } from '../store/hooks';
 import { GUEST_USER } from '../models/constants';
+import { bibleService } from '../services/bible-service';
 
 const PracticeSetup = () => {
   const [practiceMode, setPracticeMode] = useState(BY_REF);
@@ -25,10 +28,26 @@ const PracticeSetup = () => {
   const [queuedCount, setQueuedCount] = useState(0);
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncResult, setSyncResult] = useState<string | null>(null);
+  const [passageCount, setPassageCount] = useState<number | null>(null);
   const navigate = useNavigate();
 
   const user = useAppSelector((state) => state.user.currentUser);
   const isGuestUser = user === GUEST_USER;
+
+  useEffect(() => {
+    const fetchPassageCount = async () => {
+      try {
+        const passages = await bibleService.getMemoryPassageList(user);
+        setPassageCount(passages.length);
+      } catch (error) {
+        console.error('Error fetching memory passage count:', error);
+        setPassageCount(0);
+      }
+    };
+    if (user) {
+      fetchPassageCount();
+    }
+  }, [user]);
 
   const checkCache = async () => {
     const exists = await offlineCache.hasCache();
@@ -96,6 +115,71 @@ const PracticeSetup = () => {
   return (
       <Container className="p-4">
         <h1 className="text-white mb-4">Practice Setup</h1>
+
+        {passageCount === 0 && (
+            <Alert variant="info" className="mb-4">
+              <Alert.Heading>No Memory Passages Yet</Alert.Heading>
+              <p className="mb-3">
+                To practice memorizing Bible passages, you first need to add some
+                memory passages. There are two easy ways to do this:
+              </p>
+              <Card className="bg-dark text-white border-secondary mb-3">
+                <Card.Body>
+                  <div className="d-flex align-items-start">
+                    <FontAwesomeIcon
+                        icon={faSearch}
+                        className="me-3 mt-1 text-warning"
+                        size="lg"
+                    />
+                    <div>
+                      <h6 className="mb-1">Option 1: Add Memory Passage</h6>
+                      <p className="mb-2 text-white-50">
+                        Use the <strong>"Add Memory Passage..."</strong> item in the
+                        top menu to search for a specific passage by book, chapter,
+                        and verse range.
+                      </p>
+                    </div>
+                  </div>
+                </Card.Body>
+              </Card>
+              <Card className="bg-dark text-white border-secondary mb-3">
+                <Card.Body>
+                  <div className="d-flex align-items-start">
+                    <FontAwesomeIcon
+                        icon={faBookOpen}
+                        className="me-3 mt-1 text-warning"
+                        size="lg"
+                    />
+                    <div>
+                      <h6 className="mb-1">Option 2: Add From a Chapter View</h6>
+                      <p className="mb-2 text-white-50">
+                        Use the <strong>"View Chapter"</strong> item in the top menu
+                        to open the Bible chapter containing your target passage.
+                        While reading the chapter, use the toolbar menu to add a
+                        single verse or a range of verses to your memory passages.
+                      </p>
+                    </div>
+                  </div>
+                </Card.Body>
+              </Card>
+              <div className="d-flex gap-2 flex-wrap">
+                <Button
+                    variant="primary"
+                    onClick={() => navigate('/viewChapter')}
+                >
+                  <FontAwesomeIcon icon={faBookOpen} className="me-2" />
+                  Go to View Chapter
+                  <FontAwesomeIcon icon={faArrowRight} className="ms-2" />
+                </Button>
+                <Button
+                    variant="outline-light"
+                    onClick={() => navigate('/memoryPassages')}
+                >
+                  View My Memory Passages
+                </Button>
+              </div>
+            </Alert>
+        )}
 
         <div className="mb-4">
           <h2 className="text-white mb-3">Practice Mode</h2>

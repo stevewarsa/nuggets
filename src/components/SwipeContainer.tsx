@@ -5,21 +5,23 @@ interface SwipeContainerProps {
   onSwipeLeft: () => void;
   onSwipeRight: () => void;
   children: ReactNode;
+  style?: React.CSSProperties;
 }
 
 const SwipeContainer: React.FC<SwipeContainerProps> = ({
-  onSwipeLeft,
-  onSwipeRight,
-  children,
-}) => {
+                                                         onSwipeLeft,
+                                                         onSwipeRight,
+                                                         children,
+                                                         style,
+                                                       }) => {
   return (
-    <Swipe 
-      tolerance={80}
-      onSwipeLeft={onSwipeLeft}
-      onSwipeRight={onSwipeRight}
-    >
-      <div className="app-container">{children}</div>
-    </Swipe>
+      <Swipe
+          tolerance={80}
+          onSwipeLeft={onSwipeLeft}
+          onSwipeRight={onSwipeRight}
+      >
+        <div className="app-container" style={style}>{children}</div>
+      </Swipe>
   );
 };
 

@@ -33,6 +33,7 @@ interface BiblePassageProps {
     highlightedVerses?: number[];
     onVerseSelection?: (startVerse: number, endVerse: number) => void;
     onVerseModalClose?: () => void;
+    floatingButtonsBottomOffset?: string;
 }
 
 const BiblePassage: React.FC<BiblePassageProps> = ({
@@ -46,6 +47,7 @@ const BiblePassage: React.FC<BiblePassageProps> = ({
                                                        highlightedVerses = [],
                                                        onVerseSelection,
                                                        onVerseModalClose,
+                                                       floatingButtonsBottomOffset = '20px',
                                                    }) => {
     const [localPassage, setLocalPassage] = useState<Passage | Nugget>(passage);
     const [displayBookName, setDisplayBookName] = useState<string>('');
@@ -372,11 +374,11 @@ const BiblePassage: React.FC<BiblePassageProps> = ({
                 <div
                     style={{
                         position: 'fixed',
-                        bottom: '20px',
+                        bottom: floatingButtonsBottomOffset,
                         right: '20px',
                         display: 'flex',
                         gap: '10px',
-                        zIndex: 1000,
+                        zIndex: 1030,
                     }}
                 >
                     <Button

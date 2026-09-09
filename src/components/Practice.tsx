@@ -13,7 +13,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useEffect, useRef, useState } from 'react';
 import { Passage } from '../models/passage';
 import { bibleService } from '../services/bible-service';
-import { GUEST_USER, TARGET_REVIEW_DAYS } from '../models/constants';
+import { GUEST_USER, TARGET_REVIEW_DAYS, PROGRESS_BAR_THRESHOLD } from '../models/constants';
 import Toolbar from './Toolbar';
 import BiblePassage from './BiblePassage';
 import SwipeContainer from './SwipeContainer';
@@ -664,6 +664,9 @@ const Practice = () => {
     // Calculate how many passages are behind across the full list
     const behindCount = memPsgList.filter((p) => isPassageOverdue(p)).length;
 
+    // Only show the progress bar for users with enough passages that daily goal tracking matters
+    const showProgressBar = memPsgList.length >= PROGRESS_BAR_THRESHOLD;
+
     // Create additional menus for the toolbar
     const getAdditionalMenus = () => {
         return [
@@ -712,6 +715,7 @@ const Practice = () => {
         <SwipeContainer
             onSwipeLeft={() => handleToolbarClick('RIGHT')}
             onSwipeRight={() => handleToolbarClick('LEFT')}
+            style={showProgressBar ? { paddingBottom: '60px' } : undefined}
         >
             <Toolbar
                 currentIndex={currentIndex}
@@ -780,25 +784,39 @@ const Practice = () => {
                 </div>
             ) : null}
 
-            <div className="mb-3">
-                <div className="d-flex justify-content-between text-white-50 mb-1">
-                    <span>Session Progress: {practicedCount} / {dailyGoal} overdue passages</span>
-                    <span>{progressPercentage.toFixed(0)}%</span>
-                </div>
-                <ProgressBar
-                    now={Math.min(progressPercentage, 100)}
-                    variant={progressVariant}
-                    style={{ height: '12px' }}
-                />
-            </div>
-
             <BiblePassage
                 passage={currentPassage}
                 translation={translation}
                 showPassageRef={showPassageRef}
                 showVerseNumbers={showVerseNumbers}
                 showVerseText={showVerseText}
+                floatingButtonsBottomOffset={showProgressBar ? '110px' : undefined}
             />
+
+            {showProgressBar && (
+                <div
+                    style={{
+                        position: 'fixed',
+                        bottom: '40px',
+                        left: 0,
+                        right: 0,
+                        zIndex: 1020,
+                        backgroundColor: 'rgba(33, 37, 41, 0.95)',
+                        padding: '8px 16px',
+                        borderTop: '1px solid #495057',
+                    }}
+                >
+                    <div className="d-flex justify-content-between text-white-50 mb-1" style={{ fontSize: '0.85rem' }}>
+                        <span>Session Progress: {practicedCount} / {dailyGoal} overdue passages</span>
+                        <span>{progressPercentage.toFixed(0)}%</span>
+                    </div>
+                    <ProgressBar
+                        now={Math.min(progressPercentage, 100)}
+                        variant={progressVariant}
+                        style={{ height: '10px' }}
+                    />
+                </div>
+            )}
 
             <Toast {...toastProps}>
                 <Toast.Body>{toastMessage}</Toast.Body>
