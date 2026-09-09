@@ -59,6 +59,8 @@ const BiblePassage: React.FC<BiblePassageProps> = ({
         useState<boolean>(false);
     const [internalVerseModal, setInternalVerseModal] = useState<boolean>(false);
     const [lastScrollPosition, setLastScrollPosition] = useState<number>(0);
+    const [fetchError, setFetchError] = useState<boolean>(false);
+    const [retryCount, setRetryCount] = useState<number>(0);
     const { showToast, toastProps, toastMessage } = useToast();
 
     const user = useAppSelector((state) => state.user.currentUser);
@@ -89,6 +91,7 @@ const BiblePassage: React.FC<BiblePassageProps> = ({
         if (showVerseText && (!passage.verses || passage.verses.length === 0)) {
             const fetchVerses = async () => {
                 try {
+                    setFetchError(false);
                     setBusy(true);
                     setSeconds(0);
                     const intervalId = setInterval(() => {
@@ -125,7 +128,10 @@ const BiblePassage: React.FC<BiblePassageProps> = ({
                     }
                 } catch (error) {
                     console.error('Error fetching passage verses:', error);
-                    if (!cancelled) setBusy(false);
+                    if (!cancelled) {
+                        setBusy(false);
+                        setFetchError(true);
+                    }
                 }
             };
 
@@ -137,7 +143,7 @@ const BiblePassage: React.FC<BiblePassageProps> = ({
         return () => {
             cancelled = true;
         };
-    }, [passage, translation, showVerseText, user]);
+    }, [passage, translation, showVerseText, user, retryCount]);
 
     useEffect(() => {
         if (scrollToVerse !== -1 && localPassage?.verses?.length) {
@@ -284,7 +290,24 @@ const BiblePassage: React.FC<BiblePassageProps> = ({
         );
     }
 
-    if (showVerseText && !localPassage.verses) {
+    if (fetchError) {
+        return (
+            <Container className="text-white text-center py-5">
+                <p className="mb-3">Could not load passage text. Check your network connection and try again.</p>
+                <Button
+                    variant="primary"
+                    onClick={() => {
+                        setFetchError(false);
+                        setRetryCount((c) => c + 1);
+                    }}
+                >
+                    Retry
+                </Button>
+            </Container>
+        );
+    }
+
+    if (showVerseText && (!localPassage.verses || localPassage.verses.length === 0)) {
         return (
             <Container className="text-white text-center">
                 Loading passage...
@@ -311,7 +334,7 @@ const BiblePassage: React.FC<BiblePassageProps> = ({
                         <span style={{ color: '#B0E0E6' }}>{translationName}</span>)
                     </h2>
                 )}
-                {showVerseText && localPassage.verses && (
+                {showVerseText && localPassage.verses && localPassage.verses.length > 0 && (
                     <p>
                         {localPassage.verses.map((verse) => (
                             <React.Fragment key={verse.verseParts[0].verseNumber}>
