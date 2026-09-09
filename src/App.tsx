@@ -15,6 +15,7 @@ import ViewQuotes from './components/ViewQuotes';
 import AddQuote from './components/AddQuote';
 import BibleSearch from './components/BibleSearch';
 import BibleReadingPlan from './components/BibleReadingPlan';
+import BibleReadThroughs from './components/BibleReadThroughs';
 import MemoryStats from './components/MemoryStats';
 import Links from './components/Links';
 import Login from './components/Login';
@@ -86,6 +87,15 @@ const AppContent = () => {
                         element={
                             <ProtectedRoute>
                                 <BibleReadingPlan/>
+                            </ProtectedRoute>
+                        }
+                    />
+
+                    <Route
+                        path="/readThroughs"
+                        element={
+                            <ProtectedRoute>
+                                <BibleReadThroughs/>
                             </ProtectedRoute>
                         }
                     />

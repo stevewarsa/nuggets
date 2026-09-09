@@ -68,6 +68,11 @@ const TopNav = () => {
                                     Reading Plan
                                 </Nav.Link>
                             )}
+                            {location.pathname !== '/readThroughs' && (
+                                <Nav.Link onClick={() => handleNavigation('/readThroughs')}>
+                                    Read-Throughs
+                                </Nav.Link>
+                            )}
                             {location.pathname !== '/viewQuotes' && (
                                 <Nav.Link onClick={() => handleNavigation('/viewQuotes')}>
                                     View Quotes
