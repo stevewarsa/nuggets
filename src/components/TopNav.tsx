@@ -83,6 +83,11 @@ const TopNav = () => {
                                     Prayers
                                 </Nav.Link>
                             )}
+                            {!isGuestUser && location.pathname !== '/prayerHistory' && (
+                                <Nav.Link onClick={() => handleNavigation('/prayerHistory')}>
+                                    Prayer History
+                                </Nav.Link>
+                            )}
                             {location.pathname !== '/objections' && (
                                 <Nav.Link onClick={() => handleNavigation('/objections')}>
                                     Objections
