@@ -93,6 +93,8 @@ const ViewQuotes = () => {
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
     const {quoteId} = useParams();
+    const quoteIdRef = useRef(quoteId);
+    quoteIdRef.current = quoteId;
 
     // Load recently used topics and setup scroll listener on component mount
     useEffect(() => {
@@ -165,6 +167,11 @@ const ViewQuotes = () => {
                 setAllQuotes(quoteList);
                 setQuotes(quoteList);
 
+                if (quoteIdRef.current) {
+                    // The quoteId effect will navigate to the correct quote
+                    return;
+                }
+
                 if (quoteList.length > 0) {
                     const quoteText = await bibleService.getQuoteText(
                         user,
@@ -178,7 +185,9 @@ const ViewQuotes = () => {
             } catch (error) {
                 console.error('Error fetching quotes:', error);
             } finally {
-                setIsLoading(false);
+                if (!quoteIdRef.current) {
+                    setIsLoading(false);
+                }
             }
         };
 
@@ -192,16 +201,20 @@ const ViewQuotes = () => {
             const searchResults = [...searchState.searchResults];
             setAllQuotes(searchResults);
             setQuotes(searchResults);
-            setCurrentQuote(searchResults[0]);
-            setIsLoading(false);
+            if (!quoteIdRef.current) {
+                setCurrentQuote(searchResults[0]);
+                setIsLoading(false);
+            }
         } else if (quotesHaveBeenLoadedRef.current && storedQuotesRef.current?.length > 0) {
             // Only use stored quotes if they have been properly loaded
             const locStoredQuotes = [...storedQuotesRef.current];
             shuffleArray(locStoredQuotes);
             setAllQuotes(locStoredQuotes);
             setQuotes(locStoredQuotes);
-            setCurrentQuote(locStoredQuotes[0]);
-            setIsLoading(false);
+            if (!quoteIdRef.current) {
+                setCurrentQuote(locStoredQuotes[0]);
+                setIsLoading(false);
+            }
         } else {
             // Always fetch quotes if they haven't been loaded yet
             if (user) {
@@ -458,6 +471,7 @@ const ViewQuotes = () => {
         setCurrentIndex(toIndex);
         if (quotes[toIndex].quoteTx) {
             setCurrentQuote(quotes[toIndex]);
+            setIsLoading(false);
             // Scroll to top when new quote is loaded
             window.scrollTo(0, 0);
             return;
