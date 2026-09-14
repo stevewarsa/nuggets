@@ -32,13 +32,13 @@ export interface ReadThroughSummary {
 
 const DAY_ORDER = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
+function chronologicalKey(entry: ReadingHistoryEntry): number {
+    return new Date(entry.dateRead).getTime();
+}
+
 interface StreamWrap {
     date: string;
     cycleNumber: number;
-}
-
-function chronologicalKey(entry: ReadingHistoryEntry): number {
-    return new Date(entry.dateRead).getTime();
 }
 
 function detectStreamWraps(
@@ -88,11 +88,9 @@ function buildBookProgress(
 
     const maxChapter = getMaxChapterByBook(bookName) || 1;
 
-    const dayEntries = history
-        .filter(e => e.dayOfWeek === day)
+    const bookEntries = history
+        .filter(e => e.dayOfWeek === day && e.bookName === bookName)
         .sort((a, b) => chronologicalKey(a) - chronologicalKey(b));
-
-    const bookEntries = dayEntries.filter(e => e.bookName === bookName);
 
     if (bookEntries.length === 0) {
         return { bookName, currentChapter: 0, totalChapters: maxChapter, completedInCurrentCycle: false, cyclesCompleted: 0 };
@@ -101,16 +99,16 @@ function buildBookProgress(
     const lastEntry = bookEntries[bookEntries.length - 1];
     const currentChapter = lastEntry.chapter;
 
-    const streamWraps = streamWrapsByDay[day] || [];
-    const lastStreamWrap = streamWraps.length > 0 ? streamWraps[streamWraps.length - 1] : null;
-    const lastWrapTime = lastStreamWrap ? new Date(lastStreamWrap.date).getTime() : 0;
-
     let cyclesCompleted = 0;
     for (const entry of bookEntries) {
         if (entry.chapter === maxChapter) {
             cyclesCompleted++;
         }
     }
+
+    const streamWraps = streamWrapsByDay[day] || [];
+    const lastStreamWrap = streamWraps.length > 0 ? streamWraps[streamWraps.length - 1] : null;
+    const lastWrapTime = lastStreamWrap ? new Date(lastStreamWrap.date).getTime() : 0;
 
     const completedInCurrentCycle = bookEntries.some(
         e => new Date(e.dateRead).getTime() >= lastWrapTime && e.chapter === maxChapter
@@ -129,81 +127,34 @@ function buildBookProgress(
     };
 }
 
-function buildCompletedBookCycleDetails(
-    cycleNumber: number,
-    history: ReadingHistoryEntry[],
-    streamWrapsByDay: { [day: string]: StreamWrap[] }
-): BookCycleDetail[] {
-    const allBooks = Object.values(booksByNum);
-    const details: BookCycleDetail[] = [];
+function buildBookDetailForCycle(
+    bookName: string,
+    windowStart: number,
+    windowEnd: number,
+    history: ReadingHistoryEntry[]
+): BookCycleDetail {
+    const day = DAY_ORDER.find(d => booksByDay[d].includes(bookName));
+    if (!day) return { bookName, startDate: '', completedDate: null };
 
-    for (const bookName of allBooks) {
-        const day = DAY_ORDER.find(d => booksByDay[d].includes(bookName));
-        if (!day) continue;
+    const maxChapter = getMaxChapterByBook(bookName) || 1;
 
-        const maxChapter = getMaxChapterByBook(bookName) || 1;
-        const wraps = streamWrapsByDay[day];
+    const entries = history
+        .filter(e => e.dayOfWeek === day && e.bookName === bookName)
+        .filter(e => {
+            const t = new Date(e.dateRead).getTime();
+            return t >= windowStart && t <= windowEnd;
+        })
+        .sort((a, b) => chronologicalKey(a) - chronologicalKey(b));
 
-        const cycleStartWrap = cycleNumber > 1 ? wraps.find(w => w.cycleNumber === cycleNumber - 1) : null;
-        const cycleEndWrap = wraps.find(w => w.cycleNumber === cycleNumber);
-
-        const windowStart = cycleStartWrap ? new Date(cycleStartWrap.date).getTime() : 0;
-        const windowEnd = cycleEndWrap ? new Date(cycleEndWrap.date).getTime() : Infinity;
-
-        const entries = history
-            .filter(e => e.dayOfWeek === day && e.bookName === bookName)
-            .filter(e => {
-                const t = new Date(e.dateRead).getTime();
-                return t >= windowStart && t < windowEnd;
-            })
-            .sort((a, b) => chronologicalKey(a) - chronologicalKey(b));
-
-        if (entries.length === 0) {
-            details.push({ bookName, startDate: '', completedDate: null });
-        } else {
-            const startDate = entries[0].dateRead;
-            const maxEntry = entries.find(e => e.chapter === maxChapter);
-            const completedDate = maxEntry ? maxEntry.dateRead : null;
-            details.push({ bookName, startDate, completedDate });
-        }
+    if (entries.length === 0) {
+        return { bookName, startDate: '', completedDate: null };
     }
 
-    return details;
-}
+    const startDate = entries[0].dateRead;
+    const maxEntry = entries.find(e => e.chapter === maxChapter);
+    const completedDate = maxEntry ? maxEntry.dateRead : null;
 
-function buildInProgressBookCycleDetails(
-    history: ReadingHistoryEntry[],
-    streamWrapsByDay: { [day: string]: StreamWrap[] }
-): BookCycleDetail[] {
-    const allBooks = Object.values(booksByNum);
-    const details: BookCycleDetail[] = [];
-
-    for (const bookName of allBooks) {
-        const day = DAY_ORDER.find(d => booksByDay[d].includes(bookName));
-        if (!day) continue;
-
-        const maxChapter = getMaxChapterByBook(bookName) || 1;
-        const wraps = streamWrapsByDay[day];
-
-        const lastWrap = wraps.length > 0 ? wraps[wraps.length - 1] : null;
-        const windowStart = lastWrap ? new Date(lastWrap.date).getTime() : 0;
-
-        const entries = history
-            .filter(e => e.dayOfWeek === day && e.bookName === bookName)
-            .filter(e => new Date(e.dateRead).getTime() >= windowStart)
-            .sort((a, b) => chronologicalKey(a) - chronologicalKey(b));
-
-        if (entries.length === 0) {
-            details.push({ bookName, startDate: '', completedDate: null });
-        } else {
-            const startDate = entries[0].dateRead;
-            const maxEntry = entries.find(e => e.chapter === maxChapter);
-            const completedDate = maxEntry ? maxEntry.dateRead : null;
-            details.push({ bookName, startDate, completedDate });
-        }
-    }
-
-    return details;
+    return { bookName, startDate, completedDate };
 }
 
 export function computeReadThroughSummary(
@@ -222,8 +173,8 @@ export function computeReadThroughSummary(
     const completed: ReadThrough[] = [];
 
     for (let k = 1; k <= completedReadThroughCount; k++) {
-        const endDateCandidates: string[] = [];
         const startDateCandidates: string[] = [];
+        const endDateCandidates: string[] = [];
 
         for (const day of DAY_ORDER) {
             const wraps = streamWrapsByDay[day];
@@ -254,13 +205,20 @@ export function computeReadThroughSummary(
                 new Date(d).getTime() > new Date(max).getTime() ? d : max
             );
 
-            const bookDetails = buildCompletedBookCycleDetails(k, history, streamWrapsByDay);
+            const windowStart = new Date(startDate).getTime();
+            const windowEnd = new Date(endDate).getTime();
+
+            const bookDetails = allBooks.map(bookName =>
+                buildBookDetailForCycle(bookName, windowStart, windowEnd, history)
+            );
+
+            const booksCompleted = bookDetails.filter(d => d.completedDate).length;
 
             completed.push({
                 readThroughNumber: k,
                 startDate,
                 endDate,
-                booksCompleted: 66,
+                booksCompleted,
                 totalBooks: 66,
                 bookDetails,
             });
@@ -299,7 +257,22 @@ export function computeReadThroughSummary(
     if (inProgressStartDate) {
         const booksCompletedCurrentCycle = perBookProgress.filter(bp => bp.completedInCurrentCycle).length;
 
-        const inProgressDetails = buildInProgressBookCycleDetails(history, streamWrapsByDay);
+        const lastWrapDates: string[] = [];
+        for (const day of DAY_ORDER) {
+            const wraps = streamWrapsByDay[day];
+            if (wraps.length > 0) {
+                lastWrapDates.push(wraps[wraps.length - 1].date);
+            }
+        }
+
+        const inProgressWindowStart = lastWrapDates.length > 0
+            ? Math.min(...lastWrapDates.map(d => new Date(d).getTime()))
+            : 0;
+        const now = Date.now();
+
+        const inProgressDetails = allBooks.map(bookName =>
+            buildBookDetailForCycle(bookName, inProgressWindowStart, now, history)
+        );
 
         inProgress = {
             readThroughNumber: inProgressNumber,
