@@ -191,10 +191,6 @@ const ViewQuotes = () => {
             }
         };
 
-        const loadingInterval = setInterval(() => {
-            setLoadingSeconds((s) => s + 1);
-        }, 1000);
-
         // Check if we have search results to use
         if (searchState.hasSearchResults && searchState.searchResults.length > 0) {
             console.log('ViewQuotes: Using search results from Redux store');
@@ -221,8 +217,17 @@ const ViewQuotes = () => {
                 fetchQuotes();
             }
         }
-        return () => clearInterval(loadingInterval);
     }, [user, searchState]);
+
+    // Reset and run the loading-seconds counter only while isLoading is true
+    useEffect(() => {
+        if (!isLoading) return;
+        setLoadingSeconds(0);
+        const interval = setInterval(() => {
+            setLoadingSeconds((s) => s + 1);
+        }, 1000);
+        return () => clearInterval(interval);
+    }, [isLoading]);
 
     // Reset search term when modal is opened or closed
     useEffect(() => {
