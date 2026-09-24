@@ -150,6 +150,11 @@ const TopNav = () => {
                                     My Memory Passages
                                 </Nav.Link>
                             )}
+                            {!isGuestUser && location.pathname !== '/importMemoryPassages' && (
+                                <Nav.Link onClick={() => handleNavigation('/importMemoryPassages')}>
+                                    Import Memory Passages
+                                </Nav.Link>
+                            )}
                             {location.pathname !== '/memoryPassagesByBox' && (
                                 <Nav.Link onClick={() => handleNavigation('/memoryPassagesByBox')}>
                                     Memory Passages by Box

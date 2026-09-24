@@ -3,7 +3,7 @@ import { Container, Form, Button, Spinner, Alert, Card } from 'react-bootstrap';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBookOpen, faSearch, faArrowRight } from '@fortawesome/free-solid-svg-icons';
+import { faBookOpen, faSearch, faArrowRight, faUsers } from '@fortawesome/free-solid-svg-icons';
 import {
   BY_REF,
   BY_PSG_TXT,
@@ -121,7 +121,7 @@ const PracticeSetup = () => {
               <Alert.Heading>No Memory Passages Yet</Alert.Heading>
               <p className="mb-3">
                 To practice memorizing Bible passages, you first need to add some
-                memory passages. There are two easy ways to do this:
+                memory passages. There are three easy ways to do this:
               </p>
               <Card className="bg-dark text-white border-secondary mb-3">
                 <Card.Body>
@@ -158,26 +158,45 @@ const PracticeSetup = () => {
                         While reading the chapter, use the toolbar menu to add a
                         single verse or a range of verses to your memory passages.
                       </p>
+                      <Button
+                          variant="primary"
+                          onClick={() => navigate('/viewChapter')}
+                      >
+                        <FontAwesomeIcon icon={faBookOpen} className="me-2" />
+                        Go to View Chapter
+                        <FontAwesomeIcon icon={faArrowRight} className="ms-2" />
+                      </Button>
                     </div>
                   </div>
                 </Card.Body>
               </Card>
-              <div className="d-flex gap-2 flex-wrap">
-                <Button
-                    variant="primary"
-                    onClick={() => navigate('/viewChapter')}
-                >
-                  <FontAwesomeIcon icon={faBookOpen} className="me-2" />
-                  Go to View Chapter
-                  <FontAwesomeIcon icon={faArrowRight} className="ms-2" />
-                </Button>
-                <Button
-                    variant="outline-light"
-                    onClick={() => navigate('/memoryPassages')}
-                >
-                  View My Memory Passages
-                </Button>
-              </div>
+              <Card className="bg-dark text-white border-secondary mb-3">
+                <Card.Body>
+                  <div className="d-flex align-items-start">
+                    <FontAwesomeIcon
+                        icon={faUsers}
+                        className="me-3 mt-1 text-warning"
+                        size="lg"
+                    />
+                    <div>
+                      <h6 className="mb-1">Option 3: Select Memory Passages from Another User</h6>
+                      <p className="mb-2 text-white-50">
+                        Browse another user's memory passages and import any of
+                        them into your own list with a couple of clicks.
+                      </p>
+                      <Button
+                          variant="primary"
+                          size="sm"
+                          onClick={() => navigate('/importMemoryPassages')}
+                      >
+                        <FontAwesomeIcon icon={faUsers} className="me-2" />
+                        Import from Another User
+                        <FontAwesomeIcon icon={faArrowRight} className="ms-2" />
+                      </Button>
+                    </div>
+                  </div>
+                </Card.Body>
+              </Card>
             </Alert>
         )}
 
@@ -261,7 +280,7 @@ const PracticeSetup = () => {
           </Button>
         </div>
 
-        {!isGuestUser && (
+        {(!isGuestUser && passageCount > 0) && (
             <div className="mb-4">
               <h2 className="text-white mb-3">Offline Practice</h2>
               <div className="bg-dark p-3 rounded">

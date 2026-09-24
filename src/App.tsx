@@ -35,6 +35,7 @@ import MemoryPassagesByBox from "./components/MemoryPassagesByBox.tsx";
 import ManageBoxes from './components/ManageBoxes';
 import PublicReadBibleChapter from './components/PublicReadBibleChapter';
 import PublicViewQuotes from "./components/PublicViewQuotes.tsx";
+import ImportMemoryPassages from './components/ImportMemoryPassages';
 
 // Create a wrapper component to access location
 const AppContent = () => {
@@ -277,6 +278,18 @@ const AppContent = () => {
                         element={
                             <ProtectedRoute>
                                 <MemoryPassages/>
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/importMemoryPassages"
+                        element={
+                            <ProtectedRoute>
+                                {isGuestUser ? (
+                                    <Navigate to="/browseBible" replace/>
+                                ) : (
+                                    <ImportMemoryPassages/>
+                                )}
                             </ProtectedRoute>
                         }
                     />

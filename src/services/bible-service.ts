@@ -615,6 +615,22 @@ export class BibleService {
         }
     }
 
+    // MEMORY PASSAGES flow — bulk-imports passages from another user into the current user's list.
+    async importMemoryPassages(
+        user: string,
+        sourcePassageIds: number[]
+    ): Promise<{ imported: number; skipped: number; totalRequested: number }> {
+        try {
+            const response = await axios.post(
+                `${BibleService.BASE_URL}import_memory_passages.php`,
+                { user, sourcePassageIds }
+            );
+            return response.data;
+        } catch (error) {
+            return this.handleError(error, 'importing memory passages');
+        }
+    }
+
     // MEMORY PASSAGES flow — fetches practice history entries for memorization passages.
     async getMemoryPracticeHistory(
         user: string
