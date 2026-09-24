@@ -1,5 +1,5 @@
 // MEMORY PASSAGES flow — paginated history of practice sessions grouped by day, showing which passages were practiced and when.
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useRef} from 'react';
 import {Container, Spinner, Collapse, Button, Pagination} from 'react-bootstrap';
 import {useAppSelector, useAppDispatch} from '../store/hooks';
 import {bibleService} from '../services/bible-service';
@@ -19,8 +19,9 @@ const ViewMemoryPracticeHistory: React.FC = () => {
     const [currentPage, setCurrentPage] = useState(1);
 
     const user = useAppSelector(state => state.user.currentUser);
-    const {passages, loading: passagesLoading} = useAppSelector(state => state.memoryPassage);
+    const {passages, loading: passagesLoading, lastLoaded} = useAppSelector(state => state.memoryPassage);
     const dispatch = useAppDispatch();
+    const hasFetchedRef = useRef(false);
 
     // Calculate pagination values
     const totalPages = Math.ceil(groupedHistory.length / ITEMS_PER_PAGE);
@@ -39,7 +40,7 @@ const ViewMemoryPracticeHistory: React.FC = () => {
                 }, 1000);
 
                 // Fetch memory passages if not already in Redux store
-                if (passages.length === 0 && !passagesLoading) {
+                if (!lastLoaded && !passagesLoading) {
                     dispatch(setMemoryPassagesLoading());
                     const memoryPassages = await bibleService.getMemoryPassageList(user);
                     dispatch(setMemoryPassages(memoryPassages));
@@ -60,7 +61,8 @@ const ViewMemoryPracticeHistory: React.FC = () => {
             }
         };
 
-        if (user) {
+        if (user && !hasFetchedRef.current) {
+            hasFetchedRef.current = true;
             fetchData();
         }
 
@@ -69,7 +71,7 @@ const ViewMemoryPracticeHistory: React.FC = () => {
                 clearInterval(loadingInterval);
             }
         };
-    }, [user, passages.length, passagesLoading, dispatch]);
+    }, [user, lastLoaded, passagesLoading, dispatch]);
 
     const groupHistoryByDate = (entries: MemoryPracticeHistoryEntry[]): GroupedHistoryEntry[] => {
         const groupedMap = new Map<string, MemoryPracticeHistoryEntry[]>();
