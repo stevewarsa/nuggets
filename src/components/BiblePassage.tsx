@@ -329,7 +329,12 @@ const BiblePassage: React.FC<BiblePassageProps> = ({
 
     return (
         <>
-            <Container className="text-center">
+            <Container
+                className="text-center"
+                style={{
+                    paddingBottom: `calc(${floatingButtonsBottomOffset} + 60px)`,
+                }}
+            >
                 {showPassageRef && (
                     <h2 className="passage-title mb-4 fw-bolder">
                         {getPassageReference()} (
