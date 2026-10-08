@@ -5,6 +5,8 @@ import {
     useLocation,
     Navigate,
 } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { offlineCache } from './services/offline-cache';
 import BrowseBiblePassages from './components/BrowseBiblePassages';
 import ViewChapter from './components/ViewChapter';
 import ReadBibleChapter from './components/ReadBibleChapter';
@@ -45,6 +47,38 @@ const AppContent = () => {
     const location = useLocation();
     const buildDateTime = import.meta.env.VITE_BUILD_DATE_TIME || 'Unknown';
 
+    const [pendingSyncCount, setPendingSyncCount] = useState(0);
+    const [showSyncBanner, setShowSyncBanner] = useState(false);
+
+    const refreshPendingCount = async () => {
+        if (isGuestUser) return;
+        const count = await offlineCache.getQueuedCount();
+        setPendingSyncCount(count);
+        setShowSyncBanner(count > 0);
+    };
+
+    useEffect(() => {
+        refreshPendingCount();
+    }, [isGuestUser, location.pathname]);
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            refreshPendingCount();
+        }, 4000);
+        return () => clearInterval(interval);
+    }, [isGuestUser]);
+
+    useEffect(() => {
+        const handleOnline = async () => {
+            if (isGuestUser) return;
+            const result = await offlineCache.syncLastViewedQueue(currentUser);
+            setPendingSyncCount(result.failed);
+            setShowSyncBanner(result.failed > 0);
+        };
+        window.addEventListener('online', handleOnline);
+        return () => window.removeEventListener('online', handleOnline);
+    }, [isGuestUser, currentUser]);
+
     // Check if we're on the login page
     const isLoginPage =
         location.pathname === '/' || location.pathname === '/login';
@@ -52,6 +86,26 @@ const AppContent = () => {
     return (
         <div className="d-flex flex-column min-vh-100">
             {!isLoginPage && <TopNav/>}
+            {!isLoginPage && showSyncBanner && pendingSyncCount > 0 && (
+                <div
+                    style={{
+                        background: '#ffc107',
+                        color: '#212529',
+                        textAlign: 'center',
+                        padding: '6px 12px',
+                        fontSize: '0.875rem',
+                        cursor: 'pointer',
+                    }}
+                    onClick={async () => {
+                        if (isGuestUser) return;
+                        const result = await offlineCache.syncLastViewedQueue(currentUser);
+                        setPendingSyncCount(result.failed);
+                        setShowSyncBanner(result.failed > 0);
+                    }}
+                >
+                    {pendingSyncCount} practice update{pendingSyncCount !== 1 ? 's' : ''} pending due to connection loss — tap to retry now, or it will sync automatically when back online.
+                </div>
+            )}
             <div className="flex-grow-1 mb-5">
                 <Routes>
                     <Route path="/" element={<Login/>}/>

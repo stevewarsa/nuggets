@@ -6,6 +6,7 @@ import { ReadingHistoryEntry } from '../models/reading-history-entry';
 import { Topic } from '../models/topic';
 import { MemoryPracticeHistoryEntry } from '../models/memory-practice-history.ts';
 import { Prayer, PrayerSession } from '../models/prayer.ts';
+import { offlineCache } from './offline-cache';
 import {
     Objection,
     ObjectionCategory,
@@ -348,20 +349,17 @@ export class BibleService {
         lastViewedNum: number,
         lastViewedStr: string
     ): Promise<void> {
-        try {
-            // Fire and forget - we don't await the response
-            axios.get(`${BibleService.BASE_URL}update_last_viewed.php`, {
-                params: {
-                    user,
-                    passageId,
-                    lastViewedNum,
-                    lastViewedStr: encodeURIComponent(lastViewedStr),
-                },
-            });
-        } catch (error) {
-            // Log error but don't throw since this is fire and forget
-            console.error('Error updating last viewed:', error);
-        }
+        // Fire and forget, but catch network failures and queue for retry
+        axios.get(`${BibleService.BASE_URL}update_last_viewed.php`, {
+            params: {
+                user,
+                passageId,
+                lastViewedNum,
+                lastViewedStr: encodeURIComponent(lastViewedStr),
+            },
+        }).catch(() => {
+            offlineCache.queueLastViewed(passageId, lastViewedNum, lastViewedStr);
+        });
     }
 
     // MEMORY PASSAGES flow — batch-updates frequency_days (box) for multiple passages in one call.
