@@ -54,15 +54,22 @@ try {
 
     // --- Step 5: Handle text overrides using conditional updates ---
     if ($newText !== null) {
-        $statement = $pdo->prepare('
-            INSERT INTO passage_text_override (passage_id, verse_num, override_text, passage_ref_append_letter) 
-            VALUES (?, ?, ?, ?) 
-            ON DUPLICATE KEY UPDATE 
-                verse_num = VALUES(verse_num), 
-                override_text = VALUES(override_text), 
-                passage_ref_append_letter = VALUES(passage_ref_append_letter)
-        ');
-        $statement->execute([$passageId, $startVerse, $newText, $passageRefAppendLetter]);
+        $checkOverride = $pdo->prepare('SELECT COUNT(*) FROM passage_text_override WHERE passage_id = ?');
+        $checkOverride->execute([$passageId]);
+        if ((int)$checkOverride->fetchColumn() > 0) {
+            $statement = $pdo->prepare('
+                UPDATE passage_text_override 
+                SET verse_num = ?, override_text = ?, passage_ref_append_letter = ? 
+                WHERE passage_id = ?
+            ');
+            $statement->execute([$startVerse, $newText, $passageRefAppendLetter, $passageId]);
+        } else {
+            $statement = $pdo->prepare('
+                INSERT INTO passage_text_override (passage_id, verse_num, override_text, passage_ref_append_letter) 
+                VALUES (?, ?, ?, ?)
+            ');
+            $statement->execute([$passageId, $startVerse, $newText, $passageRefAppendLetter]);
+        }
     } else if ($passageRefAppendLetter !== null) {
         $statement = $pdo->prepare('UPDATE passage_text_override SET passage_ref_append_letter = ? WHERE passage_id = ?');
         $statement->execute([$passageRefAppendLetter, $passageId]);
