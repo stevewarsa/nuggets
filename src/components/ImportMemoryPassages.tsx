@@ -479,33 +479,47 @@ const ImportMemoryPassages: React.FC = () => {
                                 })}
                             </div>
 
-                            <div className="d-flex justify-content-end">
-                                <Button
-                                    variant="primary"
-                                    size="lg"
-                                    onClick={handleImport}
-                                    disabled={selectedPassageIds.size === 0 || isImporting}
+                            {/* Floating import button — always visible at bottom of viewport */}
+                            {selectedPassageIds.size > 0 && (
+                                <div
+                                    style={{
+                                        position: 'fixed',
+                                        bottom: '60px',
+                                        right: '20px',
+                                        zIndex: 1050,
+                                    }}
                                 >
-                                    {isImporting ? (
-                                        <>
-                                            <Spinner
-                                                as="span"
-                                                animation="border"
-                                                size="sm"
-                                                role="status"
-                                                aria-hidden="true"
-                                                className="me-2"
-                                            />
-                                            Importing...
-                                        </>
-                                    ) : (
-                                        <>
-                                            <FontAwesomeIcon icon={faFileImport} className="me-2" />
-                                            Import {selectedPassageIds.size} Passage{selectedPassageIds.size !== 1 ? 's' : ''}
-                                        </>
-                                    )}
-                                </Button>
-                            </div>
+                                    <Button
+                                        variant="primary"
+                                        size="lg"
+                                        onClick={handleImport}
+                                        disabled={isImporting}
+                                        className="shadow-lg rounded-pill px-4"
+                                        style={{
+                                            boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
+                                        }}
+                                    >
+                                        {isImporting ? (
+                                            <>
+                                                <Spinner
+                                                    as="span"
+                                                    animation="border"
+                                                    size="sm"
+                                                    role="status"
+                                                    aria-hidden="true"
+                                                    className="me-2"
+                                                />
+                                                Importing...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <FontAwesomeIcon icon={faFileImport} className="me-2" />
+                                                Import {selectedPassageIds.size} Passage{selectedPassageIds.size !== 1 ? 's' : ''}
+                                            </>
+                                        )}
+                                    </Button>
+                                </div>
+                            )}
                         </>
                     )}
                 </>
