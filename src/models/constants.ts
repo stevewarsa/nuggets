@@ -1,6 +1,6 @@
 export const TRANSLATION = 'niv';
 export const GUEST_USER: string = 'Guest';
-export const TARGET_REVIEW_DAYS = 21;
+export const TARGET_REVIEW_DAYS = 14;
 export const PROGRESS_BAR_THRESHOLD = 30;
 
 export const booksByDay: {[dayName: string]: string[]}  = {
