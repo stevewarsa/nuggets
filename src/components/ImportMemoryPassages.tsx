@@ -54,6 +54,9 @@ const ImportMemoryPassages: React.FC = () => {
     const [isLoadingUsers, setIsLoadingUsers] = useState(true);
     const [isLoadingPassages, setIsLoadingPassages] = useState(false);
     const [isImporting, setIsImporting] = useState(false);
+    const [availableCounts, setAvailableCounts] = useState<Map<string, number>>(new Map());
+    const passageListCache = useRef<Map<string, Passage[]>>(new Map());
+    const currentUserPassagesRef = useRef<Passage[]>([]);
     const fetchedUserRef = useRef<string | null>(null);
     const { showToast, toastProps, toastMessage } = useToast();
 
@@ -64,8 +67,33 @@ const ImportMemoryPassages: React.FC = () => {
             try {
                 setIsLoadingUsers(true);
                 const users = await bibleService.getAllUsers();
-                const filtered = users.filter((u: AppUser) => u.userName !== currentUser);
-                setAllUsers(filtered);
+                const candidates = users.filter((u: AppUser) => u.userName !== currentUser);
+                const [myPassages, ...passageLists] = await Promise.all([
+                    bibleService.getMemoryPassageList(currentUser),
+                    ...candidates.map((u) => bibleService.getMemoryPassageList(u.userName)),
+                ]);
+                currentUserPassagesRef.current = Array.isArray(myPassages) ? myPassages : [];
+                const myPassageKeys = new Set(
+                    currentUserPassagesRef.current.map((p) =>
+                        `${p.bookId}-${p.chapter}-${p.startVerse}-${p.endVerse}-${p.passageRefAppendLetter || ''}`
+                    )
+                );
+                const usersWithPassages: AppUser[] = [];
+                const cache = new Map<string, Passage[]>();
+                const counts = new Map<string, number>();
+                for (let i = 0; i < candidates.length; i++) {
+                    if (Array.isArray(passageLists[i]) && passageLists[i].length > 0) {
+                        usersWithPassages.push(candidates[i]);
+                        cache.set(candidates[i].userName, passageLists[i]);
+                        const availableCount = passageLists[i].filter(
+                            (p) => !myPassageKeys.has(`${p.bookId}-${p.chapter}-${p.startVerse}-${p.endVerse}-${p.passageRefAppendLetter || ''}`)
+                        ).length;
+                        counts.set(candidates[i].userName, availableCount);
+                    }
+                }
+                passageListCache.current = cache;
+                setAllUsers(usersWithPassages);
+                setAvailableCounts(counts);
             } catch (error) {
                 console.error('Error fetching users:', error);
                 showToast({ message: 'Failed to load user list', variant: 'error' });
@@ -97,10 +125,8 @@ const ImportMemoryPassages: React.FC = () => {
 
         try {
             setIsLoadingPassages(true);
-            const [passages, overridePassages] = await Promise.all([
-                bibleService.getMemoryPassageList(userName),
-                bibleService.getMemoryPassageTextOverrides(userName),
-            ]);
+            const passages = passageListCache.current.get(userName) || [];
+            const overridePassages = await bibleService.getMemoryPassageTextOverrides(userName);
 
             // Build override map: passageId -> array of override entries
             const overrideMap = new Map<number, OverrideEntry[]>();
@@ -124,8 +150,18 @@ const ImportMemoryPassages: React.FC = () => {
                 }
             }
 
+            // Filter out passages the current user already has
+            const myPassageKeys = new Set(
+                currentUserPassagesRef.current.map((p) =>
+                    `${p.bookId}-${p.chapter}-${p.startVerse}-${p.endVerse}-${p.passageRefAppendLetter || ''}`
+                )
+            );
+            const notOwned = passages.filter(
+                (p) => !myPassageKeys.has(`${p.bookId}-${p.chapter}-${p.startVerse}-${p.endVerse}-${p.passageRefAppendLetter || ''}`)
+            );
+
             // Apply append letters to the passages so getPassageReference picks them up
-            const enriched = passages.map((p) => {
+            const enriched = notOwned.map((p) => {
                 const letter = letterMap.get(p.passageId);
                 return letter ? { ...p, passageRefAppendLetter: letter } : p;
             });
@@ -324,11 +360,14 @@ const ImportMemoryPassages: React.FC = () => {
                     style={{ maxWidth: '400px' }}
                 >
                     <option value="">-- Select a user --</option>
-                    {allUsers.map((u) => (
-                        <option key={u.userName} value={u.userName}>
-                            {u.userName} (Last active: {u.lastModified})
-                        </option>
-                    ))}
+                    {allUsers.map((u) => {
+                        const count = availableCounts.get(u.userName) ?? 0;
+                        return (
+                            <option key={u.userName} value={u.userName}>
+                                {u.userName} ({count} passage{count !== 1 ? 's' : ''})
+                            </option>
+                        );
+                    })}
                 </Form.Select>
             </Form.Group>
 
