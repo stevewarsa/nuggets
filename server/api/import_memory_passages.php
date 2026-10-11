@@ -26,7 +26,7 @@ try {
     // Fetch the source passages with their memory_passage data
     $placeholders = implode(',', array_fill(0, count($sourcePassageIds), '?'));
     $fetchStmt = $pdo->prepare("
-        SELECT p.book_id, p.chapter, p.start_verse, p.end_verse, m.preferred_translation_cd
+        SELECT p.passage_id, p.book_id, p.chapter, p.start_verse, p.end_verse, m.preferred_translation_cd
         FROM passage p
         INNER JOIN memory_passage m ON m.passage_id = p.passage_id AND m.user_id = p.user_id
         WHERE p.passage_id IN ($placeholders)
@@ -40,11 +40,14 @@ try {
         exit;
     }
 
-    // Fetch the target user's existing passages to check for duplicates
+    // Fetch the target user's existing MEMORY passages to check for duplicates.
+    // The passage table is shared with nuggets (browse Bible flow), so we must
+    // join memory_passage to only check against actual memory passages.
     $existingStmt = $pdo->prepare("
-        SELECT book_id, chapter, start_verse, end_verse
-        FROM passage
-        WHERE user_id = ?
+        SELECT p.book_id, p.chapter, p.start_verse, p.end_verse
+        FROM passage p
+        INNER JOIN memory_passage m ON m.passage_id = p.passage_id AND m.user_id = p.user_id
+        WHERE p.user_id = ?
     ");
     $existingStmt->execute([$current_user_id]);
     $existingPassages = $existingStmt->fetchAll();
@@ -69,6 +72,16 @@ try {
         VALUES (?, ?, ?, 1)
     ');
 
+    $insertExplanationStmt = $pdo->prepare('
+        INSERT INTO passage_explanation (passage_id, explanation)
+        VALUES (?, ?)
+    ');
+
+    $insertOverrideStmt = $pdo->prepare('
+        INSERT INTO passage_text_override (passage_id, verse_num, override_text, passage_ref_append_letter, words_of_christ)
+        VALUES (?, ?, ?, ?, ?)
+    ');
+
     foreach ($sourcePassages as $row) {
         $key = $row['book_id'] . ':' . $row['chapter'] . ':' . $row['start_verse'] . ':' . $row['end_verse'];
 
@@ -87,6 +100,7 @@ try {
         ]);
 
         $newPassageId = (int)$pdo->lastInsertId();
+        $sourcePassageId = (int)$row['passage_id'];
 
         // Insert into memory_passage table
         $insertMemoryPassageStmt->execute([
@@ -94,6 +108,31 @@ try {
             $newPassageId,
             $row['preferred_translation_cd'],
         ]);
+
+        // Copy passage_explanation if one exists
+        $explanationStmt = $pdo->prepare('SELECT explanation FROM passage_explanation WHERE passage_id = ?');
+        $explanationStmt->execute([$sourcePassageId]);
+        $explanationRow = $explanationStmt->fetch();
+        if ($explanationRow && $explanationRow['explanation'] !== null) {
+            $insertExplanationStmt->execute([$newPassageId, $explanationRow['explanation']]);
+        }
+
+        // Copy passage_text_override rows if any exist
+        $overrideStmt = $pdo->prepare('
+            SELECT verse_num, override_text, passage_ref_append_letter, words_of_christ
+            FROM passage_text_override
+            WHERE passage_id = ?
+        ');
+        $overrideStmt->execute([$sourcePassageId]);
+        while ($overrideRow = $overrideStmt->fetch()) {
+            $insertOverrideStmt->execute([
+                $newPassageId,
+                (int)$overrideRow['verse_num'],
+                $overrideRow['override_text'],
+                $overrideRow['passage_ref_append_letter'],
+                $overrideRow['words_of_christ'] !== null ? (int)$overrideRow['words_of_christ'] : null,
+            ]);
+        }
 
         // Mark as existing to prevent dupes within the same batch
         $existingSet[$key] = true;
